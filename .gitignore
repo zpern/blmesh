@@ -1,0 +1,105 @@
+﻿ #----------CONFIG BY ZHENG JIANJING-----------
+# Release file
+Release/
+
+# Debug file
+Debug/
+bu/
+#mac file
+.cmake/
+.DS_Store
+
+libigl*/
+geogram*/
+
+*.pls
+*.fr2
+x64/
+*.obj
+*.cgns
+test.pls
+TRAN_CONFIG*
+
+.vs/
+# CMake files
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+*.cbp
+# lib & bin file
+lib
+bin
+build/
+build_vscode/
+
+# Project files
+*.user*
+*.sln
+*.sdf
+*quality.txt
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.opensdf
+*.suo
+*.plg
+*.ncb
+*.opt
+.idea/
+
+#mesh 
+*.vtk
+*Meshing.txt
+*Meshing.pls
+symmetry.pls
+*.bdry
+*.log
+# Prerequisites
+*.d
+*.pl3
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+*vcxproj.user
+# Demo files
+/demo/bomb_cf/*
+.vs/
+vmesh/testcase/za.pls
+vmesh/testcase/VolumeMeshing*
+vmesh/testcase/TetraMeshing*
+vmesh/testcase/*.pls
+vmesh/testcase/f2
+

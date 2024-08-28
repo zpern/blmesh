@@ -1,0 +1,7 @@
+build:
+  script: bash configure.sh
+  timeout: 3 hours 30 minutes
+
+test:
+  script: bash test.sh
+  timeout: 3h 30m

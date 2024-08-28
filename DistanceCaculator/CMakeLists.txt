@@ -1,0 +1,21 @@
+cmake_minimum_required (VERSION 2.6)
+project(DistanceCaculator)
+#best opt
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0 -g")
+#
+message("building DistanceCaculator.lib")
+#
+add_definitions(-D _LIB)
+include_directories(./include ./src ./geom ../BLMesh/include ../BLMesh/src)
+add_library(DistanceCaculator STATIC 
+./include/kdtree.h
+./src/kdtree.cpp
+./include/dataio.h
+./src/dataio.cpp
+./src/scendata.cpp
+./include/scendata.h
+../BLMesh/include/BLVector.h
+../BLMesh/src/BLVector.cpp
+)
+
+
