@@ -6,7 +6,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0 -g")
 message("building DistanceCaculator.lib")
 #
 add_definitions(-D _LIB)
-include_directories(./include ./src ./geom ../BLMesh/include ../BLMesh/src)
+include_directories(./include ./src ./geom ../blmesh/include ../blmesh/src)
 add_library(DistanceCaculator STATIC 
 ./include/kdtree.h
 ./src/kdtree.cpp
@@ -14,8 +14,8 @@ add_library(DistanceCaculator STATIC
 ./src/dataio.cpp
 ./src/scendata.cpp
 ./include/scendata.h
-../BLMesh/include/BLVector.h
-../BLMesh/src/BLVector.cpp
+../blmesh/include/BLVector.h
+../blmesh/src/BLVector.cpp
 )
 
 
