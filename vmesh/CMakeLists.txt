@@ -5,7 +5,7 @@ include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 CHECK_CXX_COMPILER_FLAG("-std=c++14" COMPILER_SUPPORTS_CXX14)
 
-include_directories(./include ./src ../BLMesh/include ../BLPre/include/)
+include_directories(./include ./src ../blmesh/include ../BLPre/include/)
 include_directories(../dtiso3d/third/tetgen)
 
 
@@ -28,7 +28,7 @@ link_directories(${PROJECT_SOURCE_DIR}/../tiger/lib)
 link_directories(${PROJECT_BINARY_DIR}/../lib)
 
 add_library(vmesh STATIC
-../BLMesh/include/blmeshapi.h
+../blmesh/include/blmeshapi.h
 ../BLPre/include/blpre.h
 include/Config.h
 include/vmesh.h
