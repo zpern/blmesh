@@ -6,7 +6,7 @@
 #include <array>
 #include <cmath>
 #include <set>
-#include "../BLMesh/include/BLVector.h"
+#include "../blmesh/include/BLVector.h"
 #include <limits>
 
 //return true if a extra optimization is necessary
