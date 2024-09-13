@@ -519,6 +519,7 @@ private:
 
 	//intersection parameters
 	std::vector<int> m_vecData;
+	std::vector<int> m_vecData_symm;
 	OCCUBE m_cbCube;
 	//std::vector<std::array<double, 6>> boxs_;//快速求包围盒
 	int box_offset_;//记录boxs_数组和三角形数组之间的index差距
@@ -529,6 +530,11 @@ private:
 	int m_nAllocTriElems;
 	OctreeAgent* m_ocAgent;
 	OCT::Octree* m_ocTree;
+
+    DynamicArray<SearchTriangle> m_TriElm_symm;
+
+	OctreeAgent* m_ocAgent_symm;
+    OCT::Octree* m_ocTree_symm;
 
 	std::vector<int> temp_to_del;
 	//fmm related

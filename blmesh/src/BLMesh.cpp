@@ -393,7 +393,7 @@ int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
 		}
 #ifdef _CHECK_INTERSECTION
 		//intersection 
-		if (bct != BoundaryType::symmetry&&bct!=BoundaryType::per)
+		if (true)
 		{
 			//m_pTriElm[intercnt * 3 + 0] = ele[4 * i + 0];
 			//m_pTriElm[intercnt * 3 + 1] = ele[4 * i + 1];
@@ -429,10 +429,20 @@ int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
 
 
 			//}
+           
 			sort(element.begin(), element.end());
-			int id = m_TriElm.AddElem(element);
-			m_vecData.push_back(id);
-			l2g[id] = i;
+            int id = 0;
+            if( bct != BoundaryType::symmetry && bct != BoundaryType::per ){
+                id = m_TriElm.AddElem(element);
+				m_vecData.push_back(id);
+				
+				l2g[id] = i;
+			}
+			else{
+				id = m_TriElm_symm.AddElem(element);
+				m_vecData_symm.push_back(id);
+			}
+			
 			//intercnt++;
 		}
 #endif
@@ -656,6 +666,11 @@ int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
 	m_ocTree = new OCT::Octree(m_ocAgent, max_depth_);
 
 
+    // cout << max_depth_;
+    m_ocAgent_symm = new OctreeAgent(m_TriElm, m_pNodes);
+	m_ocTree_symm = new OCT::Octree(m_ocAgent, max_depth_);
+
+
 	for (int k = 0; k < 3; k++) {
 		box_max[k] += ave_front_size * 30;
 		box_min[k] -= ave_front_size * 30;
@@ -670,6 +685,7 @@ int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
 	cf.min_volumn_eps = ave_front_size * cf.step_len*cf.step_len*1.0 / 6.0*0.1;
 
 	m_ocTree->buildOcTree(m_cbCube, m_vecData, max_obj_);
+	m_ocTree_symm->buildOcTree(m_cbCube, m_vecData_symm, max_obj_);
 
 	model_centor = (m_cbCube.upper + m_cbCube.lower) / 2;
 	//m_ocTree->saveOCTreeVectorVTK("octree.vtk");
@@ -1076,7 +1092,7 @@ int BLMesh::ReadBoundary(const INPUTFORMAT file, bool clear)
 
 #ifdef _CHECK_INTERSECTION
 		//intersection 
-		if (bct != BoundaryType::symmetry&&bct != BoundaryType::per&&bct != BoundaryType::farfield)
+		if (true)
 		{
 			//m_pTriElm[intercnt * 3 + 0] = ele[4 * i + 0];
 			//m_pTriElm[intercnt * 3 + 1] = ele[4 * i + 1];
@@ -1111,9 +1127,20 @@ int BLMesh::ReadBoundary(const INPUTFORMAT file, bool clear)
 
 			//}
 			sort(element.begin(), element.end());
-			int id = m_TriElm.AddElem(element);
-			m_vecData.push_back(id);
-			l2g[id] = i;
+
+			int id;
+			if (bct != BoundaryType::symmetry && bct != BoundaryType::per) {
+				id = m_TriElm.AddElem(element);
+				m_vecData.push_back(id);
+
+				l2g[id] = i;
+			}
+			else {
+				id = m_TriElm_symm.AddElem(element);
+				m_vecData_symm.push_back(id);
+			}
+
+
 			//intercnt++;
 		}
 #endif
@@ -1229,7 +1256,8 @@ int BLMesh::ReadBoundary(const INPUTFORMAT file, bool clear)
 	m_ocAgent = new OctreeAgent(m_TriElm, m_pNodes);
 	m_ocTree = new OCT::Octree(m_ocAgent, max_depth_);
 
-
+	m_ocAgent_symm = new OctreeAgent(m_TriElm, m_pNodes);
+	m_ocTree_symm = new OCT::Octree(m_ocAgent, max_depth_);
 	for (int k = 0; k < 3; k++) {
 		box_max[k] += ave_front_size * 30;
 		box_min[k] -= ave_front_size * 30;
@@ -1244,6 +1272,7 @@ int BLMesh::ReadBoundary(const INPUTFORMAT file, bool clear)
 	cf.min_volumn_eps = ave_front_size * cf.step_len*cf.step_len*1.0 / 6.0*0.1;
 
 	m_ocTree->buildOcTree(m_cbCube, m_vecData, max_obj_);
+	m_ocTree_symm->buildOcTree(m_cbCube, m_vecData_symm, max_obj_);
 	//m_ocTree->saveOCTreeVectorVTK("octree.vtk");
 	//BFS
 	stack<TreeNode*> q;
@@ -3257,7 +3286,8 @@ void BLMesh::GenerateBLMesh()
 
 
 
-		NormalSmoothStrategy *ns_strategy = (new SimpleNormalSmoothStrategy(blFrtNods, m_pNodes, nFrtNods));
+		NormalSmoothStrategy* ns_strategy =
+            (new SimpleNormalSmoothStrategy(blFrtNods, m_pNodes, nFrtNods));
 		ns_strategy->SetFaceidSP(faceid2sp);
 
 	//	NormalSmoothStrategy *ns_strategy = (new VORONOISMOOTHING::VoronoiNormalSmoothStategy(blFrtNods, m_pNodes, nFrtNods));
@@ -3534,7 +3564,6 @@ void BLMesh::GenerateBLMesh()
 		double propegate_start = clock();
 		/*if(m_nCurrLayer>25)
 		m_ocTree->printElement("before.pls");*/
-
 
 
 
@@ -4342,6 +4371,15 @@ void BLMesh::CheckInsertSideSuface(BLFront *blFront)
 			is_inserect = true;
 			break;
 		}
+		if (!blNods[0]->GetBSys() && !blNods[1]->GetBSys() && !blNods[2]->GetBSys()) {
+			m_ocTree_symm->insertPreProcess(itri[k]);
+			if (m_ocTree_symm->chckIntersectPreProcess(itri[k]))
+			{
+				is_inserect = true;
+				break;
+			}
+			m_ocTree_symm->rmDataPreProcess(itri[k]);
+		}
 	}
 
 	if (is_inserect)
@@ -4394,6 +4432,7 @@ void BLMesh::CheckInsertSuface(BLFront *blFront)
 	{
 		if (m_ocTree->check_intersection_in_set(blNods[k]->GetUpperNode()->GetNodIdx()))
 		{
+			
 			is_inserect = true;
 #ifdef _DEBUG
 			cout << "=====================" << endl;
@@ -4405,6 +4444,22 @@ void BLMesh::CheckInsertSuface(BLFront *blFront)
 			inser_queue.push_back(blFront);
 			return;
 		}
+		if (!blNods[0]->GetBSys() && !blNods[1]->GetBSys() && !blNods[2]->GetBSys()) {
+			if (m_ocTree_symm->check_intersection_in_set(blNods[k]->GetUpperNode()->GetNodIdx()))
+			{
+				is_inserect = true;
+#ifdef _DEBUG
+				cout << "=====================" << endl;
+				cout << "side inter 2";
+#endif
+				for (i = 0; i < neigs; i++) {
+					inser_queue.push_back(neigFrts[i]);
+				}
+				inser_queue.push_back(blFront);
+				return;
+			}
+		}
+
 	}
 }
 void BLMesh::insertAndRmTriInOctree(BLFront *blFront)
@@ -4442,6 +4497,7 @@ void BLMesh::insertAndRmTriInOctree(BLFront *blFront)
 	}
 
 	m_ocTree->rmDataPreProcess(id);
+
 	//m_ocTree->setNodeBefore(blFront->GetOuterNode());
 	for (i = 0; i < DIM3; i++)
 	{
@@ -4450,10 +4506,13 @@ void BLMesh::insertAndRmTriInOctree(BLFront *blFront)
 
 			m_ocTree->insertPreProcess(blFront->GetSTriIdx(i, 0));
 			m_ocTree->insertPreProcess(blFront->GetSTriIdx(i, 1));
+
+
 		}
 	}
 
 	m_ocTree->insertPreProcess(blFront->GetUpperFront()->GetTriIdx());
+
 	//blFront->GetUpperFront()->SetOuterNode(m_ocTree->getNodeBefore());
 	m_ocTree->setNodeBefore(blFront->GetOuterNode());
 
@@ -5683,6 +5742,7 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 		{
 			if (!ret)
 				ret = m_ocTree->chckIntersectPreProcess(itri[j]);
+
 
 		}
 		if (ret) //intersections happen
@@ -8141,7 +8201,7 @@ void BLMesh::GenOuterMesh(int smooth_attempt)
 			nbpt, bpt, nbelm, belm,
 			intCstNum.data(), nullptr,
 			smooth_attempt,
-			createSizingFunc,
+			nullptr,
 			&re_obj_handler);
 	}
 	catch (std::exception e)
@@ -8381,7 +8441,7 @@ void BLMesh::CalOriginSize(int npt, int nlem, double *pt, int *elm, double *&pt_
                 double target_size = ave_size;
 		BLNode *bln =
                     reinterpret_cast<BLNode*>(m_pNodes[l_to_g[i]].pointer);
-		if(bln->GetLowerNode()){
+		if(bln&&bln->GetLowerNode()){
                         int lowerid =
                             bln->GetLowerNode()->GetNodIdx();
 						int upperid=l_to_g[i];

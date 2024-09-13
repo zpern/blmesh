@@ -156,7 +156,7 @@ namespace VORONOISMOOTHING {
 			VoronoiPoint p;
 			p.pos = blNod->GetLowerNode()->GetNormal();
 			p.func = std::shared_ptr<ExpWightFunc<1>>(new ExpWightFunc<1>());
-			p.func->setExpoent(80*all_height/ all_length);
+			p.func->setExpoent(200*all_height/ all_length);
 			nnormals.push_back(p);
 
 
@@ -375,7 +375,7 @@ namespace VORONOISMOOTHING {
 			norm0[blNod->GetSymAxis()] = 0;
 		}
 
-		if (norm0*  blNod->GetNormal() < 0.999) {
+		if (norm0*  blNod->GetNormal() < 0.992) {
 			for (int i = 0; i < nNeigNods; i++) {
 				blNodes[i]->if_need_smooth = true;
 

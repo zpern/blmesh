@@ -6072,6 +6072,7 @@ transfer_times_(0)
 
 Octree::~Octree()
 {
+	if(pRoot)
 	destroyNode(pRoot);
 	if (node_before) {
 		node_before = nullptr;
@@ -7158,10 +7159,15 @@ void Octree::rmData(int data, TreeNode *node, const OCCUBE cube, std::array<doub
 }
 bool Octree::chckIntersectPreProcess(int data) {
 
+	if (!node_before)
+		node_before = pRoot;
+
+
 	TreeNode* tmp = node_before;
 #ifdef _DEBUG
 	double t1 = clock();
 #endif
+
 	OCCUBE cube = tmp->getCube();
 	if (data < 0 || !tmp)
 	{
@@ -7202,6 +7208,7 @@ bool Octree::chckIntersectPreProcess(int data) {
 }
 void Octree::destroyNode(TreeNode* p)
 {
+
 	for (int i = 0; i < OC_SUBNODES; i++) {
 		if (p->getChild(i)) {
 			destroyNode(p->getChild(i));
