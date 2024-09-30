@@ -1,6 +1,6 @@
 ﻿#include"dataio.h"
 #include <spdlog/spdlog.h> 
- #include "kdtree.h"
+ #include "../include/kdtree.h"
 
 void rayTriIntersect(Ray r, Triangle t, bool& b, BLVector& interPos, bool& inBou, float &tt, float &u, float &v,double length) {
 	if (!rayAABBIntersect(r, t.box,length)) {

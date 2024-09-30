@@ -20,7 +20,7 @@ add_library(DistanceCaculator STATIC
 
 
 
-target_include_directories(DistanceCaculator public ./include ./src ./geom ../blmesh/include ../blmesh/src)
+target_include_directories(DistanceCaculator PUBLIC ./include ./src ./geom ../blmesh/include ../blmesh/src)
 
 
 
