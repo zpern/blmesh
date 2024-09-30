@@ -84,6 +84,13 @@ TEST(API_Gen_Boundary_Mesh, intersection) {
 		fin >> trash >> pnSFFm[3 * i + 1] >> pnSFFm[3 * i + 0] >> pnSFFm[3 * i + 2] >> pnSFPt[i];
 		maxF = std::max(maxF, pnSFPt[i]);
 	}
+	int* l2g;             /*  顶面网格id到全局点id的映射  */
+	double* ppnsizing; /* 顶面网格目标尺寸 */
+
+	int num_boundary_face;  /////* 边界面网格数量 **/ 
+	int* boundary_mesh;  /////* 边界面网格，注意每四个为一组，而且注意如果为三角形，最后一项为-1，id从0开始 **/ 
+	int* boundary_face;  /////* 边界面网格对应的面id，长度为num_boundary_face **/ 
+
 
 	//std::array<double, 12> per_face = {1,0,0,0,984808,0.173648,0,-0.173648,0.984808,0,0,0};
 	std::array<double, 12> per_face = { 1,0,0,0,0.959493,0.281733,0,-0.281733,0.959493,0,0,0 };
@@ -113,6 +120,12 @@ TEST(API_Gen_Boundary_Mesh, intersection) {
 			&pnSEO,			/* 顶面网格单元数目 */
 			&ppnSFTpO,		/* 顶面网格单元类型。当前仅支持三角形单元 */
 			&ppnSFFmO,		/* 顶面网格单元节点编号 */
+			&l2g,			/*  顶面网格id到全局点id的映射  */
+			&ppnsizing,		/* 顶面网格目标尺寸 */
+			/*-------------------------边界信息 ---------------------*/
+			&num_boundary_face,  /////* 边界面网格数量 **/ 
+			&boundary_mesh, /////* 边界面网格，注意每四个为一组，而且注意如果为三角形，最后一项为-1，id从0开始 **/ 
+			&boundary_face,  /////* 边界面网格对应的面id，长度为num_boundary_face **/ 
 			b_have_pyramid, /*是否有金字塔*/
 			buse_multiple_normals, /*是否启用多法向 */
 			b_output_IO,

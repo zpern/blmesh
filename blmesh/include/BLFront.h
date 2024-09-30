@@ -45,6 +45,15 @@ public:
 		}
 		m_nNeiFront = 0;
 	}
+	std::array<BLNode*,3> GetNodes() {
+		std::array<BLNode*, 3> ans;
+
+		for (int i = 0; i < 3; i++)
+		{
+			ans[i] = m_pBLNods[i];
+		}
+		return ans;
+	}
 	void GetNodes(int* nNods, BLNode** blNods) {
 		int i = 0;
 		*nNods = 3;

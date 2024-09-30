@@ -24,7 +24,7 @@ namespace VORONOISMOOTHING {
 	* \return arc length between p1 and p2
 	*/
 	inline double PointGeodesicLength(const BLVector& p1, const BLVector& p2) {
-		return acos(p1*p2);
+		return acos(p1*p2)/PI;
 	}
 
 

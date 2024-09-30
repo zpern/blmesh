@@ -23,9 +23,10 @@
 
 //#include "test_f6_box_symm.h"
 //#include "test_intersection_tetra.h"
-#include "test_intersection_vol.h"
+//#include "test_intersection_vol.h"
+//#include "test_intersection.h"
 //#include "test_two_cubic.h"
-
+#include "test_intersection.h"
 //#include "test_postprocess_vol.h"
 
 #define TESTVOLMESH 0

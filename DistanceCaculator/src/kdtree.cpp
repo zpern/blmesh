@@ -1,5 +1,5 @@
 #include <spdlog/spdlog.h> 
- #include "kdtree.h"
+ #include "../include/kdtree.h"
 
 kdTree::kdTree()
 {

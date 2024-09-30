@@ -3288,10 +3288,12 @@ void BLMesh::GenerateBLMesh()
 
 		NormalSmoothStrategy* ns_strategy =
             (new SimpleNormalSmoothStrategy(blFrtNods, m_pNodes, nFrtNods));
+		
+
+		//NormalSmoothStrategy *ns_strategy = (new VORONOISMOOTHING::VoronoiNormalSmoothStategy(blFrtNods, m_pNodes, nFrtNods));
+
+
 		ns_strategy->SetFaceidSP(faceid2sp);
-
-	//	NormalSmoothStrategy *ns_strategy = (new VORONOISMOOTHING::VoronoiNormalSmoothStategy(blFrtNods, m_pNodes, nFrtNods));
-
 	//	ns_strategy->SetSmoothTimes(ipass);
 		double angle = 70;
 #ifdef VIRTUAL_MESH
