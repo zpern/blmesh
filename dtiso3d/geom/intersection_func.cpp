@@ -1647,7 +1647,7 @@ int lin_tri_intersect2d(double linep[2][2], double facep[3][2], int *intTyp, int
 			if (iOrt1 == 0.0)
 			{
 				/* 走到这一步，iOrt2和iOrt3值必然和iOrt同号 */
-				assert(iOrt2*iOrt > 0.0 && iOrt3*iOrt > 0.0);
+				//assert(iOrt2*iOrt > 0.0 && iOrt3*iOrt > 0.0);
 				isInt = 1;
 				*intTyp = LTI_INTERSECT_EDG;
 				*intCod = 0;

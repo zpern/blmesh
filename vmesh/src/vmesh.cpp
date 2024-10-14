@@ -536,7 +536,7 @@ namespace TiGER {
 			numFace = max(numFace, pnSFPt[i]);
 		}
 		for (int i = 0; i < numFace; i++) {
-			bcs[pnFT[i]].push_back(i + 1);
+			bcs[pnFT[i]].push_back(i);
 		}
 
 		cf.vecBoxFc = bcs[0];

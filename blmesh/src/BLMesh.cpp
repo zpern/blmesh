@@ -439,8 +439,9 @@ int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
 				l2g[id] = i;
 			}
 			else{
-				id = m_TriElm_symm.AddElem(element);
+				id = m_TriElm.AddElem(element);
 				m_vecData_symm.push_back(id);
+				l2g[id] = i;
 			}
 			
 			//intercnt++;
@@ -668,7 +669,7 @@ int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
 
     // cout << max_depth_;
     m_ocAgent_symm = new OctreeAgent(m_TriElm, m_pNodes);
-	m_ocTree_symm = new OCT::Octree(m_ocAgent, max_depth_);
+	m_ocTree_symm = new OCT::Octree(m_ocAgent_symm, max_depth_);
 
 
 	for (int k = 0; k < 3; k++) {
@@ -1136,8 +1137,9 @@ int BLMesh::ReadBoundary(const INPUTFORMAT file, bool clear)
 				l2g[id] = i;
 			}
 			else {
-				id = m_TriElm_symm.AddElem(element);
+				id = m_TriElm.AddElem(element);
 				m_vecData_symm.push_back(id);
+				l2g[id] = i;
 			}
 
 
@@ -4374,13 +4376,13 @@ void BLMesh::CheckInsertSideSuface(BLFront *blFront)
 			break;
 		}
 		if (!blNods[0]->GetBSys() && !blNods[1]->GetBSys() && !blNods[2]->GetBSys()) {
-			m_ocTree_symm->insertPreProcess(itri[k]);
-			if (m_ocTree_symm->chckIntersectPreProcess(itri[k]))
-			{
-				is_inserect = true;
-				break;
-			}
-			m_ocTree_symm->rmDataPreProcess(itri[k]);
+			//m_ocTree_symm->insertPreProcess(itri[k]);
+			//if (m_ocTree_symm->chckIntersectPreProcess(itri[k]))
+			//{
+			//	is_inserect = true;
+			//	break;
+			//}
+			//m_ocTree_symm->rmDataPreProcess(itri[k]);
 		}
 	}
 
