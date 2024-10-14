@@ -154,7 +154,11 @@ BLMesh::~BLMesh(void)
 
 	//delete m_pPotentialBEM;
 }
-
+auto intersect_two = [](const std::vector<short>& a, const std::vector<short>& b) {
+	std::vector<short> result;
+	std::set_intersection(a.begin(), a.end(), b.begin(), b.end(), std::back_inserter(result));
+	return result;
+	};
 /**
 
   *  @author yhf
@@ -799,12 +803,12 @@ int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
 			*fin >> tmp >> id1 >> id2;
 			if (m_pNodes[id1 - 1].bsysm && m_pNodes[id2 - 1].bsysm)
 			{
-				m_pNodes[id1 - 1].isymfc = fidx;		//temporally setting
+				m_pNodes[id1 - 1].isymfc.push_back(fidx);		//temporally setting
 
 				BLNode* blNod1 = (BLNode*)m_pNodes[id1 - 1].pointer;
 				blNod1->SetBSys(true, iaxis);
 
-				m_pNodes[id2 - 1].isymfc = fidx;		//temporally setting
+				m_pNodes[id2 - 1].isymfc.push_back(fidx); // temporally setting
 
 				BLNode* blNod2 = (BLNode*)m_pNodes[id2 - 1].pointer;
 				blNod2->SetBSys(true, iaxis);
@@ -1374,12 +1378,13 @@ int BLMesh::ReadBoundary(const INPUTFORMAT file, bool clear)
 			*fin >> tmp >> id1 >> id2;
 			if (m_pNodes[id1 - 1].bsysm && m_pNodes[id2 - 1].bsysm)
 			{
-				m_pNodes[id1 - 1].isymfc = fidx;		//temporally setting
+                m_pNodes[id1 - 1].isymfc.push_back(fidx);
+                 // temporally setting
 
 				BLNode* blNod1 = (BLNode*)m_pNodes[id1 - 1].pointer;
 				blNod1->SetBSys(true, iaxis);
 
-				m_pNodes[id2 - 1].isymfc = fidx;		//temporally setting
+				m_pNodes[id2 - 1].isymfc.push_back(fidx); // temporally setting
 
 				BLNode* blNod2 = (BLNode*)m_pNodes[id2 - 1].pointer;
 				blNod2->SetBSys(true, iaxis);
@@ -3151,8 +3156,17 @@ void BLMesh::GenerateBLMesh()
 				Eigen::RowVector3d start_point(m_pNodes[nodeid].coord[0],
 					m_pNodes[nodeid].coord[1], m_pNodes[nodeid].coord[2]);
 				Eigen::RowVector3d normal(ans[0], ans[1], ans[2]);
-				int faceid = m_pNodes[nodeid].isymfc;
-				faceid2sp[faceid].adjustNormal(start_point,normal);
+				std::vector<short> faceid = m_pNodes[nodeid].isymfc;
+				if(faceid.size()==1)
+					faceid2sp[faceid[0]].adjustNormal(start_point,normal);
+				else{
+
+					for (int j = 0; j < 10; j++) {
+						faceid2sp[faceid[0]].adjustNormal(start_point, normal);
+						faceid2sp[faceid[1]].adjustNormal(start_point, normal);
+
+					}
+				}
 				BLVector n(normal(0),normal(1),normal(2));
 				blNod->SetNormal(n.normalized());
 			}
@@ -5872,7 +5886,7 @@ void BLMesh::CreatePyramid(BLFront *blFront)
 					outbdry[noutbdry * 3 + 2] = idx;
 					noutbdry++;
 				}
-
+               
 				if (m_pNodes[idx].bsysm && m_pNodes[conn[1]].bsysm)
 				{
 					auto smaller = std::min(idx, conn[1]);
@@ -5884,7 +5898,10 @@ void BLMesh::CreatePyramid(BLFront *blFront)
 					conn_sym[0] = idx;
 					conn_sym[1] = conn[1];
 					conn_sym[2] = idx2;
-					AddElem(3, conn_sym, BLEntityTopology::TRIANGLE, m_pNodes[conn[1]].isymfc);
+
+					auto face = intersect_two(intersect_two(m_pNodes[conn_sym[0]].isymfc, m_pNodes[conn_sym[1]].isymfc), m_pNodes[conn_sym[2]].isymfc);
+
+					AddElem(3, conn_sym, BLEntityTopology::TRIANGLE, face[0]);
 				}
 
 				if (!(m_pNodes[idx].bsysm && m_pNodes[conn[2]].bsysm))
@@ -5907,7 +5924,10 @@ void BLMesh::CreatePyramid(BLFront *blFront)
 					conn_sym[0] = idx;
 					conn_sym[1] = conn[2];
 					conn_sym[2] = idx1;
-					AddElem(3, conn_sym, BLEntityTopology::TRIANGLE, m_pNodes[conn[2]].isymfc);
+
+					auto face = intersect_two(intersect_two(m_pNodes[conn_sym[0]].isymfc, m_pNodes[conn_sym[1]].isymfc), m_pNodes[conn_sym[2]].isymfc);
+
+					AddElem(3, conn_sym, BLEntityTopology::TRIANGLE, face[0]);
 				}
 
 #ifdef _CHECK_INTERSECTION
@@ -6029,7 +6049,9 @@ void BLMesh::CreatePyramid(BLFront *blFront)
 								conn_sym[0] = idx;
 								conn_sym[1] = conn[1];
 								conn_sym[2] = idx2;
-								AddElem(3, conn_sym, BLEntityTopology::TRIANGLE, m_pNodes[conn[1]].isymfc);
+
+								auto face = intersect_two(intersect_two(m_pNodes[conn_sym[0]].isymfc, m_pNodes[conn_sym[1]].isymfc), m_pNodes[conn_sym[2]].isymfc);
+								AddElem(3, conn_sym, BLEntityTopology::TRIANGLE, face[0]);
 							}
 
 							if (!(m_pNodes[idx].bsysm && m_pNodes[conn[2]].bsysm))
@@ -6053,7 +6075,8 @@ void BLMesh::CreatePyramid(BLFront *blFront)
 								conn_sym[0] = idx;
 								conn_sym[1] = conn[2];
 								conn_sym[2] = idx1;
-								AddElem(3, conn_sym, BLEntityTopology::TRIANGLE, m_pNodes[conn[2]].isymfc);
+								auto face = intersect_two(intersect_two(m_pNodes[conn_sym[0]].isymfc, m_pNodes[conn_sym[1]].isymfc), m_pNodes[conn_sym[2]].isymfc);
+								AddElem(3, conn_sym, BLEntityTopology::TRIANGLE, face[0]);
 							}
 
 #ifdef _CHECK_INTERSECTION
@@ -6132,8 +6155,9 @@ void BLMesh::UpdateSymmetry()
 					id[0] = nei[(i + 1) % 3]->GetNodIdx();
 					id[2] = nei[i]->GetLowerNode()->GetNodIdx();
 					id[3] = nei[(i + 1) % 3]->GetLowerNode()->GetNodIdx();
-
-					AddElem(4, id, BLEntityTopology::QUADRILATERAL, m_pNodes[nei[i]->GetNodIdx()].isymfc);
+					auto face = intersect_two(intersect_two(m_pNodes[nei[i]->GetNodIdx()].isymfc, m_pNodes[nei[(i+1)%3]
+						->GetNodIdx()].isymfc), m_pNodes[nei[(i + 2) % 3]->GetNodIdx()].isymfc);
+					AddElem(4, id, BLEntityTopology::QUADRILATERAL, face[0]);
 				}
 			}
 		}
@@ -9728,7 +9752,8 @@ void BLMesh::CalSymplnBdry(int *nBdry, int **pBdry, int ifc)
 		int idx1 = pSymBdry->conn[0];
 		int idx2 = pSymBdry->conn[1];
 
-		if (m_pNodes[idx1].isymfc != ifc || m_pNodes[idx2].isymfc != ifc)
+		if (std::find(m_pNodes[idx1].isymfc.begin(), m_pNodes[idx1].isymfc.end(), ifc) != m_pNodes[idx1].isymfc.end()||
+			std::find(m_pNodes[idx2].isymfc.begin(), m_pNodes[idx2].isymfc.end(), ifc) != m_pNodes[idx2].isymfc.end())
 			continue;
 
 		if (pSymBdry->nconn >= 0) //wall boundaries
@@ -9747,8 +9772,14 @@ void BLMesh::CalSymplnBdry(int *nBdry, int **pBdry, int ifc)
 		bdy_front->GetNodes(&nnode, nodes);
 		for (int i = 0; i < 3; i++)
 		{
-			if (m_pNodes[nodes[i]->GetNodIdx()].isymfc == ifc && m_pNodes[nodes[(i + 1) % 3]->GetNodIdx()].isymfc == ifc)
-			{
+			//if (m_pNodes[nodes[i]->GetNodIdx()].isymfc == ifc && m_pNodes[nodes[(i + 1) % 3]->GetNodIdx()].isymfc == ifc)
+			//{
+			int idx1 = nodes[i]->GetNodIdx();
+			int idx2 = nodes[(i + 1) % 3]->GetNodIdx();
+
+			if (std::find(m_pNodes[idx1].isymfc.begin(), m_pNodes[idx1].isymfc.end(), ifc) != m_pNodes[idx1].isymfc.end() ||
+				std::find(m_pNodes[idx2].isymfc.begin(), m_pNodes[idx2].isymfc.end(), ifc) != m_pNodes[idx2].isymfc.end()){
+
 				pNod1 = nodes[i];
 				pNod2 = nodes[(i + 1) % 3];
 				erase_sym(pNod1->GetDecentID(), pNod2->GetDecentID());
