@@ -674,7 +674,7 @@ BLVector BLNode::GetNormal(Node* pNodes, int type)
 		Eigen::RowVector3d start_point(pNodes[nodeid].coord[0], 
 			pNodes[nodeid].coord[1], pNodes[nodeid].coord[2]);
 		Eigen::RowVector3d normal(ans[0], ans[1], ans[2]);
-		int faceid = pNodes[nodeid].isymfc;
+		std::vector<short> faceid = pNodes[nodeid].isymfc;
 		
 		//ans[GetSymAxis()] = 0;
 		//vec.y = 0;

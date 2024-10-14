@@ -139,7 +139,7 @@ struct Node
 	bool bfarfield;		//farfield
 	bool badjacent;
 	bool bwall;		//wall
-	short isymfc;	//symmetry face index
+	std::vector<short> isymfc;	//symmetry face index
 
 	void *pointer;
 	int reserved;
