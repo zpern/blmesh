@@ -4,7 +4,7 @@
 using namespace std;
 
 
-SimpleNormalSmoothStrategy::SimpleNormalSmoothStrategy(BLNode **node, Node* pnodes,int num_front):NormalSmoothStrategy(node,pnodes, num_front)
+SimpleNormalSmoothStrategy::SimpleNormalSmoothStrategy(BLNode **node, MBLNode* pnodes,int num_front):NormalSmoothStrategy(node,pnodes, num_front)
 {
 
 	

@@ -2411,7 +2411,7 @@ protected:
 	BGMesh m_BGMesh;
 	Source m_Source;
 
-	Node *m_pCreateNodes;	/* 自动创建的内部点，临时性内存，索引从1开始 */
+	MBLNode *m_pCreateNodes;	/* 自动创建的内部点，临时性内存，索引从1开始 */
 	INTEGER m_nCreateNodes;	/* 自动创建的内部点数目 */
 
 #ifdef _USING_STD_LIB

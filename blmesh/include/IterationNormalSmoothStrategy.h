@@ -3,7 +3,7 @@
 class IterationNormalSmoothStrategy:public NormalSmoothStrategy
 {
 public:
-	IterationNormalSmoothStrategy(BLNode **node, Node* pnodes, int num_front);
+	IterationNormalSmoothStrategy(BLNode **node, MBLNode* pnodes, int num_front);
 	void virtual SmoothNormal() ;
 	~IterationNormalSmoothStrategy();
 };

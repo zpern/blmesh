@@ -98,7 +98,7 @@ public:
 	 void ReplaceFrontNods(BLNode* blNod, BLNode* blNodNew) ;
 	 bool IncludeNode(BLNode* blNod) ;
 	 void SetNormal(BLVector normal);
-	 void CalNormal(Node* pNodes);
+	 void CalNormal(MBLNode* pNodes);
 	inline void SetElmIdx(int idx) { this->eidx = idx; }
 	inline int GetElmIdx() { return eidx; }
 	inline void SetTriIdx(int idx) {this->tridx = idx;}

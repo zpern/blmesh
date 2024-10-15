@@ -77,7 +77,7 @@ void BLNode::GetRealNeigNods(BLNode** blNods, int *nBLNod, bool flag) {
 		++sit;
 	}
 }
-void BLNode::GetVirtualNeigNods(BLNode ** blNods, int * nBLNod, Node* pnode, bool flag)
+void BLNode::GetVirtualNeigNods(BLNode ** blNods, int * nBLNod, MBLNode* pnode, bool flag)
 {
 	if (!GetVirtualFlag()) {
 		*nBLNod = 0;
@@ -146,12 +146,12 @@ void BLNode::AddDeleteCount()
 	}
 }
 
-void BLNode::CalConcaveConvex(Node * pNode)
+void BLNode::CalConcaveConvex(MBLNode * pNode)
 {
 
 }
 
-BLVector BLNode::GetCoord(Node * pNode)
+BLVector BLNode::GetCoord(MBLNode * pNode)
 {
 	return BLVector(pNode[GetNodIdx()].coord[0], pNode[GetNodIdx()].coord[1], pNode[GetNodIdx()].coord[2]);
 }
@@ -179,7 +179,7 @@ vector<BLNode*>& BLNode::GetNeigNods()
 }
 
 
-BLVector BLNode::GetNormal(Node* pNodes)
+BLVector BLNode::GetNormal(MBLNode* pNodes)
 {
 	BLVector vec(0.0, 0.0, 0.0);
 	int i, nSize, nNods, iNod1, iNod2, iNod3;
@@ -294,7 +294,7 @@ void lineAngleInter(BLVector A, BLVector C, BLVector I, BLVector B, BLVector P, 
 
 
 }
-BLVector BLNode::GetTheMostnNormalNormal(Node* pNodes) {
+BLVector BLNode::GetTheMostnNormalNormal(MBLNode* pNodes) {
 	assert(m_vecNeighFronts.size());
 	vector<double> weight(m_vecNeighFronts.size(), 1.0 / m_vecNeighFronts.size());
 	BLVector N_p(0, 0, 0);
@@ -336,7 +336,7 @@ BLVector BLNode::GetTheMostnNormalNormal(Node* pNodes) {
 	}
 	return N_p;
 }
-BLVector BLNode::GetCenterNormal(Node* pNodes) {
+BLVector BLNode::GetCenterNormal(MBLNode* pNodes) {
 	//1. find two face whose normal dot product is closest to -1
 	int n0 = -1, n1 = -1;
 	double min = 2;
@@ -440,7 +440,7 @@ BLVector BLNode::GetCenterNormal(Node* pNodes) {
 	}
 	return vec;
 }
-BLVector BLNode::GetSimpleNormal(Node* pNodes) {
+BLVector BLNode::GetSimpleNormal(MBLNode* pNodes) {
 	BLVector simple_normal;
 
 	for (auto i : m_vecNeighFronts) {
@@ -449,7 +449,7 @@ BLVector BLNode::GetSimpleNormal(Node* pNodes) {
 	simple_normal.normalize();
 	return simple_normal;
 }
-BLVector BLNode::GetCirculeDotNormal(Node* pNodes) {
+BLVector BLNode::GetCirculeDotNormal(MBLNode* pNodes) {
 
 	int num_neigh_front = m_vecNeighFronts.size();
 	if (num_neigh_front < 3 && num_neigh_front>11)
@@ -462,7 +462,7 @@ BLVector BLNode::GetCirculeDotNormal(Node* pNodes) {
 		}
 	}
 }
-BLVector BLNode::GetGeometryNormal(Node* pNodes) {
+BLVector BLNode::GetGeometryNormal(MBLNode* pNodes) {
 	BLVector ans(0, 1, 0);
 	if (m_vecNeighFronts.size() == 1) {
 		return m_vecNeighFronts[0]->GetNormal();
@@ -502,7 +502,7 @@ BLVector BLNode::GetGeometryNormal(Node* pNodes) {
 	return ans;
 
 }
-BLVector BLNode::GetNaiveNormal(Node* pNodes) {
+BLVector BLNode::GetNaiveNormal(MBLNode* pNodes) {
 	BLVector naiveNormal;
 	std::vector< std::vector<BLVector> > normgroup;
 	int neigh_front_size = m_vecNeighFronts.size();
@@ -577,7 +577,7 @@ BLVector BLNode::GetNaiveNormal(Node* pNodes) {
 	}
 	return naiveNormal;
 }
-BLVector BLNode::GetNormal(Node* pNodes, int type)
+BLVector BLNode::GetNormal(MBLNode* pNodes, int type)
 {
 	BLVector ans;
 	double max_cost = -1;
@@ -674,7 +674,7 @@ BLVector BLNode::GetNormal(Node* pNodes, int type)
 		Eigen::RowVector3d start_point(pNodes[nodeid].coord[0], 
 			pNodes[nodeid].coord[1], pNodes[nodeid].coord[2]);
 		Eigen::RowVector3d normal(ans[0], ans[1], ans[2]);
-		std::vector<short> faceid = pNodes[nodeid].isymfc;
+		std::vector<int> faceid = pNodes[nodeid].isymfc;
 		
 		//ans[GetSymAxis()] = 0;
 		//vec.y = 0;

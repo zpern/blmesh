@@ -24,7 +24,7 @@ namespace VORONOISMOOTHING {
 
 	class VoronoiNormalSmoothStategy :public NormalSmoothStrategy {
 	public:
-		VoronoiNormalSmoothStategy(BLNode **node, Node* pnodes, int num_front);
+		VoronoiNormalSmoothStategy(BLNode **node, MBLNode* pnodes, int num_front);
 		void virtual SmoothNormalOnce(BLNode *blNod, int id);
 
 		~VoronoiNormalSmoothStategy();

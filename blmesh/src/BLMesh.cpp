@@ -88,7 +88,7 @@ BLMesh::~BLMesh(void)
 	if (m_pNodes)
 	{
 
-		free(m_pNodes);
+		delete [](m_pNodes);
 		m_pNodes = nullptr;
 	}
 	if (m_pElems)
@@ -154,8 +154,8 @@ BLMesh::~BLMesh(void)
 
 	//delete m_pPotentialBEM;
 }
-auto intersect_two = [](const std::vector<short>& a, const std::vector<short>& b) {
-	std::vector<short> result;
+auto intersect_two = [](const std::vector<int>& a, const std::vector<int>& b) {
+	std::vector<int> result;
 	std::set_intersection(a.begin(), a.end(), b.begin(), b.end(), std::back_inserter(result));
 	return result;
 	};
@@ -259,7 +259,7 @@ int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
 	// 	u = new double[nelm];
 	PreparePotential();
 
-	m_pNodes = (Node*)malloc(sizeof(Node)*npt);
+	m_pNodes = new MBLNode[npt];
 	if (m_pNodes == nullptr)
 	{
 		spdlog::info("Can not allocate memory for Nodes\n");
@@ -544,6 +544,9 @@ int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
 			for (j = 0; j < dim; j++)
 			{
 				m_pNodes[m_pElems[i].conn[j]].bsysm = true;
+				auto vec = m_pNodes[m_pElems[i].conn[j]].isymfc;
+				if(auto it = std::find(vec.begin(), vec.end(), m_pElems[i].igom)== vec.end())
+					m_pNodes[m_pElems[i].conn[j]].isymfc.push_back(m_pElems[i].igom);
 		//		m_pNodes[m_pElems[i].conn[j]].pointer = nullptr;
 
 #ifndef _NEW_SYMM
@@ -774,7 +777,8 @@ int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
 #ifdef _NEW_SYMM
 	for (i = 0; i < nsymloop; i++)
 	{
-		int nbdry_i, iaxis, fidx;
+		int nbdry_i, iaxis;
+		int fidx = -1;
 		double fsymval;
 		//fscanf(fin, "%d %d %d %lf\n", &nbdry_i, &iaxis, &fidx, &fsymval);
 		*fin >> nbdry_i >> iaxis >> fidx;
@@ -794,7 +798,9 @@ int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
 		sj.addPlane(spv);
 
 		//m_sysValue = fsymval;
-
+		if (!_CrtCheckMemory()) {
+			throw std::runtime_error("bad heap");
+		};
 		for (j = 0; j < nbdry_i; j++)
 		{
 			int id1, id2;
@@ -803,12 +809,13 @@ int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
 			*fin >> tmp >> id1 >> id2;
 			if (m_pNodes[id1 - 1].bsysm && m_pNodes[id2 - 1].bsysm)
 			{
-				m_pNodes[id1 - 1].isymfc.push_back(fidx);		//temporally setting
+
+				//m_pNodes[id1 - 1].isymfc.push_back(fidx);		//temporally setting
 
 				BLNode* blNod1 = (BLNode*)m_pNodes[id1 - 1].pointer;
 				blNod1->SetBSys(true, iaxis);
 
-				m_pNodes[id2 - 1].isymfc.push_back(fidx); // temporally setting
+			//	m_pNodes[id2 - 1].isymfc.push_back(fidx); // temporally setting
 
 				BLNode* blNod2 = (BLNode*)m_pNodes[id2 - 1].pointer;
 				blNod2->SetBSys(true, iaxis);
@@ -967,7 +974,7 @@ int BLMesh::ReadBoundary(const INPUTFORMAT file, bool clear)
 	// 	u = new double[nelm];
 	PreparePotential();
 
-	m_pNodes = (Node*)malloc(sizeof(Node)*npt);
+	m_pNodes = new MBLNode[npt];
 	if (m_pNodes == nullptr)
 	{
 		spdlog::info("Can not allocate memory for Nodes\n");
@@ -1378,13 +1385,13 @@ int BLMesh::ReadBoundary(const INPUTFORMAT file, bool clear)
 			*fin >> tmp >> id1 >> id2;
 			if (m_pNodes[id1 - 1].bsysm && m_pNodes[id2 - 1].bsysm)
 			{
-                m_pNodes[id1 - 1].isymfc.push_back(fidx);
+              //  m_pNodes[id1 - 1].isymfc.push_back(fidx);
                  // temporally setting
 
 				BLNode* blNod1 = (BLNode*)m_pNodes[id1 - 1].pointer;
 				blNod1->SetBSys(true, iaxis);
 
-				m_pNodes[id2 - 1].isymfc.push_back(fidx); // temporally setting
+			//	m_pNodes[id2 - 1].isymfc.push_back(fidx); // temporally setting
 
 				BLNode* blNod2 = (BLNode*)m_pNodes[id2 - 1].pointer;
 				blNod2->SetBSys(true, iaxis);
@@ -1899,7 +1906,7 @@ void BLMesh::SaveBLMeshAndFreeMemory(VM &v)
 	}
 	if (m_pNodes)
 	{
-		free(m_pNodes);
+		delete [](m_pNodes);
 		m_pNodes = nullptr;
 	}
 	v.pnMN = npt;
@@ -2725,7 +2732,7 @@ void BLMesh::PreparePotential()
 
 int BLMesh::AddNode(BLVector pnt, double space)
 {
-	Node *pNewNodes = nullptr;
+	MBLNode *pNewNodes = nullptr;
 	int i, nAlloc = 0, nodeSize;
 
 
@@ -2746,17 +2753,17 @@ int BLMesh::AddNode(BLVector pnt, double space)
 			nAlloc += m_nSurfNodes + 0.5 * nAlloc;
 		} while (nAlloc <= nodeSize);
 
-		pNewNodes = (Node *)realloc(m_pNodes, sizeof(Node) * nAlloc);
+
+		pNewNodes = new MBLNode[nAlloc];
+		std::copy(m_pNodes, m_pNodes+m_nNodes, pNewNodes);
+		delete[]m_pNodes;
 		if (!pNewNodes)
 		{
 			spdlog::info("cannot reallocate memory!\n");
 			return OUT_OF_MEMORY;
 		}
 
-		if (nAlloc > m_nAllocNodes)
-		{
-			memset(&pNewNodes[m_nAllocNodes], 0, sizeof(Node) * (nAlloc - m_nAllocNodes));
-		}
+
 
 		m_pNodes = pNewNodes;
 		m_nAllocNodes = nAlloc;
@@ -3156,14 +3163,14 @@ void BLMesh::GenerateBLMesh()
 				Eigen::RowVector3d start_point(m_pNodes[nodeid].coord[0],
 					m_pNodes[nodeid].coord[1], m_pNodes[nodeid].coord[2]);
 				Eigen::RowVector3d normal(ans[0], ans[1], ans[2]);
-				std::vector<short> faceid = m_pNodes[nodeid].isymfc;
+				std::vector<int> faceid = m_pNodes[nodeid].isymfc;
 				if(faceid.size()==1)
 					faceid2sp[faceid[0]].adjustNormal(start_point,normal);
 				else{
 
-					for (int j = 0; j < 10; j++) {
-						faceid2sp[faceid[0]].adjustNormal(start_point, normal);
-						faceid2sp[faceid[1]].adjustNormal(start_point, normal);
+					for (int j = 0; j < 1; j++) {
+						faceid2sp[faceid[0]].adjustNormal(start_point, normal,true);
+						faceid2sp[faceid[1]].adjustNormal(start_point, normal,true);
 
 					}
 				}
@@ -3947,7 +3954,7 @@ void BLMesh::UpdateBdryNorm()
 }
 
 //void BLMesh
-void BLMesh::SmoothNodeNormAndRatio(BLNode *blNod, Node *pNodes)
+void BLMesh::SmoothNodeNormAndRatio(BLNode *blNod, MBLNode *pNodes)
 {
 
 #define POWER 1
@@ -4083,7 +4090,7 @@ void BLMesh::SmoothNodeNormAndRatio(BLNode *blNod, Node *pNodes)
 	blNod->SetNormal(norm0);
 }
 
-void BLMesh::SmoothVirtualFrontHeight(BLNode *blNod, Node *pNodes)
+void BLMesh::SmoothVirtualFrontHeight(BLNode *blNod, MBLNode *pNodes)
 {
 	BLNode *blNodes[MAX_NCONN * 2];
 	int nNeigFrts, nNeigNods;
@@ -4108,7 +4115,7 @@ void BLMesh::SmoothVirtualFrontHeight(BLNode *blNod, Node *pNodes)
 	blNod->SetHightRatio(height);
 }
 
-void BLMesh::SmoothHorNodeNorm(BLNode *blNod, Node *pNodes)
+void BLMesh::SmoothHorNodeNorm(BLNode *blNod, MBLNode *pNodes)
 {
 	if (!blNod->GetLowerNode())
 	{
@@ -4283,7 +4290,7 @@ void BLMesh::StopPropagateNode(BLNode *blNod)
 	}
 }
 
-void printprism(Node *node, BLFront *blFront)
+void printprism(MBLNode *node, BLFront *blFront)
 {
 	BLEntityTopology topu;
 	int i, j, iLayer, nNods, iNodNew;
@@ -5900,8 +5907,15 @@ void BLMesh::CreatePyramid(BLFront *blFront)
 					conn_sym[2] = idx2;
 
 					auto face = intersect_two(intersect_two(m_pNodes[conn_sym[0]].isymfc, m_pNodes[conn_sym[1]].isymfc), m_pNodes[conn_sym[2]].isymfc);
-
-					AddElem(3, conn_sym, BLEntityTopology::TRIANGLE, face[0]);
+					if (face.size() == 0) {
+						for (int k = 0; k < 3; k++)
+						{
+							for (auto l : m_pNodes[conn_sym[k]].isymfc) {
+								face.push_back(l);
+							}
+						}
+					}
+					AddElem(3, conn_sym, BLEntityTopology::TRIANGLE, face.size()?face[0]:0);
 				}
 
 				if (!(m_pNodes[idx].bsysm && m_pNodes[conn[2]].bsysm))
@@ -5926,8 +5940,15 @@ void BLMesh::CreatePyramid(BLFront *blFront)
 					conn_sym[2] = idx1;
 
 					auto face = intersect_two(intersect_two(m_pNodes[conn_sym[0]].isymfc, m_pNodes[conn_sym[1]].isymfc), m_pNodes[conn_sym[2]].isymfc);
-
-					AddElem(3, conn_sym, BLEntityTopology::TRIANGLE, face[0]);
+					if (face.size() == 0) {
+						for (int k = 0; k < 3; k++)
+						{
+							for (auto l : m_pNodes[conn_sym[k]].isymfc) {
+								face.push_back(l);
+							}
+						}
+					}
+					AddElem(3, conn_sym, BLEntityTopology::TRIANGLE, face.size()?face[0]:0);
 				}
 
 #ifdef _CHECK_INTERSECTION
@@ -6051,7 +6072,15 @@ void BLMesh::CreatePyramid(BLFront *blFront)
 								conn_sym[2] = idx2;
 
 								auto face = intersect_two(intersect_two(m_pNodes[conn_sym[0]].isymfc, m_pNodes[conn_sym[1]].isymfc), m_pNodes[conn_sym[2]].isymfc);
-								AddElem(3, conn_sym, BLEntityTopology::TRIANGLE, face[0]);
+								if (face.size() == 0) {
+									for (int k = 0; k < 3; k++)
+									{
+										for (auto l : m_pNodes[conn_sym[k]].isymfc) {
+											face.push_back(l);
+										}
+									}
+								}
+								AddElem(3, conn_sym, BLEntityTopology::TRIANGLE, face.size()?face[0]:0);
 							}
 
 							if (!(m_pNodes[idx].bsysm && m_pNodes[conn[2]].bsysm))
@@ -6076,7 +6105,15 @@ void BLMesh::CreatePyramid(BLFront *blFront)
 								conn_sym[1] = conn[2];
 								conn_sym[2] = idx1;
 								auto face = intersect_two(intersect_two(m_pNodes[conn_sym[0]].isymfc, m_pNodes[conn_sym[1]].isymfc), m_pNodes[conn_sym[2]].isymfc);
-								AddElem(3, conn_sym, BLEntityTopology::TRIANGLE, face[0]);
+								if (face.size() == 0) {
+									for (int k = 0; k < 3; k++)
+									{
+										for (auto l : m_pNodes[conn_sym[k]].isymfc) {
+											face.push_back(l);
+										}
+									}
+								}
+								AddElem(3, conn_sym, BLEntityTopology::TRIANGLE, face.size()?face[0]:0);
 							}
 
 #ifdef _CHECK_INTERSECTION
@@ -6157,7 +6194,20 @@ void BLMesh::UpdateSymmetry()
 					id[3] = nei[(i + 1) % 3]->GetLowerNode()->GetNodIdx();
 					auto face = intersect_two(intersect_two(m_pNodes[nei[i]->GetNodIdx()].isymfc, m_pNodes[nei[(i+1)%3]
 						->GetNodIdx()].isymfc), m_pNodes[nei[(i + 2) % 3]->GetNodIdx()].isymfc);
-					AddElem(4, id, BLEntityTopology::QUADRILATERAL, face[0]);
+
+					if (face.size() == 0) {
+						for (int k = 0; k < 3; k++)
+						{
+							for (auto l : m_pNodes[nei[(i + k) % 3]->GetNodIdx()].isymfc) {
+								face.push_back(l);
+							}
+							for (auto l : m_pNodes[nei[(i + k) % 3]->GetLowerNode()->GetNodIdx()].isymfc) {
+								face.push_back(l);
+							}
+						}
+					}
+					
+					AddElem(4, id, BLEntityTopology::QUADRILATERAL, face.size()?face[0]:0);
 				}
 			}
 		}
@@ -6746,7 +6796,7 @@ void BLMesh::CreateTriangles(BLFront *blFront, int &itrix)
 
 	return;
 }
-void BLMesh::FixHightRatio(BLNode *blNod, Node *pNodes)
+void BLMesh::FixHightRatio(BLNode *blNod, MBLNode *pNodes)
 {
 	const auto &node_array = blNod->GetNeigNods();
 	if (node_array.empty())
@@ -6764,7 +6814,7 @@ void BLMesh::FixHightRatio(BLNode *blNod, Node *pNodes)
 		blNod->SetFixedHightRatio(length * 0.3 / cf.step_len - 1);
 	}
 }
-void BLMesh::SmoothHeightRatio(BLNode *blNod, Node *pNodes)
+void BLMesh::SmoothHeightRatio(BLNode *blNod, MBLNode *pNodes)
 {
 	const auto &node_array = blNod->GetNeigNods();
 	if (node_array.empty())
@@ -8505,7 +8555,9 @@ void BLMesh::UpdateDomainGrid(int ngp, int nbp, int nel, double *g_coordx, doubl
 		memset((*l_to_g) + nbp, -1, sizeof(int) * (ngp - nbp));
 
 		int nAlloc = m_nAllocNodes + ngp - nbp;
-		Node *pNewNodes = (Node *)realloc(m_pNodes, sizeof(Node) * nAlloc);
+		MBLNode *pNewNodes = new MBLNode[nAlloc];
+		std::copy(m_pNodes, m_pNodes+m_nNodes, pNewNodes);
+		delete[]m_pNodes;
 
 		m_pNodes = pNewNodes;
 		m_nAllocNodes = nAlloc;

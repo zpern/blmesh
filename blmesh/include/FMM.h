@@ -101,8 +101,8 @@ public:
 	int fmm_GMRES_constant();
 	
 	void ComputeTransform();
-	int GetPtLeaf(Node *pNod, int *k);
-	FMMTREENODE* GetPtTreeNode(Node* pNod, FMMTREENODE* fmmTreeNode);
+	int GetPtLeaf(MBLNode *pNod, int *k);
+	FMMTREENODE* GetPtTreeNode(MBLNode* pNod, FMMTREENODE* fmmTreeNode);
 	int GetResultPt(double *pt, double *val, int ilyer = -1);
 	void getExpansionR_Local(D3POINT pDt0, D3POINT pDt, complex<double> RSmn0[21][21]);
 	void getExpansionS_Local(D3POINT pDt0, D3POINT pDt1, complex<double> RSmn0[21][21]);
@@ -116,7 +116,7 @@ public:
 //	void preconditioning();//vtQ=M*vtU. vtU, vtQ used here temporarily
 
 private:
-	int isInCube(Node* pNode,TREECUBE* pCube);
+	int isInCube(MBLNode* pNode,TREECUBE* pCube);
 	void resetFmmTree(FMMTREENODE* fmmTreeNode);
 	void deleteFmmTree(FMMTREENODE* fmmTreeNode);
 	void deleteList(FMMTREENODE* fmmTreeNode);

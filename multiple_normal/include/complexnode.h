@@ -8,7 +8,7 @@
 #include "sphericalCap.h"
 
 using std::vector;
-class Node {
+class MBLNode {
 public:
 	BLVector coordinate;
 	
@@ -16,7 +16,7 @@ protected:
 	
 };
 
-class ComplexNode:public Node {
+class ComplexNode:public MBLNode {
 public:
     /**
     * @brief Construct a new Complex Node object

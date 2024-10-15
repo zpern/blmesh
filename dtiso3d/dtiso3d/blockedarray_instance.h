@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include "iso3d_define.h"
 
-#define Type Node
+#define Type MBLNode
 #define BlockedArray_Type BlockedArray_Node
 #include "blockedarray.h"
 #define LOG2_NODE_PER_BLOCK 12

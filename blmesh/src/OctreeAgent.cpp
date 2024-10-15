@@ -6,7 +6,7 @@
 #include <vector>
 
 //OctreeAgent::OctreeAgent(int* pEle, double* pCoord)
-OctreeAgent::OctreeAgent(DynamicArray<SearchTriangle>&  tri_elm, Node* pNod):pEle(tri_elm)
+OctreeAgent::OctreeAgent(DynamicArray<SearchTriangle>&  tri_elm, MBLNode* pNod):pEle(tri_elm)
 {
 	//this->pCoord = pCoord;
 	this->pNod = pNod;

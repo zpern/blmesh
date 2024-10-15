@@ -474,7 +474,7 @@ int DTIso3D::readPLS(const char* fname)
 			m_nAllocNodes * sizeof(Node) +
 			m_nAllocElems * sizeof(Elem) +
 #else
-			m_pNodes.getArrayCapacity() * sizeof(Node) +
+			m_pNodes.getArrayCapacity() * sizeof(MBLNode) +
 			m_pElems.getArrayCapacity() * sizeof(Elem) +
 #endif
 			m_nAllocSurTris * sizeof(SurTri) +
@@ -736,7 +736,7 @@ int DTIso3D::readSurfVTK(const char* fname)
 			m_nAllocNodes * sizeof(Node) +
 			m_nAllocElems * sizeof(Elem) +
 #else
-			m_pNodes.getArrayCapacity() * sizeof(Node) +
+			m_pNodes.getArrayCapacity() * sizeof(MBLNode) +
 			m_pElems.getArrayCapacity() * sizeof(Elem) +
 #endif
 			m_nAllocSurTris * sizeof(SurTri) +
@@ -982,7 +982,7 @@ int DTIso3D::readPL3(const char* fname)
 	INTEGER vlmElemSize = 0, surfElemSize = 0, vlmNodeSize = 0, surfNodeSize = 0, validVlmNodeSize = 0, edgeSize = 0;
 	INTEGER iElem, iFace, iNode, iToken, i1, i2, i3, i4, lftCell, rgtCell;
 	REAL x, y, z;
-	Node* pNode = nullptr;
+	MBLNode* pNode = nullptr;
 	Elem* pElem = nullptr;
 	SurTri* pSTri = nullptr;
 	char chLine[1024], chDigit[1024], * pChar = nullptr, * pDigitS = nullptr, * pDigitE = nullptr;
@@ -1529,7 +1529,7 @@ int DTIso3D::readPL3(const char* fname)
 		m_nAllocNodes * sizeof(Node) +
 		m_nAllocElems * sizeof(Elem) +
 #else
-		m_pNodes.getArrayCapacity() * sizeof(Node) +
+		m_pNodes.getArrayCapacity() * sizeof(MBLNode) +
 		m_pElems.getArrayCapacity() * sizeof(Elem) +
 #endif
 		m_nAllocSurTris * sizeof(SurTri) +
@@ -1904,7 +1904,7 @@ int DTIso3D::initialInputInfFromParameters(
 	pSource->nTriS = nsrc[2];
 
 	if (pBGMesh->nNodes > 0)
-		pBGMesh->pNodes = (Node*)malloc(sizeof(Node) * pBGMesh->nNodes);
+		pBGMesh->pNodes = (MBLNode*)malloc(sizeof(MBLNode) * pBGMesh->nNodes);
 	else
 		pBGMesh->pNodes = nullptr;
 
@@ -2111,7 +2111,7 @@ int DTIso3D::initialInputInfFromParameters(
 		m_nAllocNodes * sizeof(Node) +
 		m_nAllocElems * sizeof(Elem) +
 #else
-		m_pNodes.getArrayCapacity() * sizeof(Node) +
+		m_pNodes.getArrayCapacity() * sizeof(MBLNode) +
 		m_pElems.getArrayCapacity() * sizeof(Elem) +
 #endif
 		m_nAllocSurTris * sizeof(SurTri) +
@@ -4888,7 +4888,7 @@ int DTIso3D::checkGlobalData(bool bInvHole)
 	INTEGER i, j;
 	int m, l, k, n, iNeig, iNgNg;
 	Elem* pElem = nullptr, * pNeig = nullptr;
-	Node* pNode = nullptr;
+	MBLNode* pNode = nullptr;
 	int nErr = 0;
 	Sphere sph;
 	int nSph;
@@ -12355,7 +12355,7 @@ int DTIso3D::splitEdge(INTEGER iEdg, int level)
 		return 0;
 	}
 
-	Node newNode;
+	MBLNode newNode;
 	newNode.iReserved = 0;
 	newNode.iReserved2 = 0;
 	for (int i = 0; i < DIM; i++) {
@@ -12374,7 +12374,7 @@ int DTIso3D::splitEdge(INTEGER iEdg, int level)
 			//disturb
 			const int disturbPTable[8] = { 6,3,4,7,0,2,1,5 };
 			const double disturb[8] = { 0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0 };
-			Node& nd = m_pNodes[m_pNodes.getArraySize() - 1];
+			MBLNode& nd = m_pNodes[m_pNodes.getArraySize() - 1];
 			for (int i = 0; i < DIM; i++)
 			{
 				(nd.pt)[i] = (nd.pt)[i] + disturb[disturbPTable[disturbPTable[(iDisturb + i) % 8]]] *
@@ -27017,7 +27017,7 @@ int DTIso3D::innerPntInst()
 	int nCircle = 0, nAdd = 0;
 	INTEGER nOldNodes;
 	REAL dps;
-	Node* pNewNodes = nullptr;
+	MBLNode* pNewNodes = nullptr;
 	INTEGER nNewNodes = 0;
 #ifdef _ERROR_CHK
 	INTEGER iAddFail;
@@ -27122,7 +27122,7 @@ int DTIso3D::innerPntInst()
 					setCldNod(iEle, 0);
 
 					/* 别忘了清空刚才被占用的位置  */
-					memset(&m_pNodes[iNod], 0, sizeof(Node));
+					memset(&m_pNodes[iNod], 0, sizeof(MBLNode));
 #ifdef _ONE_LONG_ARRAY
 					if (iNod == m_nNodes - 1)//nodeSize - 1)
 					{
@@ -29711,7 +29711,7 @@ INTEGER	DTIso3D::autCreNodes_NewArr(bool bEraseOldMem)
 {
 	INTEGER i, iEle;
 	Elem* pEle;
-	Node* pNodes[DIM + 1];
+	MBLNode* pNodes[DIM + 1];
 	MYPOINT pnt;
 	REAL dp, dt;
 	int m, n;
@@ -29725,13 +29725,13 @@ INTEGER	DTIso3D::autCreNodes_NewArr(bool bEraseOldMem)
 			m_pCreateNodes = nullptr;
 		}
 
-		if (!(m_pCreateNodes = (Node*)malloc(sizeof(Node) * (size + 1))))
+		if (!(m_pCreateNodes = (MBLNode*)malloc(sizeof(MBLNode) * (size + 1))))
 		{
 			spdlog::info("Not enough memory.\n");
 			throw EXCEPTIONSTRING(std::string("error exit in") + std::string(__FILE__) + std::to_string(__LINE__));;
 		}
 	}
-	memset(m_pCreateNodes, 0, sizeof(Node) * (size + 1));
+	memset(m_pCreateNodes, 0, sizeof(MBLNode) * (size + 1));
 	m_nCreateNodes = 0;
 
 	/* -----------------------------------------------------------
@@ -30542,7 +30542,7 @@ int DTIso3D::rmvNodsAndEles()
 	DesFacet* pDF = nullptr;
 	int m, mm;
 	Elem* pElem, * pElemK, * pElemN;
-	Node* pNode, * pNodeK;
+	MBLNode* pNode, * pNodeK;
 
 #ifdef _ONE_LONG_ARRAY
 	INTEGER elemSize = m_nElems, nodeSize = m_nNodes;
@@ -31038,7 +31038,7 @@ int DTIso3D::printConformalRecvInfo()
 	INTEGER i;
 	INTEGER iEANE, iEANF, iDesFWthNds, iTotal;
 	INTEGER nAlloc;
-	Node* pNewNodes = nullptr;
+	MBLNode* pNewNodes = nullptr;
 	Elem* pNewElems = nullptr;
 
 	iEANE = iEANF = iTotal = 0;
@@ -31077,7 +31077,7 @@ int DTIso3D::prepareRecvDesBnds()
 	INTEGER i;
 	INTEGER iEANE, iEANF, iDesFWthNds, iTotal;
 	INTEGER nAlloc;
-	Node* pNewNodes = nullptr;
+	MBLNode* pNewNodes = nullptr;
 	Elem* pNewElems = nullptr;
 
 	iEANE = iEANF = iTotal = 0;
@@ -33209,7 +33209,7 @@ int DTIso3D::writeNGB(const char* fname)
 
 int DTIso3D::printResult()
 {
-	double nodeMemUnit = sizeof(Node) / (1024.0 * 1024.0);
+	double nodeMemUnit = sizeof(MBLNode) / (1024.0 * 1024.0);
 	double elemMemUnit = sizeof(Elem) / (1024.0 * 1024.0);
 	double faceMemUnit = sizeof(SurTri) / (1024.0 * 1024.0);
 	double edgeMemUnit = sizeof(SurEdg) / (1024.0 * 1024.0);
@@ -34240,7 +34240,7 @@ int DTIso3D::addDivideResult2(divide * divi, INTEGER l2g_nod[], INTEGER numv, Sp
 	INTEGER eGlob1, eGlob2;
 	INTEGER nAlloc;
 	Elem* pNewElems[MAX_SPHERE_SIZE], * pElem, * pElem1, * pElem2;
-	Node* pNode;
+	MBLNode* pNode;
 	INTEGER iIdx;
 	MYPOINT pnew[DIM + 1];
 	REAL tv;
@@ -36652,7 +36652,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		m_BGMesh.pElems = nullptr;
 
 		if (m_BGMesh.nNodes > 0)
-			m_BGMesh.pNodes = (Node*)malloc(sizeof(Node) * nBMN);
+			m_BGMesh.pNodes = (MBLNode*)malloc(sizeof(MBLNode) * nBMN);
 
 		if (m_BGMesh.nElems > 0)
 			m_BGMesh.pElems = (Elem*)malloc(sizeof(Elem) * nBME);
@@ -36795,7 +36795,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 			m_nAllocNodes * sizeof(Node) +
 			m_nAllocElems * sizeof(Elem) +
 #else
-			m_pNodes.getArrayCapacity() * sizeof(Node) +
+			m_pNodes.getArrayCapacity() * sizeof(MBLNode) +
 			m_pElems.getArrayCapacity() * sizeof(Elem) +
 #endif
 			m_nAllocSurTris * sizeof(SurTri) +
@@ -36977,7 +36977,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 			m_nAllocNodes * sizeof(Node) +
 			m_nAllocElems * sizeof(Elem) +
 #else
-			m_pNodes.getArrayCapacity() * sizeof(Node) +
+			m_pNodes.getArrayCapacity() * sizeof(MBLNode) +
 			m_pElems.getArrayCapacity() * sizeof(Elem) +
 #endif
 			m_nAllocSurTris * sizeof(SurTri) +
@@ -44328,7 +44328,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 	{
 		int i, j, k, ii[2], m, n, iE;
 		//REAL dCoords[4][3];
-		Node* pNode;
+		MBLNode* pNode;
 		Elem* pElem;
 		//FORM_ARR p;
 		INTEGER p[4];
@@ -44366,7 +44366,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 			ep[1] = pElem->form[tetra_edge[ii[i]][1]];
 
 #if _DEBUG //debug
-			Node* pNode1 = nullptr, * pNode2 = nullptr;
+			MBLNode* pNode1 = nullptr, * pNode2 = nullptr;
 			pNode1 = &m_pNodes[ep[0]];
 			pNode2 = &m_pNodes[ep[1]];
 #endif //_DEBUG
@@ -44638,7 +44638,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 					{
 						pElem = &m_pElems[l2gElems[i]];
 #ifdef _DEBUG
-						Node pNode[4];
+						MBLNode pNode[4];
 						for (j = 0; j < 4; j++)
 						{
 							pNode[j] = m_pNodes[pElem->form[j]];
@@ -46946,7 +46946,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		bool bOptimalSolution = false;
 		float eps = 1.0e-2;
 		Elem* pElem = nullptr;
-		Node* pNodeA = nullptr, * pNodeB = nullptr, * pNode0 = nullptr, * pNode1 = nullptr, * pNode2 = nullptr,
+		MBLNode* pNodeA = nullptr, * pNodeB = nullptr, * pNode0 = nullptr, * pNode1 = nullptr, * pNode2 = nullptr,
 			* pNodeI = nullptr, * pNodeK = nullptr, * pNodeJ = nullptr, * pNodeII = nullptr, * pNodeJJ = nullptr;
 
 		nShe = *pnShe;
@@ -47820,7 +47820,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		bool bOptimalSolution = false;
 		float eps = 1.0e-2;
 		Elem* pElem = nullptr;
-		Node* pNodeA = nullptr, * pNodeB = nullptr, * pNode0 = nullptr, * pNode1 = nullptr, * pNode2 = nullptr,
+		MBLNode* pNodeA = nullptr, * pNodeB = nullptr, * pNode0 = nullptr, * pNode1 = nullptr, * pNode2 = nullptr,
 			* pNodeI = nullptr, * pNodeK = nullptr, * pNodeJ = nullptr, * pNodeII = nullptr, * pNodeJJ = nullptr;
 		int nRet = 0;
 

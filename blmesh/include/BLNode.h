@@ -105,8 +105,8 @@ public:
 	int getDelCount() { return delete_count; }
 	static std::set<BLNode*> my_vec;
 #endif
-	void CalConcaveConvex(Node* pNode);
-	BLVector GetCoord(Node* pNode);
+	void CalConcaveConvex(MBLNode* pNode);
+	BLVector GetCoord(MBLNode* pNode);
 	int GetNodIdx() { return m_iNod; }
 	void SetNodIdx(int iNod) {
 		assert(iNod >= 0);
@@ -281,12 +281,12 @@ public:
 	void SetNormal(BLVector vec);
 
 	void GetRealNeigNods(BLNode ** blNods, int * nBLNod, bool flag = false);
-	void GetVirtualNeigNods(BLNode ** blNods, int * nBLNod, Node * pnode ,bool flag = false);
+	void GetVirtualNeigNods(BLNode ** blNods, int * nBLNod, MBLNode * pnode ,bool flag = false);
 
 	// To calculate the normal by averaging the normals of surrounding fronts
-	BLVector GetNormal(Node* pNodes);
+	BLVector GetNormal(MBLNode* pNodes);
 
-	BLVector GetNormal(Node* pNodes, int flag);
+	BLVector GetNormal(MBLNode* pNodes, int flag);
 
 	bool GetVirtualFlag() { return isVirtualP; };
 	void SetVirtualFlag(bool isv) { isVirtualP = isv; }
@@ -295,20 +295,20 @@ public:
 	void SetBeitaVisu(double val);
 
 	/*迭代求解，代价最大*/
-	BLVector GetTheMostnNormalNormal(Node * pNodes);
+	BLVector GetTheMostnNormalNormal(MBLNode * pNodes);
 	/*几何中心方法求解法向，比较中庸*/
-	BLVector GetCenterNormal(Node * pNodes);
+	BLVector GetCenterNormal(MBLNode * pNodes);
 
 	/*简单平均*/
-	BLVector GetSimpleNormal(Node * pNodes);
+	BLVector GetSimpleNormal(MBLNode * pNodes);
 
 	/*简单分类平均*/
-	BLVector GetNaiveNormal(Node * pNodes);
+	BLVector GetNaiveNormal(MBLNode * pNodes);
 
 	/*求圆心的方法求法向，应该是理论最优解*/
-	BLVector GetCirculeDotNormal(Node *pNodes);
+	BLVector GetCirculeDotNormal(MBLNode *pNodes);
 
-	BLVector GetGeometryNormal(Node * pNodes);
+	BLVector GetGeometryNormal(MBLNode * pNodes);
 
 
 	// To calculate the normal

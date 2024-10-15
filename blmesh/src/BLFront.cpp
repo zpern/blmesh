@@ -135,7 +135,7 @@ void BLFront::RmvNeigbourFronts(BLFront* blFront)
 	}
 	m_nNeiFront = count;
 }
-void BLFront::CalNormal(Node* pNodes)
+void BLFront::CalNormal(MBLNode* pNodes)
 {
 	int iNod1 = m_pBLNods[0]->GetNodIdx();
 	int iNod2 = m_pBLNods[1]->GetNodIdx();

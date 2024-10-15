@@ -19,7 +19,7 @@ class OctreeAgent
 public:
 	OctreeAgent()=delete;
 	//OctreeAgent::OctreeAgent(int* pEle, double* pCoord);
-	OctreeAgent(DynamicArray<SearchTriangle>& pEle, Node *pNod);
+	OctreeAgent(DynamicArray<SearchTriangle>& pEle, MBLNode *pNod);
 	virtual ~OctreeAgent();
 	
 
@@ -41,8 +41,8 @@ public:
 	}
 
 	DynamicArray<SearchTriangle>& getElm(){ return pEle; }
-	void setNod(Node *nod) {this->pNod = nod;}
-	Node *getNod(){ return pNod;}
+	void setNod(MBLNode *nod) {this->pNod = nod;}
+	MBLNode *getNod(){ return pNod;}
     void getBox(const int & index, std::array<double, 6>& box);
 	
 public:
@@ -51,7 +51,7 @@ public:
 	DynamicArray<SearchTriangle>& pEle;
 
 	//double* pCoord;
-	Node *pNod;
+	MBLNode *pNod;
 };
 
 #endif // !defined(_OCTREEAGENT_H_)

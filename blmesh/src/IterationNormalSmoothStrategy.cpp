@@ -3,7 +3,7 @@
 
 
 
-IterationNormalSmoothStrategy::IterationNormalSmoothStrategy(BLNode **node, Node* pnodes,int num_front) :NormalSmoothStrategy(node, pnodes, num_front)
+IterationNormalSmoothStrategy::IterationNormalSmoothStrategy(BLNode **node, MBLNode* pnodes,int num_front) :NormalSmoothStrategy(node, pnodes, num_front)
 {
 }
 

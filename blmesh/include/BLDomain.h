@@ -11,7 +11,7 @@ public:
 	BLDomain(void);
 	~BLDomain(void);
 
-	int DomainInit(PotentialBEM3D* pPotenialBEM, int nNods, Node* pNods, int nElms, int *pElms, double *pUv, double *pQv, double* pNorm);
+	int DomainInit(PotentialBEM3D* pPotenialBEM, int nNods, MBLNode* pNods, int nElms, int *pElms, double *pUv, double *pQv, double* pNorm);
 	void SurfValBEM(double *pUv, double *pQv, double **pBc, double **pU);
 	int ComputeMoment();
 	double GetResultPt(double *pt, double *val, int ilyer = -1);
@@ -30,7 +30,7 @@ private:
 	int getIntGeoData(int num, CEPOINT *vCpt, D3POINT *vDpt, D3NORMAL *vNml, double *vJcb, int iIntElemt);
 
 public:
-	Node m_dmCen;
+	MBLNode m_dmCen;
 	double m_dLength;
 	int tlNode;
 	int tlUnknown;
@@ -38,8 +38,8 @@ public:
 	int m_nElms;
 	int m_nNods;
 	int* m_pFEle;
-	Node *m_pFNod;
-	Node *m_pElmCen;
+	MBLNode *m_pFNod;
+	MBLNode *m_pElmCen;
 
 	double *m_pBC;
 	double *m_pUv;

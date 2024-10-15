@@ -24,7 +24,7 @@ namespace HEIGHTSMOOTHING {
 
 	class HeightSmoothStategy :public NormalSmoothStrategy {
 	public:
-		HeightSmoothStategy(BLNode **node, Node* pnodes, int num_front);
+		HeightSmoothStategy(BLNode **node, MBLNode* pnodes, int num_front);
 		void virtual SmoothNormalOnce(BLNode *blNod, int id);
 
 		~HeightSmoothStategy();

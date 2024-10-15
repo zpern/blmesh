@@ -116,7 +116,7 @@ int readBA3(const char *fname, BGMesh *pBGMesh, Source *pSource)
 		&pSource->nPntS, &pSource->nLinS, &pSource->nTriS);
 	
 	if (pBGMesh->nNodes > 0)
-		pBGMesh->pNodes = (Node *)malloc(sizeof(Node)*pBGMesh->nNodes);
+		pBGMesh->pNodes = (MBLNode *)malloc(sizeof(MBLNode)*pBGMesh->nNodes);
 	else
 		pBGMesh->pNodes = nullptr;
 

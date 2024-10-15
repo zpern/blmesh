@@ -8,7 +8,7 @@ NormalSmoothStrategy::NormalSmoothStrategy():smooth_times(10), node_array(nullpt
 {
 }
 
-NormalSmoothStrategy::NormalSmoothStrategy(BLNode **node, Node* pnodes,int num_front) : node_array(node), pNodes(pnodes),nFrtNods(num_front)
+NormalSmoothStrategy::NormalSmoothStrategy(BLNode **node, MBLNode* pnodes,int num_front) : node_array(node), pNodes(pnodes),nFrtNods(num_front)
 {
 
 }
@@ -80,7 +80,7 @@ void NormalSmoothStrategy::SmoothNormal()
 				Eigen::RowVector3d start_point(pNodes[nodeid].coord[0],
 					pNodes[nodeid].coord[1], pNodes[nodeid].coord[2]);
 				Eigen::RowVector3d normal(ans[0], ans[1], ans[2]);
-				std::vector<short> faceid = pNodes[nodeid].isymfc;
+				std::vector<int> faceid = pNodes[nodeid].isymfc;
 				if(faceid.size()==1)
 					faceid_to_sp[faceid[0]].adjustNormal(start_point, normal);
 				else {
@@ -216,15 +216,15 @@ void NormalSmoothStrategy::SetSymm(BLNode * blNod, int id)
 		Eigen::RowVector3d start_point(pNodes[nodeid].coord[0],
 			pNodes[nodeid].coord[1], pNodes[nodeid].coord[2]);
 		Eigen::RowVector3d normal(ans[0], ans[1], ans[2]);
-		std::vector<short> faceid = pNodes[nodeid].isymfc;
+		std::vector<int> faceid = pNodes[nodeid].isymfc;
 
 		if (faceid.size() == 1)
 			faceid_to_sp[faceid[0]].adjustNormal(start_point, normal);
 		else {
 
-			for (int j = 0; j < 10; j++) {
-				faceid_to_sp[faceid[0]].adjustNormal(start_point, normal);
-				faceid_to_sp[faceid[1]].adjustNormal(start_point, normal);
+			for (int j = 0; j < 1; j++) {
+				faceid_to_sp[faceid[0]].adjustNormal(start_point, normal,true);
+				faceid_to_sp[faceid[1]].adjustNormal(start_point, normal,true);
 
 			}
 		}

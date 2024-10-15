@@ -154,7 +154,7 @@ public:
 
 public:
 	Elem *g_pLocSmoothingElems;
-	Node *g_pLocSmoothingNodes;
+	MBLNode *g_pLocSmoothingNodes;
 	TetraElemQual *g_pLocSmoothingQuals;
 	int g_nLocSmoothingElems;
 	int g_nLocSmoothingNodes;

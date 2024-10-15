@@ -191,7 +191,7 @@ public:
 
 	bool CheckPrismValid(BLFront * blFront);
 
-	void SmoothHeightRatio(BLNode * blNod, Node * pNodes);
+	void SmoothHeightRatio(BLNode * blNod, MBLNode * pNodes);
 	//
 	// void CollapseNode(BLNode* blNode, double* pBC, double* pU);
 
@@ -250,10 +250,10 @@ public:
 	void UpdateBdryNorm();
 
 
-	void smoothPostProcess(BLNode* blNod, Node* pNodes, BLVector originalNormal);
-	void SmoothNodeNormAndRatio(BLNode* blNod, Node* pNodes);
-	void SmoothVirtualFrontHeight(BLNode* blNod, Node* pNodes);
-	void SmoothHorNodeNorm(BLNode* blNod, Node* pNodes);
+	void smoothPostProcess(BLNode* blNod, MBLNode* pNodes, BLVector originalNormal);
+	void SmoothNodeNormAndRatio(BLNode* blNod, MBLNode* pNodes);
+	void SmoothVirtualFrontHeight(BLNode* blNod, MBLNode* pNodes);
+	void SmoothHorNodeNorm(BLNode* blNod, MBLNode* pNodes);
 	//check whether is it need to create pyramid elements in the neighbor of blFront
 
 
@@ -288,7 +288,7 @@ public:
 
 	void CreateTriangles(BLFront* blFront, int &itrix);
 
-	void FixHightRatio(BLNode * blNod, Node * pNodes);
+	void FixHightRatio(BLNode * blNod, MBLNode * pNodes);
 
 	void PstprecsMergedElm();
 
@@ -427,7 +427,7 @@ private:
 	vector<std::shared_ptr<BLFrontList>> m_blFrontListAll;
 	queue<BLFront*> createPyramid_queue;
 	int m_nNodes;
-	Node* m_pNodes;
+	MBLNode* m_pNodes;
 
 	int m_nElems;
 	Elem* m_pElems;

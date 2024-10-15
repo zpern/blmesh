@@ -24,7 +24,7 @@ namespace WZSMOOTHING {
 
 	class WangZhiNormalSmoothStategy :public NormalSmoothStrategy {
 	public:
-		WangZhiNormalSmoothStategy(BLNode **node, Node* pnodes, int num_front);
+		WangZhiNormalSmoothStategy(BLNode **node, MBLNode* pnodes, int num_front);
 		void classification();
 		void virtual SmoothNormalOnce(BLNode *blNod, int id);
 

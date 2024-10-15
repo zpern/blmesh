@@ -172,7 +172,7 @@ typedef NEIG_ARR FORM_ARR;		 /* 形成节点索引 array of indices of forming p
 typedef MYPOINT FORM_PNTS[DIM+1];  /* 形成节点 array of forming points */
 
 /* 网格节点 NODE */
-typedef struct Node
+typedef struct MBLNode
 {
 	MYPOINT pt;			/* 坐标 coords. */
 	REAL space;			/* 尺寸控制 space control */

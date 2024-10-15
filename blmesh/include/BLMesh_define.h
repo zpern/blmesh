@@ -131,15 +131,18 @@ struct SearchTriangle
 	}
 
 };
-struct Node
+struct MBLNode
 {
+	MBLNode() {
+		isymfc.reserve(2);
+	}
 	double coord[3];
 	bool bsysm;		//symmetry plane
 	bool bdrypt;	//boundary point
 	bool bfarfield;		//farfield
 	bool badjacent;
 	bool bwall;		//wall
-	std::vector<short> isymfc;	//symmetry face index
+	std::vector<int> isymfc;	//symmetry face index
 
 	void *pointer;
 	int reserved;

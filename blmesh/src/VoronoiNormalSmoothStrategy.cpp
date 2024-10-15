@@ -1,7 +1,7 @@
 #include <spdlog/spdlog.h> 
  #include "../include/VoronoiNormalSmoothStrategy.h"
 namespace VORONOISMOOTHING {
-	VoronoiNormalSmoothStategy::VoronoiNormalSmoothStategy(BLNode **node, Node* pnodes, int num_front) :NormalSmoothStrategy(node, pnodes, num_front)
+	VoronoiNormalSmoothStategy::VoronoiNormalSmoothStategy(BLNode **node, MBLNode* pnodes, int num_front) :NormalSmoothStrategy(node, pnodes, num_front)
 	{
 
 

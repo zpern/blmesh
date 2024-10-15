@@ -21,7 +21,7 @@ namespace OCT{
 //int Octree::time_machine = 0;tri_inter_with_a_line
 
 bool tri_inter_with_a_line_test(double* A, double* B, double* C, double* P, double* Q);
-void printpls(Node* node, int *elm, int m, int n)
+void printpls(MBLNode* node, int *elm, int m, int n)
 {
 	int i, idx0, idx1, pidx;
 	FILE *fout = NULL;
@@ -5405,7 +5405,7 @@ bool tri_inter_with_a_line_test(double* A, double* B, double* C, double* P, doub
 }
 
 
-double tri_inter_with_a_line(std::array<int, 3>& triIdx1, Node *pNods, BLVector start, BLVector end) {
+double tri_inter_with_a_line(std::array<int, 3>& triIdx1, MBLNode *pNods, BLVector start, BLVector end) {
 
 	BLVector pos[3];
 	for (int k = 0; k < 3; k++) {
@@ -5442,7 +5442,7 @@ double tri_inter_with_a_line(std::array<int, 3>& triIdx1, Node *pNods, BLVector 
 * @note: 这个函数的特点是不会有包围盒求交
 **/
 
-int  Octree::tri_overlap_test_no_box(std::array<int, 3>& triIdx1, std::array<int, 3>& triIdx2, Node *&pNods,int &share_node_num,int &share1,int& share2) {
+int  Octree::tri_overlap_test_no_box(std::array<int, 3>& triIdx1, std::array<int, 3>& triIdx2, MBLNode *&pNods,int &share_node_num,int &share1,int& share2) {
 
 
 	
@@ -5453,7 +5453,7 @@ int  Octree::tri_overlap_test_no_box(std::array<int, 3>& triIdx1, std::array<int
 * @note：因为这个函数的效率直接决定了整个程序的效率，因此我对其进行了深度优化，特别是前面的部分，请勿轻易修改，除非你已经看懂--yhf
 **/
 
-int  Octree::tri_overlap_test(int triIdx1, int triIdx2, Node *pNods, int *ele)
+int  Octree::tri_overlap_test(int triIdx1, int triIdx2, MBLNode *pNods, int *ele)
 {
 	int share_node_num = 0, i, j;
 	//int k, ptIdx1, ptIdx2;

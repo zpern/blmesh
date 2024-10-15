@@ -5,7 +5,7 @@
 class SimpleNormalSmoothStrategy:public NormalSmoothStrategy
 {
 public:
-	SimpleNormalSmoothStrategy(BLNode **node, Node* pnodes,int num_front);
+	SimpleNormalSmoothStrategy(BLNode **node, MBLNode* pnodes,int num_front);
 	void virtual SmoothNormalOnce(BLNode *blNod, int id);
 	
 	~SimpleNormalSmoothStrategy();

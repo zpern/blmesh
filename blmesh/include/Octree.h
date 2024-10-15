@@ -121,8 +121,8 @@ namespace OCT {
 #ifdef _DEBUG
 		int num_inter;
 #endif
-		inline int  tri_overlap_test_no_box(std::array<int, 3>& triIdx1, std::array<int, 3>& triIdx2, Node *&pNods, int &share_node_num, int &share1, int& share2);
-		static int tri_overlap_test(int triIdx1, int triIdx2, Node * pNods, int * ele);
+		inline int  tri_overlap_test_no_box(std::array<int, 3>& triIdx1, std::array<int, 3>& triIdx2, MBLNode *&pNods, int &share_node_num, int &share1, int& share2);
+		static int tri_overlap_test(int triIdx1, int triIdx2, MBLNode * pNods, int * ele);
 		//int tri_overlap_test(int triIdx1, int triIdx2, Node * pNods, int * ele);
 		Octree();
 		Octree(OctreeAgent *agent, int dep = 3) :pOctreeAgent(agent), depth(dep) { sorted = true; node_before = NULL; pRoot = NULL; special_id = -1; sort_telerant = false; }

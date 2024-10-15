@@ -1,7 +1,7 @@
 #include <spdlog/spdlog.h> 
  #include "../include/HeightSmoothingStrategy.h"
 
-HEIGHTSMOOTHING::HeightSmoothStategy::HeightSmoothStategy(BLNode ** node, Node * pnodes, int num_front)
+HEIGHTSMOOTHING::HeightSmoothStategy::HeightSmoothStategy(BLNode ** node, MBLNode * pnodes, int num_front)
 {
 }
 

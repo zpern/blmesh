@@ -9,7 +9,7 @@ class NormalSmoothStrategy
 {
 public:
 	NormalSmoothStrategy();
-	NormalSmoothStrategy(BLNode **node, Node* pnodes,int num_front) ;
+	NormalSmoothStrategy(BLNode **node, MBLNode* pnodes,int num_front) ;
 	void virtual SmoothNormal() ;
 	/*二阶牛顿差值光滑化*/
 	void horsmooth(BLNode *blNod);
@@ -27,7 +27,7 @@ protected :
 	std::atomic_ulong energy;
 	int smooth_times;
 	//BLNode *blNod;
-	Node* pNodes;
+	MBLNode* pNodes;
 	int nFrtNods;
 	vector<BLNode*> tmp;
 	vector<BLVector> myvec;

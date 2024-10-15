@@ -2,7 +2,7 @@
  #include "../include/WangzhiNormalSmoothStrategy.h"
 
 namespace WZSMOOTHING {
-	WangZhiNormalSmoothStategy::WangZhiNormalSmoothStategy(BLNode **node, Node* pnodes, int num_front) :NormalSmoothStrategy(node, pnodes, num_front)
+	WangZhiNormalSmoothStategy::WangZhiNormalSmoothStategy(BLNode **node, MBLNode* pnodes, int num_front) :NormalSmoothStrategy(node, pnodes, num_front)
 	{
 
 		classification();
