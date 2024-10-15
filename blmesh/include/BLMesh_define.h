@@ -135,6 +135,11 @@ struct MBLNode
 {
 	MBLNode() {
 		isymfc.reserve(2);
+		bsysm = false;
+		bdrypt = false;
+		bfarfield = false;
+		badjacent = false;
+		bwall = false;
 	}
 	double coord[3];
 	bool bsysm;		//symmetry plane

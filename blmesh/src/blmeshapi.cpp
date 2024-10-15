@@ -171,8 +171,8 @@ void main(int argc, char* argv[]){
 	}
 	blmesh->RemoveOverlapNodeAndElement();
 #ifdef APIFUNC
-	if (genboundarymesh&& genoutmesh) {
-		blmesh->GenTopMesh(ret);
+	if (genboundarymesh) {
+		blmesh->GenTopMesh(ret,genoutmesh);
 	}
 #endif
 	double gen_bdymesh_end_time = clock();

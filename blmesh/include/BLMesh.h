@@ -162,7 +162,7 @@ public:
 	void MeshTopoStatics();
 
 	//
-	int GetOuterBoundary(int* npt, int* nlem, double** pt, int** elm, int** l_to_g);
+	int GetOuterBoundary(int* npt, int* nlem, double** pt, int** elm, int** l_to_g,bool add_symm=true);
 	int OutputOuterBoundary(string fn, int npt, int nlem, double* pt, int* elm);
 	void OutputFr2(string fn, int npt, int nlem, double* pt, int* elm);
 	void OutputPls(string fn, int npt, int nlem, double* pt, int* elm);
@@ -316,7 +316,7 @@ public:
 	void ReadAddBdry(char* filename, bool bfirst = false);
 	int GetAddBoundary(int* npt, int* nlem, double** pt, int** elm, int** l_to_g);
 
-	void GenTopMesh(VM & v);
+	void GenTopMesh(VM & v,bool add_symm=true);
 
 	void RemoveOverlapNodeAndElement();
 	void FreeMemoryInFrontAndNode();

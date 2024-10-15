@@ -5908,14 +5908,14 @@ void BLMesh::CreatePyramid(BLFront *blFront)
 
 					auto face = intersect_two(intersect_two(m_pNodes[conn_sym[0]].isymfc, m_pNodes[conn_sym[1]].isymfc), m_pNodes[conn_sym[2]].isymfc);
 					if (face.size() == 0) {
-						for (int k = 0; k < 3; k++)
-						{
-							for (auto l : m_pNodes[conn_sym[k]].isymfc) {
-								face.push_back(l);
-							}
-						}
+						outbdry[noutbdry * 3 + 0] = conn[1];
+						outbdry[noutbdry * 3 + 1] = idx2;
+						outbdry[noutbdry * 3 + 2] = idx;
+						noutbdry++;
 					}
-					AddElem(3, conn_sym, BLEntityTopology::TRIANGLE, face.size()?face[0]:0);
+					else { AddElem(3, conn_sym, BLEntityTopology::TRIANGLE, face.size() ? face[0] : 0); }
+					
+					
 				}
 
 				if (!(m_pNodes[idx].bsysm && m_pNodes[conn[2]].bsysm))
@@ -5941,13 +5941,12 @@ void BLMesh::CreatePyramid(BLFront *blFront)
 
 					auto face = intersect_two(intersect_two(m_pNodes[conn_sym[0]].isymfc, m_pNodes[conn_sym[1]].isymfc), m_pNodes[conn_sym[2]].isymfc);
 					if (face.size() == 0) {
-						for (int k = 0; k < 3; k++)
-						{
-							for (auto l : m_pNodes[conn_sym[k]].isymfc) {
-								face.push_back(l);
-							}
-						}
+						outbdry[noutbdry * 3 + 0] = conn[2];
+						outbdry[noutbdry * 3 + 1] = idx;
+						outbdry[noutbdry * 3 + 2] = idx1;
+						noutbdry++;
 					}
+					else
 					AddElem(3, conn_sym, BLEntityTopology::TRIANGLE, face.size()?face[0]:0);
 				}
 
@@ -6862,7 +6861,7 @@ void BLMesh::SmoothHeightRatio(BLNode *blNod, MBLNode *pNodes)
 	}
 }
 
-int BLMesh::GetOuterBoundary(int *npt, int *nlem, double **pt, int **elm, int **l_to_g)
+int BLMesh::GetOuterBoundary(int *npt, int *nlem, double **pt, int **elm, int **l_to_g,bool add_symm)
 {
 	int i, j, *nodmap = nullptr, idx;
 	double *bpnt = nullptr;
@@ -6888,7 +6887,7 @@ int BLMesh::GetOuterBoundary(int *npt, int *nlem, double **pt, int **elm, int **
 		pbdryelmi[i] = nullptr;
 	}
 
-	if (m_nSymBdrys > 0)
+	if (add_symm&&m_nSymBdrys > 0)
 	{
 #ifdef _NEW_SYMM
 		m_nTtlInitSymBdrys = m_nSymBdrys;
@@ -7752,7 +7751,7 @@ int BLMesh::GetAddBoundary(int *npt, int *nlem, double **pt, int **elm, int **l_
 
 	return 0;
 }
-void BLMesh::GenTopMesh(VM &v)
+void BLMesh::GenTopMesh(VM &v, bool add_symm)
 {
 	int nbpt = 0, nbelm = 0, *belm = nullptr, *belmN = nullptr, *orientElm = nullptr;
 	int npt = 0, nelm = 0, *elm = nullptr, *l_to_g = nullptr;
@@ -7764,7 +7763,7 @@ void BLMesh::GenTopMesh(VM &v)
 #endif
 
 	double *pt_size;
-	GetOuterBoundary(&nbpt, &nbelm, &bpt, &belm, &l_to_g);
+	GetOuterBoundary(&nbpt, &nbelm, &bpt, &belm, &l_to_g, add_symm);
     CalOriginSize(nbpt, nbelm, bpt, belm, pt_size, l_to_g);
 	v.sizing=pt_size;
 	v.l2g = l_to_g;
