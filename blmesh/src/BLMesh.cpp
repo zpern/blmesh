@@ -798,9 +798,7 @@ int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
 		sj.addPlane(spv);
 
 		//m_sysValue = fsymval;
-		if (!_CrtCheckMemory()) {
-			throw std::runtime_error("bad heap");
-		};
+
 		for (j = 0; j < nbdry_i; j++)
 		{
 			int id1, id2;
@@ -5943,7 +5941,7 @@ void BLMesh::CreatePyramid(BLFront *blFront)
 					if (face.size() == 0) {
 						outbdry[noutbdry * 3 + 0] = conn[2];
 						outbdry[noutbdry * 3 + 1] = idx;
-						outbdry[noutbdry * 3 + 2] = idx1;
+						outbdry[noutbdry * 3 + 2] = idx1;z
 						noutbdry++;
 					}
 					else
