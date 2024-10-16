@@ -5941,7 +5941,7 @@ void BLMesh::CreatePyramid(BLFront *blFront)
 					if (face.size() == 0) {
 						outbdry[noutbdry * 3 + 0] = conn[2];
 						outbdry[noutbdry * 3 + 1] = idx;
-						outbdry[noutbdry * 3 + 2] = idx1;z
+						outbdry[noutbdry * 3 + 2] = idx1;
 						noutbdry++;
 					}
 					else
