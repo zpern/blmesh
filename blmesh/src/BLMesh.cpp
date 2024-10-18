@@ -523,7 +523,8 @@ int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
 			outbdry[3 * noutbdry + 1] = m_pElems[i].conn[2];
 			outbdry[3 * noutbdry + 2] = m_pElems[i].conn[1];
 
-
+			if (m_pElems[i].conn[0] < 0 || m_pElems[i].conn[1] < 0 || m_pElems[i].conn[2] < 0)
+				throw std::runtime_error("try to input error");
 			noutbdry++;
 #else
 			SetElmDelete(i);
@@ -1206,7 +1207,8 @@ int BLMesh::ReadBoundary(const INPUTFORMAT file, bool clear)
 			outbdry[3 * noutbdry + 1] = m_pElems[i].conn[2];
 			outbdry[3 * noutbdry + 2] = m_pElems[i].conn[1];
 
-
+			if (m_pElems[i].conn[0] < 0 || m_pElems[i].conn[1] < 0 || m_pElems[i].conn[2] < 0)
+				throw std::runtime_error("try to input error");
 			noutbdry++;
 #else
 			SetElmDelete(i);
@@ -3207,6 +3209,7 @@ void BLMesh::GenerateBLMesh()
 			BLNode *blNodNew = new BLNode();
 #endif
 			blNodNew->SetBSys(blNod->GetBSys(), blNod->GetSymAxis());
+
 			//blNodNew->SetNodeType(blNod->GetNodeType());
 			blNodNew->SetNormal(blNod->GetNormal());
 			blNodNew->SetBeitaVisu(0.8);
@@ -3227,6 +3230,9 @@ void BLMesh::GenerateBLMesh()
 			//blNodNew->SetDistanceRatio(blNod->GetDistanceRatio());
 			blNodNew->SetVirtualFlag(blNod->GetVirtualFlag());
 			blNodNew->SetDecentID(blNod->GetDecentID());
+			if (blNod->GetDecentID() == 26672&&iLayer==12) {
+				std::cout << "debug here";
+			}
 #else
 
 #if 1
@@ -3577,6 +3583,8 @@ void BLMesh::GenerateBLMesh()
 				ave_height_first_layer += normal.magnitude();
 				//cout << normal.magnitude() << endl;
 				count++;
+
+				
 			}
 			PropagateNode(blNod, normal, iLayer);
 		}
@@ -3800,6 +3808,10 @@ _ASSERTE( _CrtCheckMemory( ) );
 	while (m_blFrontList->HasNextFront())
 	{
 		BLFront *blFront = m_blFrontList->GetNextFront();
+		blFront->GetNodes(&nNods, blNods);
+		if (blNods[0]->GetNodIdx()<0 || blNods[1]->GetNodIdx() < 0 || blNods[2]->GetNodIdx() < 0) {
+			continue;
+		}
 		m_vBdyFront.push_back(blFront); //将最后一层剩余front 加入待选的front
 	}
 
@@ -3809,10 +3821,17 @@ _ASSERTE( _CrtCheckMemory( ) );
 	{
 		BLFront *ft = m_vBdyFront[i];
 		ft->GetNodes(&nNods, blNods);
+		if (blNods[0]->GetNodIdx() < 0 || blNods[1]->GetNodIdx() < 0 || blNods[2]->GetNodIdx() < 0) {
+			continue;
+		}
 
 		outbdry[noutbdry * 3 + 0] = blNods[0]->GetNodIdx();
 		outbdry[noutbdry * 3 + 1] = blNods[2]->GetNodIdx();
 		outbdry[noutbdry * 3 + 2] = blNods[1]->GetNodIdx();
+		if (outbdry[noutbdry * 3 + 0] < 0 || outbdry[noutbdry * 3 + 1] < 0 || outbdry[noutbdry * 3 + 2] < 0)
+			throw std::runtime_error("try to input error");
+
+
 		++noutbdry;
 	}
 	PstprecsMergedElm();
@@ -4198,6 +4217,7 @@ void BLMesh::PropagateNode(BLNode *blNod, BLVector normal, int iLayer)
 		}
 
 		//BLNode *blNodNew = new BLNode(m_blType);
+		
 		BLNode *blNodNew = blNod->GetUpperNode();
 		if (blNod->getPerNode()) {
 			
@@ -4570,7 +4590,7 @@ void BLMesh::Propagate()
 		BLFront *blFront = m_blFrontList->GetNextFront();
 		blFront->GetNodes(&nNods, blNods);
 
-		for (i = 0; i < nNods; i++)
+		for (i = 0; i < 3; i++)
 		{
 			int iidn = blNods[i]->GetNodIdx();
 			if (blNods[i]->GetStopFlag()||!blNods[i]->GetUpperNode())
@@ -5859,6 +5879,7 @@ void BLMesh::CreatePyramid(BLFront *blFront)
 					{
 						blNod = blNods[(inei + j) % DIM3];
 						StopPropagateNode(blNod);
+						
 					}
 				}
 			}
@@ -5882,6 +5903,10 @@ void BLMesh::CreatePyramid(BLFront *blFront)
 				outbdry[noutbdry * 3 + 0] = conn[1];
 				outbdry[noutbdry * 3 + 1] = idx;
 				outbdry[noutbdry * 3 + 2] = conn[2];
+
+				if (outbdry[noutbdry * 3 + 0] < 0 || outbdry[noutbdry * 3 + 1] < 0 || outbdry[noutbdry * 3 + 2] < 0)
+					throw std::runtime_error("try to input error");
+
 				noutbdry++;
 
 				if (!(m_pNodes[idx].bsysm && m_pNodes[conn[1]].bsysm))
@@ -5889,6 +5914,10 @@ void BLMesh::CreatePyramid(BLFront *blFront)
 					outbdry[noutbdry * 3 + 0] = conn[1];
 					outbdry[noutbdry * 3 + 1] = idx2;
 					outbdry[noutbdry * 3 + 2] = idx;
+					if (outbdry[noutbdry * 3 + 0] < 0 || outbdry[noutbdry * 3 + 1] < 0 || outbdry[noutbdry * 3 + 2] < 0)
+						throw std::runtime_error("try to input error");
+
+
 					noutbdry++;
 				}
                
@@ -5909,6 +5938,8 @@ void BLMesh::CreatePyramid(BLFront *blFront)
 						outbdry[noutbdry * 3 + 0] = conn[1];
 						outbdry[noutbdry * 3 + 1] = idx2;
 						outbdry[noutbdry * 3 + 2] = idx;
+						if (outbdry[noutbdry * 3 + 0] < 0 || outbdry[noutbdry * 3 + 1] < 0 || outbdry[noutbdry * 3 + 2] < 0)
+							throw std::runtime_error("try to input error");
 						noutbdry++;
 					}
 					else { AddElem(3, conn_sym, BLEntityTopology::TRIANGLE, face.size() ? face[0] : 0); }
@@ -5921,6 +5952,8 @@ void BLMesh::CreatePyramid(BLFront *blFront)
 					outbdry[noutbdry * 3 + 0] = conn[2];
 					outbdry[noutbdry * 3 + 1] = idx;
 					outbdry[noutbdry * 3 + 2] = idx1;
+					if (outbdry[noutbdry * 3 + 0] < 0 || outbdry[noutbdry * 3 + 1] < 0 || outbdry[noutbdry * 3 + 2] < 0)
+						throw std::runtime_error("try to input error");
 					noutbdry++;
 				}
 
@@ -5942,6 +5975,8 @@ void BLMesh::CreatePyramid(BLFront *blFront)
 						outbdry[noutbdry * 3 + 0] = conn[2];
 						outbdry[noutbdry * 3 + 1] = idx;
 						outbdry[noutbdry * 3 + 2] = idx1;
+						if (outbdry[noutbdry * 3 + 0] < 0 || outbdry[noutbdry * 3 + 1] < 0 || outbdry[noutbdry * 3 + 2] < 0)
+							throw std::runtime_error("try to input error");
 						noutbdry++;
 					}
 					else
