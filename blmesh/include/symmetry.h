@@ -140,7 +140,7 @@ namespace TiGER {
         void judgyType(const Eigen::MatrixXd& V_) {
             if (V_.rows() == 0)
                 return;
-            double eps = reference_length * 1e-5;
+            double eps = reference_length * 4e-2;
             Eigen::RowVector3d maxV(V_.row(0));
             Eigen::RowVector3d minV(V_.row(0));
             for (int i = 0; i < V_.rows(); i++) {

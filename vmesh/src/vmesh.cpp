@@ -535,7 +535,7 @@ namespace TiGER {
 		for (int i = 0; i < nSF; i++) {
 			numFace = max(numFace, pnSFPt[i]);
 		}
-		for (int i = 0; i < numFace; i++) {
+		for (int i = 0; i < numFace+1; i++) {
 			bcs[pnFT[i]].push_back(i);
 		}
 
