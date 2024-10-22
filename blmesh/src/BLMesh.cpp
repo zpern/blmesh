@@ -677,7 +677,7 @@ int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
 
     // cout << max_depth_;
     m_ocAgent_symm = new OctreeAgent(m_TriElm, m_pNodes);
-	m_ocTree_symm = new OCT::Octree(m_ocAgent_symm, max_depth_);
+	m_ocTree_symm = new OCT::Octree(m_ocAgent, max_depth_);
 
 
 	for (int k = 0; k < 3; k++) {
@@ -3227,12 +3227,11 @@ void BLMesh::GenerateBLMesh()
 			//geometric method
 			//normn = blNod->GetNormal(m_pNodes);
 			blNodNew->SetNormal(normn);
+			
 			//blNodNew->SetDistanceRatio(blNod->GetDistanceRatio());
 			blNodNew->SetVirtualFlag(blNod->GetVirtualFlag());
 			blNodNew->SetDecentID(blNod->GetDecentID());
-			if (blNod->GetDecentID() == 26672&&iLayer==12) {
-				std::cout << "debug here";
-			}
+
 #else
 
 #if 1
@@ -3291,6 +3290,7 @@ void BLMesh::GenerateBLMesh()
 			{
 				blNodNew->AddLowerNode(blNod);
 				blNod->AddUpperNode(blNodNew);
+			
 
 				if (blNod->getPerNode()) {
 					if (blNod->getPerNode()->GetUpperNode()) {
@@ -4195,6 +4195,13 @@ void BLMesh::PropagateNode(BLNode *blNod, BLVector normal, int iLayer)
 	int iNod, iNodNew;
 
 	iNod = blNod->GetNodIdx();
+	/////////////////// 可删除
+	//if ((!m_pNodes[blNod->GetNodIdx()].bsysm)&& normal.y + m_pNodes[iNod].coord[1] < -0.01)
+	//	blNod->SetStopFlag();
+	//if (m_pNodes[blNod->GetNodIdx()].bsysm) {
+	//	normal.y = 0;
+	//}
+	/////////////////// 可删除
 
 	if (!blNod->GetStopFlag())
 	{

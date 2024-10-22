@@ -5,25 +5,37 @@
 #include "igl/AABB.h"
 #include "igl/boundary_loop.h"
 #include "igl/project_to_line_segment.h"
+#include "igl/avg_edge_length.h"
 #include "binary_tree.hpp"
 namespace TiGER {
 	class SymmetryPlane {
 	public:
 		SymmetryPlane() {};
+        enum SType {
+            curved_face = 0,
+            x = 1,
+            y = 2,
+            z = 3
+        } stype;
 		void init(const Eigen::MatrixXd& V, const Eigen::MatrixXi& F) {
 			tree.init(V, F);
             V_ = V;
             F_ = F;
+            reference_length = 0.02 * igl::avg_edge_length(V_, F_);
 			igl::boundary_loop(F,L_);
+            judgyType(V_);
 		}
 		Eigen::MatrixXd V_;
 		Eigen::MatrixXi F_;
 		Eigen::VectorXi L_;
+        double reference_length = 1;
 		SymmetryPlane(const Eigen::MatrixXd& V, const Eigen::MatrixXi& F) {
 			tree.init(V, F);
             V_ = V;
             F_ = F;
+            reference_length=0.02*igl::avg_edge_length(V_,F_);
             igl::boundary_loop(F, L_);
+            judgyType(V_);
 		}
 		Eigen::RowVector3d project(const Eigen::RowVector3d& vec) {
 			Eigen::RowVector3d ans;
@@ -37,17 +49,28 @@ namespace TiGER {
 		* try to project the normal
 		*/
         void adjustNormal(const Eigen::RowVector3d& point, Eigen::RowVector3d& normal, bool boundary = false) {
-            Eigen::RowVector3d endpoint = point + normal;
+            Eigen::RowVector3d endpoint = point + normal* reference_length;
             Eigen::RowVector3d nep;
             if (boundary) {
                 nep= projectToLoop(V_, L_, endpoint);
+                normal = nep - point;
             }
             else {
                 
                 nep = project(endpoint);
-                
+                normal = nep - point;
+                if (stype == SType::x) {
+                    normal(0) = 0;
+                }
+                if (stype == SType::y) {
+                    normal(1) = 0;
+                }
+                if (stype == SType::z) {
+                    normal(2) = 0;
+                }
             }
-            normal = nep - point;
+            
+            normal.normalize();
 		}
 		void connect(const SymmetryPlane& sp) {
 
@@ -113,7 +136,26 @@ namespace TiGER {
 
             return closest_point;
         }
-
+        
+        void judgyType(const Eigen::MatrixXd& V_) {
+            if (V_.rows() == 0)
+                return;
+            double eps = reference_length * 1e-8;
+            Eigen::RowVector3d maxV(V_.row(0));
+            Eigen::RowVector3d minV(V_.row(0));
+            for (int i = 0; i < V_.rows(); i++) {
+                for (int j = 0; j < 3; j++) {
+                    maxV(j) = std::max(maxV(j), V_(i,j));
+                    minV(j) = std::min(minV(j), V_(i, j));
+                }
+            }
+            for (int j = 0; j < 3; j++) {
+                if (maxV(j) - minV(j) < eps) {
+                    stype = SType(j + 1);
+                    break;
+                }
+            }
+        }
 	};
 }
 #endif //!_SYMMETRY_H_

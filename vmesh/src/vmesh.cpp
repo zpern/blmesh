@@ -689,9 +689,6 @@ namespace TiGER {
 					}
 					else
 						nppnMEFm[cnt] = cv.f[i][j] + old_point_num;
-					if (nppnMEFm[cnt] < 0) {
-						std::cout << "debug here";
-					}
 					cnt++;
 				}
 

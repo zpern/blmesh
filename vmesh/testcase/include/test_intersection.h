@@ -62,10 +62,10 @@ TEST(API_Gen_Boundary_Mesh, intersection) {
 	std::string trash;
 	int boundary_info;
 	fin >> trash >> nLN >> trash >> dLen >> trash >> dRto >> trash >> bisostop >> trash >> boundary_info;
-	pnFT = new int[boundary_info];
+	pnFT = new int[boundary_info+1];
 	for (int i = 0; i < boundary_info; i++) {
 		fin >> pnFT[i];
-
+	
 	}
 	fin >> trash >> buse_multiple_normals;
 	fin >> nSF >> nSN;
