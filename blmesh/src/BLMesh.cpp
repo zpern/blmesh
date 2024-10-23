@@ -4809,8 +4809,8 @@ void BLMesh::PreCheckPrismValid(BLFront *blFront)
 		}
 	}
 #ifdef CHECK_VOLUMN
-	if (!CheckPrismVolumn(2 * nconn, conn)){
-	//|| !CheckPrismSkewness(2 * nconn, conn)) {
+	if (!CheckPrismVolumn(2 * nconn, conn)
+	|| !CheckPrismSkewness(2 * nconn, conn)) {
 
 
 		blFront->is_prism_valid = 0;
@@ -4835,11 +4835,11 @@ void BLMesh::PreCheckPrismValid(BLFront *blFront)
 			startpos[j] += m_pNodes[conn[i]].coord[j];
 	startpos = startpos / 3;
 
-	if (m_ocTree->chckIntersectWithLine(startpos+ up_front_normal*0.01, startpos + up_front_normal) < 0.95) {
+	if (m_ocTree->chckIntersectWithLine(startpos+ up_front_normal*0.25, startpos + up_front_normal) < 0.95) {
 		blFront->is_prism_valid = 0;
 #ifdef _DEBUG
 		cout << "=====================================" << endl;
-		cout << m_ocTree->chckIntersectWithLine(startpos + up_front_normal * 0.01, startpos + up_front_normal ) << endl;
+		cout << m_ocTree->chckIntersectWithLine(startpos + up_front_normal * 0.25, startpos + up_front_normal ) << endl;
 		cout << "stop by edge_check " << endl;
 
 		cout << "=====================================" << endl;

@@ -30,6 +30,7 @@ double Quality(std::vector<BLVector> coordinate) {
 }
 bool MeshOptimize(std::vector<BLVector> &coordinate, std::vector<std::vector<int>> &connector, std::set<int>& boundary_point)
 {
+	GEOM_FUNC::exactinit();
 	std::vector<bool> point_map(coordinate.size(),false);// true: optimize ; false: do nothing 
 	std::vector<pair<double,int>> point_quality; // just for selceting the worst point
 	for (auto i : connector) {
@@ -54,9 +55,7 @@ bool MeshOptimize(std::vector<BLVector> &coordinate, std::vector<std::vector<int
 			}
 		}
 	}
-	if (checkterminate()) {
-		return false;
-	}
+
 	std::sort(point_quality.rbegin(), point_quality.rend());
 	std::size_t MAX_POINT = 200;
 	for (std::size_t i = 0; i < std::min(point_quality.size(), MAX_POINT); i++) {
@@ -67,9 +66,7 @@ bool MeshOptimize(std::vector<BLVector> &coordinate, std::vector<std::vector<int
 	int split_pyramid[4][4] = { {0,1,2,4}, {0,2,3,4}, {0,1,3,4}, {1,2,3,4} };
 	std::vector<vector<int>> extra_ele;
 	for (auto i : connector) {
-		if (checkterminate()) {
-			return false;
-		}
+
 		bool need_split = false;
 		if (i.size() == 6) {//prism
 			for (int j = 0; j < 6; j++) {
@@ -120,9 +117,7 @@ bool MeshOptimize(std::vector<BLVector> &coordinate, std::vector<std::vector<int
 		length /= 6;
 		return volume/pow(length,3);
 	};
-	if (checkterminate()) {
-		return false;
-	}
+
 	//averagy edge length
 	auto edgeLength = [coordinate](std::vector<int> tetra) {
 		double c[4][3];
@@ -180,13 +175,9 @@ bool MeshOptimize(std::vector<BLVector> &coordinate, std::vector<std::vector<int
 	const int MAX_OPT_LOOP = 3;
 	int loop = MAX_OPT_LOOP;
 	while (loop--) {
-		if (checkterminate()) {
-			return false;
-		}
+
 		for (auto bad_node_sphere : spheres) {
-			if (checkterminate()) {
-				return false;
-			}
+
 			int idx = bad_node_sphere.first;
 			auto sphere = bad_node_sphere.second;
 			// find worst quality
@@ -222,7 +213,7 @@ bool MeshOptimize(std::vector<BLVector> &coordinate, std::vector<std::vector<int
 			double old_quality = min_cost;
 
 
-			while (end_step - start_step > step * 1e-5) {
+			while (end_step - start_step > step * 1e-8) {
 				double current_step = end_step / 2 + start_step / 2;
 				BLVector new_coord = current_step * face_normal + coordinate[idx];
 
@@ -291,7 +282,7 @@ bool MeshOptimize(std::vector<BLVector> &coordinate, std::vector<std::vector<int
 	spdlog::info("Optimization point size = {}",quality_compare.size());
 	spdlog::info("{}====>{}",worst_before, worst_after);
 
-	if ( worst_after > worst_before * 1.3 )
+	if (worst_after>0&& worst_after > worst_before * 1.05 )
 		return true;
 	return false;
 
