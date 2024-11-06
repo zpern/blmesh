@@ -6954,7 +6954,7 @@ int BLMesh::GetOuterBoundary(int *npt, int *nlem, double **pt, int **elm, int **
 		{
 			if(!perid.size())
 			if (perid.find(m_symFidx[i]) == perid.end()) {
-				CalSymplnBdry(&nbdryi[i], &(pbdryi[i]), m_symFidx[i]);
+				CalSymplnBdry(&nbdryi[i], &(pbdryi[i]), m_symFidx[i], add_symm);
 #ifdef _DEBUG
 				OutputSymplnBdry("testbdry.vtk", nbdryi[i], pbdryi[i], m_symFidx[i]);
 #endif
@@ -9834,7 +9834,7 @@ bool BLMesh::IsSymLine(int p1, int p2)
 	return m_mapSymline[std::min(p1, p2)].find(std::max(p1, p2)) != m_mapSymline[std::min(p1, p2)].end();
 }
 
-void BLMesh::CalSymplnBdry(int *nBdry, int **pBdry, int ifc)
+void BLMesh::CalSymplnBdry(int *nBdry, int **pBdry, int ifc,bool add_symm)
 {
 	int i, j, pid1, pid2, pid3, pid4, conn[4], min, max, cnt;
 	bool isedg = false;
@@ -10035,7 +10035,7 @@ void BLMesh::CalSymplnBdry(int *nBdry, int **pBdry, int ifc)
 *
 *    remove (2,4)
 */
-
+	if(add_symm)
 	removeNonManifoldPoint(sym_line);
 
 

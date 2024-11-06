@@ -363,7 +363,7 @@ public:
 	//void UpdateSymNormal(SymmetryPlane symPln, double symVal, BLVector& norm);
 
 	bool IsSymLine(int p1, int p2);
-	void CalSymplnBdry(int* nBdry, int** pBdry, int ifc = 0);
+	void CalSymplnBdry(int* nBdry, int** pBdry, int ifc = 0, bool add_symm=true);
 	void RemvDeletedSymBdry();
 	void OutputSymplnBdry(string fn, int nBdry, int* pBdry, int ifc = 0);
 	void CalSymplnMsh(int nBdry, int* pBdry, int* nBdryElm, int** pBdryElm, double symval = 0.0, int ifc = 0);
