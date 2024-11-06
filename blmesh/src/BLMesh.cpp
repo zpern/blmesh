@@ -34,6 +34,9 @@
 #include "igl/list_to_matrix.h"
 #include "igl/remove_unreferenced.h"
 
+#include <algorithm>
+#include <set>
+
 #ifdef infect
 #undef infect
 #endif
@@ -6213,41 +6216,54 @@ void BLMesh::CreatePyramid(BLFront *blFront)
 
 void BLMesh::UpdateSymmetry()
 {
+
 	m_blFrontList->RestoreFront();
-	while (m_blFrontList->HasNextFront())
-	{
-		BLFront *blFront = m_blFrontList->GetNextFront();
-		BLNode *nei[3];
+	while (m_blFrontList->HasNextFront()) {
+		BLFront* blFront = m_blFrontList->GetNextFront();
+		BLNode* nei[3];
 		int num_nei;
 		blFront->GetNodes(&num_nei, nei);
-		for (int i = 0; i < num_nei; i++)
-		{
-			if (m_pNodes[nei[i]->GetNodIdx()].bsysm && m_pNodes[nei[(i + 1) % 3]->GetNodIdx()].bsysm)
-			{
-				if (m_pNodes[nei[i]->GetNodIdx()].isymfc == m_pNodes[nei[(i + 1) % 3]->GetNodIdx()].isymfc)
-				{
-					int id[4];
-					id[1] = nei[i]->GetNodIdx();
-					id[0] = nei[(i + 1) % 3]->GetNodIdx();
-					id[2] = nei[i]->GetLowerNode()->GetNodIdx();
-					id[3] = nei[(i + 1) % 3]->GetLowerNode()->GetNodIdx();
-					auto face = intersect_two(intersect_two(m_pNodes[nei[i]->GetNodIdx()].isymfc, m_pNodes[nei[(i+1)%3]
-						->GetNodIdx()].isymfc), m_pNodes[nei[(i + 2) % 3]->GetNodIdx()].isymfc);
 
-					if (face.size() == 0) {
-						for (int k = 0; k < 3; k++)
-						{
-							for (auto l : m_pNodes[nei[(i + k) % 3]->GetNodIdx()].isymfc) {
-								face.push_back(l);
-							}
-							for (auto l : m_pNodes[nei[(i + k) % 3]->GetLowerNode()->GetNodIdx()].isymfc) {
-								face.push_back(l);
-							}
-						}
-					}
-					
-					AddElem(4, id, BLEntityTopology::QUADRILATERAL, face.size()?face[0]:0);
-				}
+		for (int i = 0; i < num_nei; i++) {
+			int idx1 = nei[i]->GetNodIdx();
+			int idx2 = nei[(i + 1) % 3]->GetNodIdx();
+			int idx3 = nei[(i + 2) % 3]->GetNodIdx();
+
+			// 获取 isymfc 的两个节点的 set
+			const auto& isymfc1 = m_pNodes[idx1].isymfc;
+			const auto& isymfc2 = m_pNodes[idx2].isymfc;
+
+			// 使用 set_intersection 检查是否有公共单元
+			std::set<int> intersection;
+			std::set_intersection(isymfc1.begin(), isymfc1.end(),
+				isymfc2.begin(), isymfc2.end(),
+				std::inserter(intersection, intersection.begin()));
+
+			if (m_pNodes[idx1].bsysm && m_pNodes[idx2].bsysm && !intersection.empty()) {
+				int id[4] = {
+					idx2,
+					idx1,
+					nei[i]->GetLowerNode()->GetNodIdx(),
+					nei[(i + 1) % 3]->GetLowerNode()->GetNodIdx()
+				};
+
+				// 合并相交面
+				auto face = intersect_two(intersect_two(isymfc1, isymfc2), m_pNodes[idx3].isymfc);
+
+				//if (face.empty()) {
+				//	for (int k = 0; k < 3; k++) {
+				//		auto addNodeFace = [&](int nodeIdx) {
+				//			for (auto l : m_pNodes[nodeIdx].isymfc) {
+				//				face.push_back(l);
+				//			}
+				//			};
+
+				//		addNodeFace(nei[(i + k) % 3]->GetNodIdx());
+				//		addNodeFace(nei[(i + k) % 3]->GetLowerNode()->GetNodIdx());
+				//	}
+				//}
+
+				AddElem(4, id, BLEntityTopology::QUADRILATERAL, *intersection.begin());
 			}
 		}
 	}
@@ -6927,7 +6943,7 @@ int BLMesh::GetOuterBoundary(int *npt, int *nlem, double **pt, int **elm, int **
 		pbdryelmi[i] = nullptr;
 	}
 
-	if (add_symm&&m_nSymBdrys > 0)
+	if (m_nSymBdrys > 0)
 	{
 #ifdef _NEW_SYMM
 		m_nTtlInitSymBdrys = m_nSymBdrys;
@@ -6942,7 +6958,7 @@ int BLMesh::GetOuterBoundary(int *npt, int *nlem, double **pt, int **elm, int **
 #ifdef _DEBUG
 				OutputSymplnBdry("testbdry.vtk", nbdryi[i], pbdryi[i], m_symFidx[i]);
 #endif
-				if (nbdryi[i]) {
+				if (nbdryi[i]&&add_symm) {
 					//OutputSymplnBdry("testbdry.vtk", nbdryi[i], pbdryi[i], m_symFidx[i]);
 					CalSymplnMsh(nbdryi[i], pbdryi[i], &nbdryelmi[i], &pbdryelmi[i], m_symVals[i], m_symFidx[i]);
 
