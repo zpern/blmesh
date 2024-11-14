@@ -15,7 +15,7 @@ void SimpleNormalSmoothStrategy::SmoothNormalOnce(BLNode *blNod, int iq)
 	//if (blNod->GetVirtualFlag())
 	//	return;
 	blNod->if_need_smooth =false;
-	constexpr double thredhold =25;
+	constexpr double thredhold =35;
 	double min_front_size=std::numeric_limits<double>::max();
 
 

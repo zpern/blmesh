@@ -230,7 +230,7 @@ namespace TiGER {
 		int			*pnSFTp,		/* 曲面网格单元类型。当前仅支持三角形单元 **/
 		int			*pnSFPt,		/* 曲面网格单元所在几何面编号,从1开始 **/
 		int			nSF,			/* 曲面网格单元数目 **/
-		int			*pnFT,			/* 几何面类型： 0为远场； 1 为物面； 2为对称面 **/
+		std::map<int, int> pnFT,			/* 几何面类型： 0为远场； 1 为物面； 2为对称面 ,3为不长边界层的面,4为周期性面**/
 		int			nLN,			/* 边界层层数 **/
 		double		dLen,			/* 边界层第一层厚度 **/
 		double		dRto,			/* 边界层厚度增长因子 **/
@@ -311,12 +311,8 @@ namespace TiGER {
 		//vector<int> box;
 		//vector<int> match;
 		//vector<int> per;
-		int numFace = 0;
-		for (int i = 0; i < nSF; i++) {
-			numFace = max(numFace, pnSFPt[i]);
-		}
-		for (int i = 0; i < numFace; i++) {
-			bcs[pnFT[i]].push_back(i + 1);
+		for (auto i : pnFT) {
+			bcs[i.second].push_back(i.first);
 		}
 		cf.vecBoxFc = bcs[0];
 		cf.vecSymmFc = bcs[2];
@@ -350,11 +346,11 @@ namespace TiGER {
 			ftest << "dLen: " << dLen << endl;
 			ftest << "dRto: " << dRto << endl;
 			ftest << "bisostop: " << bisostop << endl;
-			ftest << "boundary_info: " << numFace << endl;
+			ftest << "boundary_info: "  << endl;
 
 
-			for (int i = 0; i < numFace; i++) {
-				ftest << pnFT[i] << " ";
+			for (auto i:pnFT) {
+				ftest << i.first << " " << i.second << " " << std::endl;;
 			}
 			ftest << endl;
 			ftest << "b_use_multiple_normals: " << b_use_multiple_normals << endl;
@@ -488,7 +484,7 @@ namespace TiGER {
 		int			*pnSFTp,		/* 曲面网格单元类型。当前仅支持三角形单元 **/
 		int			*pnSFPt,		/* 曲面网格单元所在几何面编号 ,从1开始 **/
 		int			nSF,			/* 曲面网格单元数目 **/
-		int			*pnFT,			/*  几何面类型： 0为远场； 1 为物面； 2为对称面 ,3为不长边界层的面,4为周期性面 **/
+		std::map<int, int> pnFT,			/* 几何面类型： 0为远场； 1 为物面； 2为对称面 ,3为不长边界层的面,4为周期性面**/
 		int			nLN,			/* 边界层层数 **/
 		double		dLen,			/* 边界层第一层厚度 **/
 		double		dRto,			/* 边界层厚度增长因子 **/
@@ -531,12 +527,8 @@ namespace TiGER {
 		//vector<int> box;
 		//vector<int> match;
 		//vector<int> per;
-		int numFace = 0;
-		for (int i = 0; i < nSF; i++) {
-			numFace = max(numFace, pnSFPt[i]);
-		}
-		for (int i = 0; i < numFace+1; i++) {
-			bcs[pnFT[i]].push_back(i);
+		for (auto i: pnFT) {
+			bcs[i.second].push_back(i.first);
 		}
 
 		cf.vecBoxFc = bcs[0];
@@ -573,11 +565,10 @@ namespace TiGER {
 			ftest << "dLen: " << dLen << endl;
 			ftest << "dRto: " << dRto << endl;
 			ftest << "bisostop: " << bisostop << endl;
-			ftest << "boundary_info: " << numFace << endl;
-			for (int i = 0; i < numFace; i++) {
-				ftest << pnFT[i] << " ";
+			ftest << "boundary_info: " << endl;
+			for (auto i : pnFT) {
+				ftest << i.first << " " << i.second << " " << std::endl;;
 			}
-			ftest << endl;
 			ftest << "b_use_multiple_normals: " << b_use_multiple_normals << endl;
 			ftest << nelm << " " << npt << " " << endl;
 			std::vector<std::array<double, 3>> points;

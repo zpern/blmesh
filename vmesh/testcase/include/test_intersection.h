@@ -21,7 +21,7 @@ TEST(API_Gen_Boundary_Mesh, intersection) {
 	int			*pnSFTp = nullptr;;		/* 曲面网格单元类型。当前仅支持三角形单元 目前暂时用不到，可以给空指针  */
 	int			*pnSFPt = nullptr;;		/* 曲面网格单元所在几何面编号 注意，从1开始，不是0  */
 	int			nSF = 0;			/* 曲面网格单元数目  */
-	int			*pnFT = nullptr;;			/* 几何面类型： 0为远场； 1 为物面； 2为对称面 pnFT[0]=1代表1号面为物面  */
+	std::map<int,int>			pnFT;			/* 几何面类型： 0为远场； 1 为物面； 2为对称面 pnFT[0]=1代表1号面为物面  */
 	int			nLN = 20;            /* 边界层层数  */
 	double		dLen = 0.01;			/* 边界层第一层厚度  */
 	double		dRto = 1.3;			/* 边界层厚度增长因子  */
@@ -62,7 +62,6 @@ TEST(API_Gen_Boundary_Mesh, intersection) {
 	std::string trash;
 	int boundary_info;
 	fin >> trash >> nLN >> trash >> dLen >> trash >> dRto >> trash >> bisostop >> trash >> boundary_info;
-	pnFT = new int[boundary_info+1];
 	for (int i = 0; i < boundary_info; i++) {
 		fin >> pnFT[i];
 	

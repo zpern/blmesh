@@ -5,6 +5,7 @@
 #include <string>
 #include <functional>
 #include <array>
+#include <map>
 
 #ifdef Tiger_EXPORTS
 #define Tiger_API
@@ -49,7 +50,7 @@ namespace TiGER {
 		int* pnSFTp,		/* 曲面网格单元类型。当前仅支持三角形单元 **/
 		int* pnSFPt,		/* 曲面网格单元所在几何面编号 ,从1开始 **/
 		int			nSF,			/* 曲面网格单元数目 **/
-		int* pnFT,			/* 几何面类型： 0为远场； 1 为物面； 2为对称面,3为不长边界层的面 **/
+		std::map<int, int> pnFT,			/* 几何面类型： 0为远场； 1 为物面； 2为对称面 ,3为不长边界层的面,4为周期性面**/
 		int			nLN,			/* 边界层层数 **/
 		double		dLen,			/* 边界层第一层厚度 **/
 		double		dRto,			/* 边界层厚度增长因子 **/
@@ -106,7 +107,7 @@ namespace TiGER {
 		int* pnSFTp,		/* 曲面网格单元类型。当前仅支持三角形单元,从1开始 **/
 		int* pnSFPt,		/* 曲面网格单元所在几何面编号 ,从1开始 **/
 		int			nSF,			/* 曲面网格单元数目 **/
-		int* pnFT,			/* 几何面类型： 0为远场； 1 为物面； 2为对称面 ,3为不长边界层的面,4为周期性面**/
+		std::map<int,int> pnFT,			/* 几何面类型： 0为远场； 1 为物面； 2为对称面 ,3为不长边界层的面,4为周期性面**/
 		int			nLN,			/* 边界层层数 **/
 		double		dLen,			/* 边界层第一层厚度 **/
 		double		dRto,			/* 边界层厚度增长因子 **/
