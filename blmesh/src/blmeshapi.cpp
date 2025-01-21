@@ -14,7 +14,7 @@
 #include "BLMesh_define.h"
 #include "blmeshapi.h"
 #include "../common/singleton_terminate.h"
-
+#define APIFUNC
 #define _CONFIG_FILE
 
  // #define _2D_BLMESH
