@@ -5585,10 +5585,10 @@ double BLMesh::CheckPyramidVolumn(double coordinates[][3])
 
 	if (volumn1 < volumn2)
 	{
-		return (VERDICT_REAL)volumn1 / 2;
+		return volumn1 / 2;
 	}
 
-	return (VERDICT_REAL)volumn2 / 2;
+	return volumn2 / 2;
 }
 bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 {
