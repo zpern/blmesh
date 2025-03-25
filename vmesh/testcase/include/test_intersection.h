@@ -107,6 +107,7 @@ TEST(API_Gen_Boundary_Mesh, intersection) {
 			nLN,			/* 边界层层数 */
 			dLen,			/* 边界层第一层厚度 */
 			dRto,			/* 边界层厚度增长因子 */
+			max_skewnwass,  /* 各向异性停止**/
 			bisostop,      /* 各向同性停止 */
 			/* ------------------------- 输出参数 ------------------------- */
 			&ppdMNC1,		/* 体网格节点坐标 */
