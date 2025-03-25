@@ -111,6 +111,7 @@ namespace TiGER {
 		int			nLN,			/* 边界层层数 **/
 		double		dLen,			/* 边界层第一层厚度 **/
 		double		dRto,			/* 边界层厚度增长因子 **/
+		double		max_skewnwass,  /* 各向异性停止**/
 		bool		bisostop,       /* 各向同性停止**/
 		/* ------------------------- 输出参数 -------------------------**/
 		double** ppdMNC,		/* 体网格节点坐标 **/

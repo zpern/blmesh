@@ -488,6 +488,7 @@ namespace TiGER {
 		int			nLN,			/* 边界层层数 **/
 		double		dLen,			/* 边界层第一层厚度 **/
 		double		dRto,			/* 边界层厚度增长因子 **/
+		double		max_skewnwass,  /* 各向异性停止**/
 		bool		bisostop,       /* 各向同性停止**/
 		/* ------------------------- 输出参数 -------------------------**/
 		double	   **ppdMNC,		/* 体网格节点坐标 **/
@@ -564,6 +565,7 @@ namespace TiGER {
 			ftest << "nLN: " << nLN << endl;
 			ftest << "dLen: " << dLen << endl;
 			ftest << "dRto: " << dRto << endl;
+			ftest << "max_skewnwass: " << max_skewnwass << endl;
 			ftest << "bisostop: " << bisostop << endl;
 			ftest << "boundary_info: " << endl;
 			for (auto i : pnFT) {
@@ -592,6 +594,7 @@ namespace TiGER {
 		blconfig.per = bcs[4];
 		blconfig.adjacent = bcs[5];
 		blconfig.use_multiple_normals = b_use_multiple_normals;
+		blconfig.max_equal_skewnwass = max_skewnwass;
 		ControlVolume cv;
 		auto bdyfile = PRE::blpre(input, blconfig, points,cv);
 		delete fout;
