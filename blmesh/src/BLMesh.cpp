@@ -5504,7 +5504,6 @@ void BLMesh::PostChckIntersect(BLFront* blFront)
 #endif
 bool BLMesh::CheckPyramidValid(double coordinates[][3])
 {
-	cf.max_equal_skewnwass = 0.93;
 	int i, idx;
 	double fprismqual = FLT_MAX, ftmp, Jackbin, mjkb1, mjkb2, mjkb3;
 	BLVector gprism[5] = {coordinates[0], coordinates[1], coordinates[2], coordinates[3], coordinates[4]};
@@ -6654,7 +6653,6 @@ bool BLMesh::CheckPrismValidity(int nconn, int *conn, int *pidx)
 
 bool BLMesh::CheckPrismSkewness(int nconn, int *conn)
 {
-	cf.max_equal_skewnwass = 0.93;
 	int i, idx;
 	double fprismqual = FLT_MAX, ftmp, Jackbin, mjkb1, mjkb2, mjkb3;
 	BLVector gprism[6];

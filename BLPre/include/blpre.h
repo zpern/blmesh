@@ -18,6 +18,7 @@ struct blpreConfig {
 	vector<int> match;
 	vector<int> per;
 	vector<int> adjacent;
+	double max_equal_skewnwass;
 	bool use_multiple_normals;
 };
 struct ControlVolume{

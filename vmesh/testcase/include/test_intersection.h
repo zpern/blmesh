@@ -25,6 +25,7 @@ TEST(API_Gen_Boundary_Mesh, intersection) {
 	int			nLN = 20;            /* 边界层层数  */
 	double		dLen = 0.01;			/* 边界层第一层厚度  */
 	double		dRto = 1.3;			/* 边界层厚度增长因子  */
+	double		max_skewnwass;  /* 各向异性停止**/
 	bool		bisostop = true;      /* 各向同性停止 */
 	int nopt = 0; /* 优化次数 */
 	/* ------------------------- 输出参数 ------------------------- */
@@ -108,6 +109,7 @@ TEST(API_Gen_Boundary_Mesh, intersection) {
 			dLen,			/* 边界层第一层厚度 */
 			std::vector<double>{},
 			dRto,			/* 边界层厚度增长因子 */
+			max_skewnwass,  /* 各向异性停止**/
 			bisostop,      /* 各向同性停止 */
 			/* ------------------------- 输出参数 ------------------------- */
 			&ppdMNC1,		/* 体网格节点坐标 */
