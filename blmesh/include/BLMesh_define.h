@@ -197,9 +197,11 @@ struct ConfigArgc {
 	ConfigArgc() {}
 	char filenam[1024];		// the project name
 	int layer_num;
+	std::vector<int> layer_num_vec;
 	int surface_normal;
 	double isotropic_stop;
 	double step_len;
+	std::vector<double> step_len_vec;
 	double ratio;
 	int layer_ratio;
 	double ratio1;

@@ -232,7 +232,9 @@ namespace TiGER {
 		int			nSF,			/* 曲面网格单元数目 **/
 		std::map<int, int> pnFT,			/* 几何面类型： 0为远场； 1 为物面； 2为对称面 ,3为不长边界层的面,4为周期性面**/
 		int			nLN,			/* 边界层层数 **/
+		std::vector<int> layer_vec, /* 边界层层数数组 **/
 		double		dLen,			/* 边界层第一层厚度 **/
+		std::vector<double> length_vec, /* 边界层第一层厚度数组 **/
 		double		dRto,			/* 边界层厚度增长因子 **/
 		bool		bisostop,       /* 各向同性停止**/
 		int			nopt,           /* 优化次数 **/
@@ -486,7 +488,9 @@ namespace TiGER {
 		int			nSF,			/* 曲面网格单元数目 **/
 		std::map<int, int> pnFT,			/* 几何面类型： 0为远场； 1 为物面； 2为对称面 ,3为不长边界层的面,4为周期性面**/
 		int			nLN,			/* 边界层层数 **/
+		std::vector<int> layer_vec, /* 边界层层数数组 **/
 		double		dLen,			/* 边界层第一层厚度 **/
+		std::vector<double> length_vec, /* 边界层第一层厚度数组 **/
 		double		dRto,			/* 边界层厚度增长因子 **/
 		bool		bisostop,       /* 各向同性停止**/
 		/* ------------------------- 输出参数 -------------------------**/
@@ -520,6 +524,8 @@ namespace TiGER {
 		cf.dStepLen = dLen;
 		cf.dStepLenRatio = dRto;
 		cf.nLayerNum = nLN;
+		cf.nInitLayerNum_vec = layer_vec;
+		cf.dStepLen_vec = length_vec;
 		cf.sGeoFileName = filename;
 		vector<vector<int>> bcs;
 		bcs.resize(10);
@@ -588,6 +594,9 @@ namespace TiGER {
 		blconfig.n = nLN;
 		blconfig.Ro = dRto;
 		blconfig.len = dLen;
+
+		blconfig.layer_vec = layer_vec;
+		blconfig.len_vec = length_vec;
 		blconfig.match = bcs[3];
 		blconfig.per = bcs[4];
 		blconfig.adjacent = bcs[5];

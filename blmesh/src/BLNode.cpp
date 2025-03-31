@@ -765,7 +765,7 @@ double BLNode::GetHeightLength()
 			m_h0 = length;
 		}
 		
-		expect_height_ = (m_h0 * ratio);
+		expect_height_ = (respect_height * ratio);
 	}
 #ifdef CHANGE_STEP_BY_DISTANCE
 	return expect_height_ * GetDistanceRatio()*(1 + GetHightRatio());

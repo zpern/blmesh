@@ -103,6 +103,8 @@ public:
 	inline int GetElmIdx() { return eidx; }
 	inline void SetTriIdx(int idx) {this->tridx = idx;}
 
+	
+
 	inline TreeNode* GetOuterNode() { return  outer_node; }
 	inline void SetOuterNode(TreeNode* node) { outer_node = node; }
 

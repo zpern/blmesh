@@ -6,6 +6,7 @@
 #include <functional>
 #include <array>
 #include <map>
+#include <vector>
 
 #ifdef Tiger_EXPORTS
 #define Tiger_API
@@ -52,7 +53,9 @@ namespace TiGER {
 		int			nSF,			/* 曲面网格单元数目 **/
 		std::map<int, int> pnFT,			/* 几何面类型： 0为远场； 1 为物面； 2为对称面 ,3为不长边界层的面,4为周期性面**/
 		int			nLN,			/* 边界层层数 **/
+		std::vector<int> layer_vec, /* 边界层层数数组 **/
 		double		dLen,			/* 边界层第一层厚度 **/
+		std::vector<double> length_vec, /* 边界层第一层厚度数组 **/
 		double		dRto,			/* 边界层厚度增长因子 **/
 		bool		bisostop,       /* 各向同性停止**/
 		int			nopt,           /* 优化次数 **/
@@ -109,7 +112,9 @@ namespace TiGER {
 		int			nSF,			/* 曲面网格单元数目 **/
 		std::map<int,int> pnFT,			/* 几何面类型： 0为远场； 1 为物面； 2为对称面 ,3为不长边界层的面,4为周期性面**/
 		int			nLN,			/* 边界层层数 **/
+		std::vector<int> layer_vec, /* 边界层层数数组 **/
 		double		dLen,			/* 边界层第一层厚度 **/
+		std::vector<double> length_vec, /* 边界层第一层厚度数组 **/
 		double		dRto,			/* 边界层厚度增长因子 **/
 		bool		bisostop,       /* 各向同性停止**/
 		/* ------------------------- 输出参数 -------------------------**/

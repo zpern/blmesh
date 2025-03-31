@@ -136,6 +136,7 @@ public:
 	std::vector<int> vecAdjacentFc;
 
     double dStepLen;
+    std::vector<double> dStepLen_vec;
     std::string sKwStepLen;
     std::string sCmtStepLen;
 
@@ -148,6 +149,7 @@ public:
     //std::string sCmtStepLenInitRatio;
 
     int nInitLayerNum;
+    std::vector<int> nInitLayerNum_vec;
     //std::string sKwInitLayerNum;
     //std::string sCmtInitLayerNum;
 

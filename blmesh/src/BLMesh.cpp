@@ -516,6 +516,8 @@ int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
 #ifdef _CHECK_INTERSECTION
 			blFront->SetTriIdx(m_TriElm.GetSize() - 1);
 
+			blFront->SetSurfaceElmIdx(m_TriElm.GetSize() - 1);
+
 			//end of intersection
 #endif
 		}
@@ -3055,7 +3057,7 @@ void BLMesh::GenerateBLMesh()
 					}
 					//else
 					//int iiii = blNod->GetNodIdx();
-
+					
 					setblNods.insert(blNod->GetNodIdx());
 				}
 			}
@@ -3156,7 +3158,26 @@ void BLMesh::GenerateBLMesh()
 			BLNode *blNods[MAX_FRONT_NODES], *neigNods[2]; // , * blNodNew;
 			normn = blNod->GetNormal(m_pNodes, NORMALTYPE);
 
-
+			int min_layer = 100000000;
+			double min_length = 1e20;
+			for (auto f : blNod->GetNeigFronts()) {
+				int eid = f->GetSurfaceElmIdx();
+				int id = m_pElems[eid].igom;
+				if (id < cf.step_len_vec.size() ) {
+					int target_layer = cf.layer_num_vec[id];
+					double target_length = cf.step_len_vec[id];
+					min_layer = std::min(min_layer, target_layer);
+					min_length = std::min(min_length, target_length);
+				}
+			}
+			if (min_layer < 1000000) {
+				blNod->respect_layer= min_layer;
+				blNod->respect_height = min_length;
+			}
+			else {
+				blNod->respect_layer = cf.layer_num;
+				blNod->respect_height = cf.step_len; 
+			}
 
 			if (blNod->GetBSys()) {
 				auto ans = blNod->GetHeight();
@@ -3218,7 +3239,8 @@ void BLMesh::GenerateBLMesh()
 			blNodNew->SetBeitaVisu(0.8);
 			blNodNew->beitaVisu = blNod->beitaVisu;
 			blNodNew->m_h0 = blNod->m_h0 * 0.95 + cf.step_len * 0.05;
-			
+			blNodNew->respect_height = blNod->respect_height * 0.95 + cf.step_len * 0.05;
+			blNodNew->respect_layer = blNod->respect_layer;
 			//blNodNew
 			//
 			pt[0] = newpos.x;
@@ -3485,6 +3507,7 @@ void BLMesh::GenerateBLMesh()
 #endif // USE_OPENMP
 		for (int i = 0; i < nFrtNods; i++)
 		{
+
 			BLFront *blNeigFrts[MAX_NCONN * 2];
 			BLNode *blNeigNodes[MAX_NCONN * 2];
 			int nblNeigFrts;
@@ -3535,6 +3558,10 @@ void BLMesh::GenerateBLMesh()
 		int count = 0;
 		for (int i = 0; i < nFrtNods; i++)
 		{
+			if (blFrtNods[i]->respect_layer <= iLayer) {
+				blFrtNods[i]->SetStopFlag(true);
+			}
+
 			if (CheckIsotroStop(blFrtNods[i]) && !blFrtNods[i]->GetBSys())
 			{
 #ifdef _DEBUG
@@ -4229,6 +4256,10 @@ void BLMesh::PropagateNode(BLNode *blNod, BLVector normal, int iLayer)
 		//BLNode *blNodNew = new BLNode(m_blType);
 		
 		BLNode *blNodNew = blNod->GetUpperNode();
+		//if (!blNodNew) {
+		//	blNod->SetStopFlag(true);
+		//	return;
+		//}
 		if (blNod->getPerNode()) {
 			
 			if (blNod->getPerNode()->GetUpperNode()&& blNod->getPerNode()->GetUpperNode()->GetLayerNum()== iLayer + 1) {
@@ -4903,6 +4934,7 @@ void BLMesh::prePropagate(BLFront *blFront)
 
 		blFrontNew = new BLFront();
 		blFrontNew->SetTriIdx(itrix);
+		blFrontNew->SetSurfaceElmIdx(blFront->GetSurfaceElmIdx());
 
 		//set the relationship between the new propagated nodes and the new front
 		for (int j = 0; j < nNods; j++)

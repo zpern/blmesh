@@ -402,6 +402,7 @@ private:
 
 	bool m_bStopPropagate;
 	bool isVirtualP;
+	
 	//double m_uValue;
 	//double m_averU;
 	//double m_uVpre;
@@ -453,6 +454,8 @@ public:
 	double ave_length;
 	int m_symmplane_id;
 	double m_h0;
+	double respect_height;
+	int respect_layer;
 	double beitaVisu;
 	bool iso_stop;
 	bool if_need_smooth;

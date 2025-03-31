@@ -53,6 +53,9 @@ void main(int argc, char* argv[]) {
     cf.boxfc = blconfig.box;
     cf.step_len = blconfig.len;
     cf.layer_num = blconfig.n;
+    cf.step_len_vec = blconfig.len_vec;
+    cf.layer_num_vec = blconfig.layer_vec;
+    
     cf.isotropic_stop = isostop;
     cf.ratio = blconfig.Ro;
     cf.layer_ratio = 0;

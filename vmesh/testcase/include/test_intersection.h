@@ -104,7 +104,9 @@ TEST(API_Gen_Boundary_Mesh, intersection) {
 			nSF,			/* 曲面网格单元数目 */
 			pnFT,			/* 几何面类型： 0为远场； 1 为物面； 2为对称面 */
 			nLN,			/* 边界层层数 */
+			std::vector<int>{},
 			dLen,			/* 边界层第一层厚度 */
+			std::vector<double>{},
 			dRto,			/* 边界层厚度增长因子 */
 			bisostop,      /* 各向同性停止 */
 			/* ------------------------- 输出参数 ------------------------- */
