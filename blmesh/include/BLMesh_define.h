@@ -209,7 +209,8 @@ struct ConfigArgc {
 	int smooth_attempt;
 
 	double min_volumn_eps;
-	double max_equal_skewnwass = 0.98;
+	double max_equal_skewnwass;
+	int max_layer_diff;
 
 	/*do not generate bdylayermesh */
 	std::vector<int> matchfc;

@@ -5721,7 +5721,7 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 				m_ocTree->insertPreProcess(tridx);
 			}
 		}
-		if (MAX_LAYER_DIFF != 1)
+		if (cf.max_layer_diff!= 1)
 		{
 			for (i = 0; i < 3; i++)
 			{
@@ -5794,8 +5794,8 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 								k++;
 								thick_total += thick;
 							}
-							//cout << min(k, MAX_LAYER_DIFF)<<" "<<k<<":";
-							if (blFront->GetLayerNum() > layer + min(k, MAX_LAYER_DIFF))
+							//cout << min(k, cf.max_layer_diff)<<" "<<k<<":";
+							if (blFront->GetLayerNum() > layer + min(k, cf.max_layer_diff))
 								ret = true;
 							int cons[3], ii;
 							cons[0] = conn[1];
@@ -5909,7 +5909,7 @@ void BLMesh::CreatePyramid(BLFront *blFront)
 				{
 					blNod = blNods[(inei + j) % DIM3];
 					//cout << "Debug info create pyramid" << blNod->GetDescentNod()->GetNodIdx() << endl;
-					if (MAX_LAYER_DIFF == 1)
+					if (cf.max_layer_diff == 1)
 						StopPropagateNode(blNod);
 					if (blNod->GetBSys())
 						in_sys = true;
@@ -6069,7 +6069,7 @@ void BLMesh::CreatePyramid(BLFront *blFront)
 #endif
 			}
 		}
-		if (MAX_LAYER_DIFF != 1)
+		if (cf.max_layer_diff != 1)
 		{
 
 			for (i = 0; i < 3; i++)

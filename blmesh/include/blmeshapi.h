@@ -48,7 +48,6 @@
 #define VERSION "2.0"
 
 //multi-pyramid option
-#define MAX_LAYER_DIFF 6 //max layer difference between two adjoin front
 #define MAX_DIFF_RATIO 0.25 //define the max height of pyramid height/prism length
 #define MIN_LAYER 5
 

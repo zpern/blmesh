@@ -20,6 +20,7 @@ struct blpreConfig {
 	vector<int> adjacent;
 	double max_equal_skewnwass;
 	bool use_multiple_normals;
+	int max_layer_diff;
 };
 struct ControlVolume{
 	std::vector<std::array<double, 3>> v;
