@@ -23,6 +23,7 @@ TEST(API_Gen_Boundary_Mesh, intersection) {
 	int			nSF = 0;			/* 曲面网格单元数目  */
 	std::map<int,int>			pnFT;			/* 几何面类型： 0为远场； 1 为物面； 2为对称面 pnFT[0]=1代表1号面为物面  */
 	int			nLN = 20;            /* 边界层层数  */
+	int			max_layer_diff;
 	double		dLen = 0.01;			/* 边界层第一层厚度  */
 	double		dRto = 1.3;			/* 边界层厚度增长因子  */
 	double		max_skewnwass;  /* 各向异性停止**/
@@ -106,6 +107,7 @@ TEST(API_Gen_Boundary_Mesh, intersection) {
 			pnFT,			/* 几何面类型： 0为远场； 1 为物面； 2为对称面 */
 			nLN,			/* 边界层层数 */
 			std::vector<int>{},
+			int max_layer_diff,
 			dLen,			/* 边界层第一层厚度 */
 			std::vector<double>{},
 			dRto,			/* 边界层厚度增长因子 */
