@@ -489,6 +489,7 @@ namespace TiGER {
 		std::map<int, int> pnFT,			/* 几何面类型： 0为远场； 1 为物面； 2为对称面 ,3为不长边界层的面,4为周期性面**/
 		int			nLN,			/* 边界层层数 **/
 		std::vector<int> layer_vec, /* 边界层层数数组 **/
+		int			max_layer_diff, /*相邻网格边界层层数差*/
 		double		dLen,			/* 边界层第一层厚度 **/
 		std::vector<double> length_vec, /* 边界层第一层厚度数组 **/
 		double		dRto,			/* 边界层厚度增长因子 **/
@@ -604,6 +605,7 @@ namespace TiGER {
 		blconfig.adjacent = bcs[5];
 		blconfig.use_multiple_normals = b_use_multiple_normals;
 		blconfig.max_equal_skewnwass = max_skewnwass;
+		blconfig.max_layer_diff = max_layer_diff;
 		ControlVolume cv;
 		auto bdyfile = PRE::blpre(input, blconfig, points,cv);
 		delete fout;
