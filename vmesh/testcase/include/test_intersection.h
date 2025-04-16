@@ -133,6 +133,7 @@ TEST(API_Gen_Boundary_Mesh, intersection) {
 			&boundary_face,  /////* 边界面网格对应的面id，长度为num_boundary_face **/ 
 			b_have_pyramid, /*是否有金字塔*/
 			buse_multiple_normals, /*是否启用多法向 */
+			std::vector<std::vector<int> split_node_groups,
 			b_output_IO,
 			"virtualmesh",
 			per_face
