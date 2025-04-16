@@ -825,7 +825,6 @@ void MNormalMesh::BuildTopo()
 			split_node_groups.push_back(used_group);
 		}
 	}
-	std::cout << "wohaoshua";
 }
 
 void MNormalMesh::GenerateFirstLayer(double step_len)
