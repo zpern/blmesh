@@ -92,6 +92,7 @@ TEST(API_Gen_Boundary_Mesh, intersection) {
 	int* boundary_mesh;  /////* 边界面网格，注意每四个为一组，而且注意如果为三角形，最后一项为-1，id从0开始 **/ 
 	int* boundary_face;  /////* 边界面网格对应的面id，长度为num_boundary_face **/ 
 
+	std::vector<std::vector<int>> split_node_groups;
 
 	//std::array<double, 12> per_face = {1,0,0,0,984808,0.173648,0,-0.173648,0.984808,0,0,0};
 	std::array<double, 12> per_face = { 1,0,0,0,0.959493,0.281733,0,-0.281733,0.959493,0,0,0 };
