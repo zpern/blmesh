@@ -28,7 +28,7 @@
 //#undef DEBUG
 //#define BRUTE_FORCE_CHECK //on - check valid but time-consuming only used in debug 
 //#define OUTPUT_SPERATELY
-//#define _DEBUG //on -  print debug infomation to cmd windows default - off
+#define _DEBUG //on -  print debug infomation to cmd windows default - off
 //#define USE_TETGEN
 //#define USE_TRIANGLE
 

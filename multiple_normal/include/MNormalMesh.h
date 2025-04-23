@@ -54,7 +54,6 @@ public:
 	std::vector<int> attribute;
 
 	vector<ComplexNode> node_array;
-	vector<vector<int>> split_node_groups;
 protected:
 	void CaculateFrontNormal();
 	void CalculateNodeNormal();

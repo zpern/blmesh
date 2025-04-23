@@ -30,6 +30,6 @@ struct ControlVolume{
 };
 namespace PRE {
 	static ControlVolume empty;
-	std::tuple<std::string, double*, int*, int*, std::vector<double>> blpre(std::string& f, blpreConfig cf, std::vector < std::array< double, 3> > points = std::vector < std::array< double, 3> >(), ControlVolume& cv = empty, std::vector<std::vector<int>>& split_node_groups = std::vector<std::vector<int>>());
+	std::tuple<std::string, double*, int*, int*, std::vector<double>> blpre(std::string& f, blpreConfig cf, std::vector < std::array< double, 3> > points = std::vector < std::array< double, 3> >(), ControlVolume& cv = empty);
 }
 #endif

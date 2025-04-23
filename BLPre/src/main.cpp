@@ -397,8 +397,7 @@ namespace PRE {
 	std::tuple<std::string, double*, int*, int*, std::vector<double>> blpre(
 		std::string& f,
 		blpreConfig blcf,
-	std::vector < std::array< double, 3> > points ,ControlVolume& cv,
-		vector<vector<int>>& split_node_groups) {
+	std::vector < std::array< double, 3> > points ,ControlVolume& cv) {
 	vector<int> symm = blcf.symm;
 	vector<int> box = blcf.box;
 	vector<int> match = blcf.match;

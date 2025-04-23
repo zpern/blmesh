@@ -494,7 +494,7 @@ namespace TiGER {
 		std::vector<double> length_vec, /* 边界层第一层厚度数组 **/
 		double		dRto,			/* 边界层厚度增长因子 **/
 		double		max_skewnwass,  /* 各向异性停止**/
-		bool		bisostop,       /* 各向同性停止**/
+		double		bisostop,       /* 各向同性停止**/
 		/* ------------------------- 输出参数 -------------------------**/
 		double	   **ppdMNC,		/* 体网格节点坐标 **/
 		int         *pnMN,			/* 体网格节点数目 **/
@@ -516,7 +516,6 @@ namespace TiGER {
 		/* ------------------------- 其他参数 -------------------------**/ 
 		bool b_have_pyramid, /* 是否有金字塔 **/
 		bool b_use_multiple_normals, /* 是否启用多法向 缺省为false **/
-		std::vector<std::vector<int>>& split_node_groups,
 		bool b_output_io_file,  /* 是否将api的输入和输出都输出到文件系统中（仅用于DEBUG）缺省为false **/
 		std::string filename,   /* 几何文件名，缺省为virtualmesh **/
 		std::array<double, 12> per_matrix  /* 周期性面控制矩阵,前9位为旋转矩阵 m00，m01，m02 .... ，后三位为位移向量xyz **/
@@ -608,7 +607,7 @@ namespace TiGER {
 		blconfig.max_equal_skewnwass = max_skewnwass;
 		blconfig.max_layer_diff = max_layer_diff;
 		ControlVolume cv;
-		auto bdyfile = PRE::blpre(input, blconfig, points,cv, split_node_groups);
+		auto bdyfile = PRE::blpre(input, blconfig, points,cv);
 		delete fout;
 
 

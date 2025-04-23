@@ -10,8 +10,6 @@
 #include <stack>
 #include <array>
 #include <queue>
-#include <unordered_map>
-#include <unordered_set>
 using std::stringstream;
 using std::ifstream;
 using std::ofstream;
@@ -241,8 +239,7 @@ void MNormalMesh::WriteVol(std::vector<std::array<double, 3>>& v, std::vector<st
 			f.push_back({ lower_ids[i][0],connector[i][0]+lower_num,connector[i][1] + lower_num ,connector[i][2] + lower_num });
 		}
 		else if (lower_ids[i][0] != lower_ids[i][1] && lower_ids[i][2] != lower_ids[i][1]&& lower_ids[i][2] != lower_ids[i][0]) {
-			f.push_back({ lower_ids[i][0] ,lower_ids[i][1]  ,lower_ids[i][2]
-					,connector[i][0] + lower_num,connector[i][1] + lower_num ,connector[i][2] + lower_num });
+			f.push_back({ lower_ids[i][0] ,lower_ids[i][1],lower_ids[i][2],connector[i][0] + lower_num,connector[i][1] + lower_num ,connector[i][2] + lower_num });
 		}
 		else {/// ¸´ÔÓÇé¿ö
 			int k1, k2,k3;
@@ -254,9 +251,10 @@ void MNormalMesh::WriteVol(std::vector<std::array<double, 3>>& v, std::vector<st
 					break;
 				}
 			}
-			f.push_back({ lower_ids[i][k3] ,lower_ids[i][k1] ,connector[i][k3] + lower_num,connector[i][k1] + lower_num ,connector[i][2] + lower_num,(int)v.size()});
-			f.push_back({ lower_ids[i][k2] ,lower_ids[i][k3] ,connector[i][k2] + lower_num,connector[i][k3] + lower_num ,connector[i][2] + lower_num,(int)v.size() });
-			f.push_back({ lower_ids[i][k2] + lower_num,lower_ids[i][k1]+ lower_num ,connector[i][k3] + lower_num,(int)v.size() });
+            f.push_back({lower_ids[i][k3], connector[i][k3] + lower_num, connector[i][k1] + lower_num, lower_ids[i][k1],(int)v.size()}); // pyramid
+			f.push_back({ lower_ids[i][k3] ,lower_ids[i][k2] ,connector[i][k2] + lower_num,connector[i][k3] + lower_num ,(int)v.size() });// pyramid
+            f.push_back({connector[i][k2] + lower_num, connector[i][k1] + lower_num, connector[i][k3] + lower_num,(int)v.size()}); // tetra
+            f.push_back({connector[i][k1] + lower_num, connector[i][k2] + lower_num, lower_ids[i][k1], (int)v.size()}); // tetra
 			std::array<double, 3> ncoord{0,0,0};
 			for (int k = 0; k < 3; k++) {
 				for (int j = 0; j < 3; j++) {
@@ -793,36 +791,6 @@ void MNormalMesh::BuildTopo()
 				connector.push_back(new_tri);
 				attribute.push_back(new_attribute);
 			}
-		}
-	}
-
-	std::unordered_set<int> used_points;
-	for (const auto& tri : connector)
-	{
-		for (int idx : tri)
-		{
-			used_points.insert(idx);
-		}
-	}
-
-	std::map<int, std::vector<int>> real_to_virtual;
-	for (int i = 0; i < real_node_id_.size(); ++i)
-	{
-		real_to_virtual[real_node_id_[i]].push_back(i);
-	}
-	for (const auto& pair : real_to_virtual)
-	{
-		std::vector<int> used_group;
-		for (int idx : pair.second)
-		{
-			if (used_points.count(idx))
-			{
-				used_group.push_back(idx);
-			}
-		}
-		if (used_group.size() > 1)
-		{
-			split_node_groups.push_back(used_group);
 		}
 	}
 }
