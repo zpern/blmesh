@@ -8609,7 +8609,7 @@ void BLMesh::CalOriginSize(int npt, int nlem, double *pt, int *elm, double *&pt_
         }
         ave_size = std::pow(ave_size, 1.0 / size_on_point[i].size());
 		//ave_size = sqrt(min_size*max_size);
-  //              double target_size = ave_size;
+                //double target_size = ave_size;
 		//BLNode *bln =
   //                  reinterpret_cast<BLNode*>(m_pNodes[l_to_g[i]].pointer);
 		//if(bln&&bln->GetLowerNode()){
@@ -8631,7 +8631,7 @@ void BLMesh::CalOriginSize(int npt, int nlem, double *pt, int *elm, double *&pt_
 		//else{
 		//}
 		//pt_size[i] = std::min(ave_size,target_size);
-		pt_size[i]= ave_size;
+		pt_size[i]= 0.5*ave_size;
 	}
 }
 

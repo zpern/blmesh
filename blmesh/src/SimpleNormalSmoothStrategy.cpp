@@ -81,7 +81,7 @@ void SimpleNormalSmoothStrategy::SmoothNormalOnce(BLNode *blNod, int iq)
 		double angle=(coord1 - centor).normalized()*blNodes[i]->GetNormal();
 
 		double x = pow(length, 2 + 2 * angle) / (sp * sp);
-		double weight = 0.3 + 0.5 * x / (1 + x); // 保证权重在 [0.5, 1) 区间
+		double weight = 0.30 + 0.5 * x / (1 + x); // 保证权重在 [0.5, 1) 区间
 		sum += blNodes[i]->GetNormal() * weight;
 		//sum += blNodes[i]->GetNormal() * (atan(0.01*pow(length, 5*angle)/(sp*sp)));
 
