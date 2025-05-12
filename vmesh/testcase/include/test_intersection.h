@@ -91,6 +91,7 @@ TEST(API_Gen_Boundary_Mesh, intersection) {
 	int num_boundary_face;  /////* 边界面网格数量 **/ 
 	int* boundary_mesh;  /////* 边界面网格，注意每四个为一组，而且注意如果为三角形，最后一项为-1，id从0开始 **/ 
 	int* boundary_face;  /////* 边界面网格对应的面id，长度为num_boundary_face **/ 
+	std::vector<std::array<int,3>> connector;
 
 
 	//std::array<double, 12> per_face = {1,0,0,0,984808,0.173648,0,-0.173648,0.984808,0,0,0};
@@ -133,7 +134,7 @@ TEST(API_Gen_Boundary_Mesh, intersection) {
 			&boundary_face,  /////* 边界面网格对应的面id，长度为num_boundary_face **/ 
 			b_have_pyramid, /*是否有金字塔*/
 			buse_multiple_normals, /*是否启用多法向 */
-			std::vector<std::array<int,3>> connector,
+			connector,
 			b_output_IO,
 			"virtualmesh",
 			per_face
