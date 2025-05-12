@@ -8631,7 +8631,7 @@ void BLMesh::CalOriginSize(int npt, int nlem, double *pt, int *elm, double *&pt_
 		//else{
 		//}
 		//pt_size[i] = std::min(ave_size,target_size);
-		pt_size[i]= 0.5*ave_size;
+		pt_size[i]= ave_size;
 	}
 }
 

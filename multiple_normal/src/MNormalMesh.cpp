@@ -65,7 +65,7 @@ void MNormalMesh::ReadPlsBuf(std::string f,
           for (int k = 0; k < 3; k++)
             node_array[connector[i][k]].neighbour_front_index_.push_back(i);
         }
-
+        connector_original = connector;
         for (int i = 0; i < number_of_point; i++) {
           for (auto &j : graph[i]) {
             if (j[0] == i) {
@@ -199,10 +199,12 @@ void MNormalMesh::WriteMem(std::string& f,
 	WriteMem(f, points, POINT_OFFSET);
 }
 
-void MNormalMesh::WriteVol(std::vector<std::array<double, 3>>& v, std::vector<std::vector<int>>& f, int& lower_num, double len,int& add_point_num)
+void MNormalMesh::WriteVol(std::vector<std::array<double, 3>>& v, std::vector<std::vector<int>>& f,
+                           std::vector<std::array<int, 3>>& s,
+                           int& lower_num, double len, int& add_point_num)
 {
 	std::map<std::array<double, 3>, int> coord_to_id;
-	std::vector<std::array<int, 3>> lower_ids(connector.size());
+    std::vector<std::array<int, 3>> lower_ids(connector.size());
 	for (int i = 0; i < connector.size(); i++) {
 		int count = 0;
 		int lowerid_1=-1,lower_id2=-1;
@@ -233,6 +235,7 @@ void MNormalMesh::WriteVol(std::vector<std::array<double, 3>>& v, std::vector<st
 	}
 
 	add_point_num=0;
+    std::cout << "connector.size() = " << lower_ids.size() << std::endl;
 	for (int i = 0; i < connector.size(); i++) {
 		// 四面体情况
 		if (lower_ids[i][0] == lower_ids[i][1] && lower_ids[i][2] == lower_ids[i][1]) {
@@ -269,6 +272,21 @@ void MNormalMesh::WriteVol(std::vector<std::array<double, 3>>& v, std::vector<st
 			v.push_back(ncoord);			
 		}
 	}
+    s.resize(connector_original.size());
+    int id = 0;
+	for( int i = 0; i < lower_ids.size(); i++ )
+    {
+		if( lower_ids[i][0] != lower_ids[i][1] && lower_ids[i][2] != lower_ids[i][1] &&
+                 lower_ids[i][2] != lower_ids[i][0] )
+        {
+            s[id] = lower_ids[i];
+            id++;
+        }
+        else
+        {
+            continue;
+        }
+    }
 }
 
 void MNormalMesh::WriteMem(std::string& f, std::vector<std::array<double, 3>>& points, double len)
