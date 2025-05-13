@@ -138,12 +138,12 @@ namespace TiGER {
 		int         **boundary_mesh, /*边界面网格，注意每四个为一组，而且注意如果为三角形，最后一项为-1，id从0开始 **/
 		int         **boundary_face, /*边界面网格对应的面id，长度为num_boundary_face **/
 		/* ------------------------- 其他参数 -------------------------**/
+        std::vector<std::array<int, 3>>& connector,
 		bool b_have_pyramid = true, /*是否有金字塔**/
 		bool b_use_multiple_normals = false, /*是否启用多法向**/
 		bool b_output_io_file = false, /*是否将api的输入和输出都输出到文件系统中（仅用于DEBUG）**/
 		std::string filename = "virtualmesh",  /*几何文件名，缺省为virtualmesh**/
-		std::array<double, 12> per_matrix = std::array<double, 12>(),  /* 周期性面控制矩阵,前9位为旋转矩阵 m00，m01，m02 .... ，后三位为位移向量xyz**/
-		std::vector<std::array<int, 3>> & connector
+		std::array<double, 12> per_matrix = std::array<double, 12>()  /* 周期性面控制矩阵,前9位为旋转矩阵 m00，m01，m02 .... ，后三位为位移向量xyz**/
 	);
 
 
