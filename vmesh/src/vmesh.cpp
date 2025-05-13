@@ -516,11 +516,11 @@ namespace TiGER {
         /* ------------------------- 其他参数 -------------------------**/
         bool b_have_pyramid,         /* 是否有金字塔 **/
         bool b_use_multiple_normals, /* 是否启用多法向 缺省为false **/
-        std::vector<std::array<int, 3>>& connector,
         bool b_output_io_file,       /* 是否将api的输入和输出都输出到文件系统中（仅用于DEBUG）缺省为false **/
         std::string filename,        /* 几何文件名，缺省为virtualmesh **/
         std::array<double, 12>
-            per_matrix /* 周期性面控制矩阵,前9位为旋转矩阵 m00，m01，m02 .... ，后三位为位移向量xyz **/
+            per_matrix, /* 周期性面控制矩阵,前9位为旋转矩阵 m00，m01，m02 .... ，后三位为位移向量xyz **/
+        std::vector<std::array<int, 3>>& connector
     )
     {
         tiger::Config cf;
