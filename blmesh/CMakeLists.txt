@@ -80,7 +80,7 @@ if(OPENMP_FOUND)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
-
+message("here is ${CMAKE_SOURCE_DIR}/extern/spdlog/include")
 message("building blmesh")
 if(EXISTS ${CMAKE_SOURCE_DIR}/extern/libigl/CMakeLists.txt) 
 include_directories(${CMAKE_SOURCE_DIR}/extern/libigl/include)

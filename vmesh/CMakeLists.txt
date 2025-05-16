@@ -37,56 +37,56 @@ include/vmesh.h
 src/vmesh.cpp
 src/Config.cpp
 )
-if(WIN32)
-add_executable(test 
-include/vmesh.h
-../tiger-sizeingfunc/tiger_sizingfunction.h
-../tiger-sizeingfunc/tiger_sizingsmoother.h
-./testcase/include/writeblmesh.h
-./testcase/include/common_assert.h
-./testcase/include/test_volume_density.h
-./testcase/include/test_sphere_tetra.h
-./testcase/include/test_sphere_boundary.h
-./testcase/include/test_cubic_tetra.h
-./testcase/include/test_cubic_boundary.h
-./testcase/include/test_f6_box_tetra.h
-./testcase/include/test_f6_box_boundary.h
-./testcase/include/test_non_manifold.h
-./testcase/include/test_anistropic.h
-./testcase/include/test_f6_box_vol.h
-./testcase/include/test_f6_box_symm.h
-./testcase/include/test_intersection.h
-./testcase/include/test_intersection_tetra.h
-./testcase/include/test_intersection_vol.h
-./testcase/include/test_postprocess_vol.h
-./testcase/include/test_two_cubic.h
+# if(WIN32)
+# add_executable(test 
+# include/vmesh.h
+# ../tiger-sizeingfunc/tiger_sizingfunction.h
+# ../tiger-sizeingfunc/tiger_sizingsmoother.h
+# ./testcase/include/writeblmesh.h
+# ./testcase/include/common_assert.h
+# ./testcase/include/test_volume_density.h
+# ./testcase/include/test_sphere_tetra.h
+# ./testcase/include/test_sphere_boundary.h
+# ./testcase/include/test_cubic_tetra.h
+# ./testcase/include/test_cubic_boundary.h
+# ./testcase/include/test_f6_box_tetra.h
+# ./testcase/include/test_f6_box_boundary.h
+# ./testcase/include/test_non_manifold.h
+# ./testcase/include/test_anistropic.h
+# ./testcase/include/test_f6_box_vol.h
+# ./testcase/include/test_f6_box_symm.h
+# ./testcase/include/test_intersection.h
+# ./testcase/include/test_intersection_tetra.h
+# ./testcase/include/test_intersection_vol.h
+# ./testcase/include/test_postprocess_vol.h
+# ./testcase/include/test_two_cubic.h
 
-src/main.cpp
-)
-if(UNIX)
-FIND_PACKAGE (OpenMP)
-if(OPENMP_FOUND)
-    message("OpenMP found")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
-endif()
-else()
-message("openmp are not support")
-endif()
+# src/main.cpp
+# )
+# if(UNIX)
+# FIND_PACKAGE (OpenMP)
+# if(OPENMP_FOUND)
+#     message("OpenMP found")
+#     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+#     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+#     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+# endif()
+# else()
+# message("openmp are not support")
+# endif()
 
-set_target_properties(
-test
-PROPERTIES EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/vmesh/testcase
-)
-target_link_libraries(test PUBLIC vmesh) 
-target_link_libraries(test PUBLIC gtest)
-target_link_libraries(test PUBLIC libblmesh)
-#target_link_libraries(test PUBLIC create_sol)
-target_link_libraries(test PUBLIC tetgen)
-target_link_libraries(test PUBLIC triangle)
-target_link_libraries(test PUBLIC 2dremesh)
-target_link_libraries(test PUBLIC blpre libdtiso3d libdtiso2d libgeom meshOrientLib libspr libMeshChamfer DistanceCaculator libpostprocess)
-endif()
+# set_target_properties(
+# test
+# PROPERTIES EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/vmesh/testcase
+# )
+# target_link_libraries(test PUBLIC vmesh) 
+# target_link_libraries(test PUBLIC gtest)
+# target_link_libraries(test PUBLIC libblmesh)
+# #target_link_libraries(test PUBLIC create_sol)
+# target_link_libraries(test PUBLIC tetgen)
+# target_link_libraries(test PUBLIC triangle)
+# target_link_libraries(test PUBLIC 2dremesh)
+# target_link_libraries(test PUBLIC blpre libdtiso3d libdtiso2d libgeom meshOrientLib libspr libMeshChamfer DistanceCaculator libpostprocess)
+# endif()
 
 

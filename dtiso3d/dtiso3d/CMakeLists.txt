@@ -99,7 +99,7 @@ link_directories(${CMAKE_BINARY_DIR}/lib)
 add_executable(dtiso3d ${DTISO3D_SRC})
 
 # 设置链接的库
-target_link_libraries(dtiso3d libspr)
+target_link_libraries(dtiso3d PUBLIC libspr)
 target_link_libraries(dtiso3d PUBLIC tetgen)
 ########################################################
 # libdtiso3d
