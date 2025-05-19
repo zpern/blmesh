@@ -129,7 +129,7 @@ meshOrientLib
 libspr 
 blpre 
 libMeshChamfer
-libverdict 
+verdict 
 DistanceCaculator 
 libpostprocess
 tetgen
@@ -139,7 +139,7 @@ triangle
 -Wl,--end-group
 )
 else()
-target_link_libraries(blmesh PUBLIC libdtiso3d libdtiso2d libgeom meshOrientLib libspr blpre libMeshChamfer libverdict DistanceCaculator libpostprocess)
+target_link_libraries(blmesh PUBLIC libdtiso3d libdtiso2d libgeom meshOrientLib libspr blpre libMeshChamfer verdict DistanceCaculator libpostprocess)
 get_directory_property(hasParent PARENT_DIRECTORY)
 if(hasParent)
 target_link_directories(blmesh PUBLIC ${hasparent}/bin)
