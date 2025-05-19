@@ -4,7 +4,7 @@
 #include "LightMemoryPool.h"
 #include <spdlog/spdlog.h> 
  #include <set>
-
+#pragma optimize("",off)
 //#define X_PLANE_SYMMETRY
 #define Y_PLANE_SYMMETRY
 //#define Z_PLANE_SYMMETRY
@@ -770,7 +770,10 @@ double BLNode::GetHeightLength()
 #ifdef CHANGE_STEP_BY_DISTANCE
 	return expect_height_ * GetDistanceRatio()*(1 + GetHightRatio());
 #else
-	return expect_height_ * (1 + GetHightRatio())*(1 + GetFixedHightRatio());
+	return expect_height_ 
+		* (1 + GetHightRatio())
+		*(1 + GetFixedHightRatio())
+		;
 #endif
 }
 
@@ -781,3 +784,4 @@ void BLNode::SetStopFlag(bool status)
 		getPerNode()->m_bStopPropagate = status;
 	m_bStopPropagate = status;
 }
+#pragma optimize("",on)

@@ -6920,13 +6920,18 @@ void BLMesh::SmoothHeightRatio(BLNode *blNod, MBLNode *pNodes)
 	min_dos = 1 - min_dos;
 	length /= node_array.size();
 	length = (length - suppose_height) / suppose_height;
-	if(length>0)
-		length = atan(length * (1 + min_dos / 2))  * 2 / PI;
-	else {
-		length = atan(length * (1 + min_dos / 2)) * (0.5) * 2 / PI;
-	}
 
-	blNod->SetHightRatio(length);
+	double alength = 0;
+	//if(length>0)
+	//	alength = atan(length * (1 + min_dos / 2)) * 2 / PI;
+	//else {
+	//	alength = atan(length * (1 + min_dos / 2)) * (0.5) * 2 / PI;
+	//}
+
+
+	alength= 1.0 / (1.0 + std::exp(-0.01 * (length)))-0.5;
+
+	blNod->SetHightRatio(alength);
 
 	//smooth fixed height ratio
 
@@ -8591,38 +8596,42 @@ void BLMesh::CalOriginSize(int npt, int nlem, double *pt, int *elm, double *&pt_
 	}
 
 	for (int i = 0; i < size_on_point.size(); i++) {
-		double ave_size = 0;
+		double ave_size = 1.0;
 		double min_size = std::numeric_limits<double>::max();
 		double max_size = -1e100;
 
-		for (int j = 0; j < size_on_point[i].size(); j++) {
-			ave_size += size_on_point[i][j];
-			min_size = std::min(size_on_point[i][j], min_size);
-			max_size = std::max(size_on_point[i][j], max_size);
-		}
-		ave_size/=size_on_point[i].size();
-                double target_size = ave_size;
-		BLNode *bln =
-                    reinterpret_cast<BLNode*>(m_pNodes[l_to_g[i]].pointer);
-		if(bln&&bln->GetLowerNode()){
-                        int lowerid =
-                            bln->GetLowerNode()->GetNodIdx();
-						int upperid=l_to_g[i];
-		double target_size= sqrt(	pow(m_pNodes[lowerid].coord[0]-m_pNodes[upperid].coord[0],2)+
-                                                    pow(m_pNodes[lowerid]
-                                                                .coord[1] -
-                                                            m_pNodes[upperid]
-                                                                .coord[1],
-                                                        2) +
-                                                    pow(m_pNodes[lowerid]
-                                                                .coord[2] -
-                                                            m_pNodes[upperid]
-                                                                .coord[2],
-                                                        2));
-		}
-		else{
-		}
-		pt_size[i] = std::min(ave_size,target_size);
+
+        for( int j = 0; j < size_on_point[i].size(); j++ )
+        {
+            ave_size *= size_on_point[i][j];
+            min_size = std::min(size_on_point[i][j],min_size);
+            max_size = std::max(size_on_point[i][j], max_size);
+        }
+        ave_size = std::pow(ave_size, 1.0 / size_on_point[i].size());
+		//ave_size = sqrt(min_size*max_size);
+                //double target_size = ave_size;
+		//BLNode *bln =
+  //                  reinterpret_cast<BLNode*>(m_pNodes[l_to_g[i]].pointer);
+		//if(bln&&bln->GetLowerNode()){
+  //                      int lowerid =
+  //                          bln->GetLowerNode()->GetNodIdx();
+		//				int upperid=l_to_g[i];
+		//target_size= sqrt(	pow(m_pNodes[lowerid].coord[0]-m_pNodes[upperid].coord[0],2)+
+  //                                                  pow(m_pNodes[lowerid]
+  //                                                              .coord[1] -
+  //                                                          m_pNodes[upperid]
+  //                                                              .coord[1],
+  //                                                      2) +
+  //                                                  pow(m_pNodes[lowerid]
+  //                                                              .coord[2] -
+  //                                                          m_pNodes[upperid]
+  //                                                              .coord[2],
+  //                                                      2));
+		//}
+		//else{
+		//}
+		//pt_size[i] = std::min(ave_size,target_size);
+		pt_size[i]= ave_size;
 	}
 }
 

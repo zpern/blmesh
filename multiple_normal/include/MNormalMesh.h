@@ -16,7 +16,7 @@ public:
 	void ReadPls(string filename="");
 
 	void WriteNorm();
-	void WriteVol(std::vector<std::array<double, 3>>& v, std::vector<std::vector<int>>& f, int& lower_num,double len,int& add_point_num);
+	void WriteVol(std::vector<std::array<double, 3>>& v, std::vector<std::vector<int>>& f,std::vector<std::array<int,3>>& s, int& lower_num,double len,int& add_point_num);
 	void WriteMem(std::string& f,
                            std::vector<std::array<double, 3>>& points,double d);
     void WriteMem(std::string& f,
@@ -51,6 +51,7 @@ public:
 	unsigned int number_of_origin_triangles;
 	unsigned int number_of_triangles;
 	std::vector<std::array<int, 3>> connector;
+    std::vector<std::array<int, 3>> connector_original;
 	std::vector<int> attribute;
 
 	vector<ComplexNode> node_array;

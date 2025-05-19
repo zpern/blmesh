@@ -41,7 +41,7 @@ void ComplexNode::SplitNode()
 				a = neighbour_front_direction_[i].normalized() * neighbour_front_direction_[back].normalized() / 2 - 0.5;
 
 
-			if (a > PLANE_SKEWNESS+ count*0.03)// i is a is convex edge for this node
+			if (a > PLANE_SKEWNESS+ count*0.01)// i is a is convex edge for this node
 			{
 				angles[i] = a;
 				splitters.insert(i);

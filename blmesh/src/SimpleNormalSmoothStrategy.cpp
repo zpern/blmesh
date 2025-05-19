@@ -36,6 +36,7 @@ void SimpleNormalSmoothStrategy::SmoothNormalOnce(BLNode *blNod, int iq)
 	y.normalize();
 	x = z ^ y;
 	x.normalize();
+    BLVector neigh_coord;
 #endif
 	const std::vector<BLNode*>& blNodes = blNod->GetNeigNods();
 	nNeigNods = blNodes.size();
@@ -52,13 +53,12 @@ void SimpleNormalSmoothStrategy::SmoothNormalOnce(BLNode *blNod, int iq)
 		min_front_size =min(min_front_size, blfronts[i]->GetMinFrontSize());
 	}
 	//frontsize /= nNeigFrts;
-	BLVector desentNode (pNodes[blNod->GetDecentID()].coord);
-	double height1 = (desentNode-centor).magnitude();
+	BLVector descentNode (pNodes[blNod->GetDecentID()].coord);
+	double height1 = (descentNode-centor).magnitude();
 
 	/*高度宽度比**/
 	double ratio = height1 / min_front_size;
-	static double lengths[200];
-	//std::vector<double> lengths;
+    std::vector<double> lengths(nNeigNods);
 	double length_sum = 0;
 	for (int i = 0; i < nNeigNods; i++) {
 		int idx = blNodes[i]->GetNodIdx();
@@ -67,27 +67,29 @@ void SimpleNormalSmoothStrategy::SmoothNormalOnce(BLNode *blNod, int iq)
 		lengths[i]=length;
 		length_sum += length;
 	}
-	length_sum /= nNeigNods;
+    double length_ave = length_sum / nNeigNods;
 
 	for (int i = 0; i < nNeigNods; i++) {
 		count++;
 		height += blNodes[i]->GetHightRatio();
-		int id = blNodes[i]->GetNodIdx();
 		
 		double sp = blNodes[i]->GetBeitaVisu()*2 / (PI);
 
 		int idx=blNodes[i]->GetNodIdx();
 		BLVector coord1(pNodes[idx].coord[0],pNodes[idx].coord[1],pNodes[idx].coord[2]);
-		double length = lengths[i] / length_sum;
+		double length = lengths[i] / length_ave;
 		double angle=(coord1 - centor).normalized()*blNodes[i]->GetNormal();
 
-		sum += blNodes[i]->GetNormal() * (atan(0.01*pow(length, 5*angle)/(sp*sp)));
+		double x = pow(length, 2 + 2 * angle) / (sp * sp);
+		double weight = 0.30 + 0.5 * x / (1 + x); // 保证权重在 [0.5, 1) 区间
+		sum += blNodes[i]->GetNormal() * weight;
+		//sum += blNodes[i]->GetNormal() * (atan(0.01*pow(length, 5*angle)/(sp*sp)));
 
 #ifdef SMOOTH_FRONT_SIZE
-		coord = (coord - centor + blNodes[i]->GetHeight()) / max(0.005, size);
-		neigh_coord.x += coord * x;
-		neigh_coord.y += coord * y;
-		neigh_coord.z += coord * z;
+		coord1 = (coord1 - centor + blNodes[i]->GetHeight()) / max(0.005, size);
+		neigh_coord.x += coord1 * x;
+		neigh_coord.y += coord1 * y;
+		neigh_coord.z += coord1 * z;
 #endif
 	}
 	sum.normalize();
@@ -97,9 +99,9 @@ void SimpleNormalSmoothStrategy::SmoothNormalOnce(BLNode *blNod, int iq)
 	}
 #ifdef SMOOTH_FRONT_SIZE
 	if(count)
-		height /= count;
+		double height_ave =height / count;
 	else {
-		height = blNod->GetHightRatio();
+		double height_ave = blNod->GetHightRatio();
 	}
 	
 	double fai, theta;
@@ -111,9 +113,6 @@ void SimpleNormalSmoothStrategy::SmoothNormalOnce(BLNode *blNod, int iq)
 	}
 	else {
 		fai = atan(neigh_coord.y / neigh_coord.x);
-	}
-	if (fai > PI / 2) {
-		fai -= PI;
 	}
 
 	double t = neigh_coord.x*cos(fai) + neigh_coord.y*sin(fai);
@@ -130,12 +129,9 @@ void SimpleNormalSmoothStrategy::SmoothNormalOnce(BLNode *blNod, int iq)
 	else {
 		theta = atan(t / neigh_coord.z);
 	}
-	if (theta > PI / 2) {
-		theta -= PI;
-	}
 	//cout << neigh_coord.x << " " << neigh_coord.y << " " << neigh_coord.z << endl;
 	//cout << fai << "fai " << theta << " theta" << endl;
-	theta = min(angle - PI / 6, theta);
+	//theta = std::min(angle - PI / 6, theta);
 	BLVector norm0(0, 0, 0);
 	norm0 = norm0 + sin(theta)*cos(fai)*x;
 	norm0 = norm0 + sin(theta)*sin(fai)*y;
@@ -144,26 +140,25 @@ void SimpleNormalSmoothStrategy::SmoothNormalOnce(BLNode *blNod, int iq)
 
 	norm0.normalize();
 	if(blNod->GetVirtualFlag())
-		norm0 = (norm0*0.05 +sum + blNod->GetNormal()).normalized();
+		norm0 = (norm0*0.1 +sum + blNod->GetNormal()).normalized();
 	else
-		norm0 = (norm0*0.1 + sum + blNod->GetNormal()).normalized();
+		norm0 = (norm0*0.2 + sum + blNod->GetNormal()).normalized();
 #else
 	double r_borm;
 	r_borm = (pow(1.7,  ratio) - 1)*15 ;
 	BLVector norm0=(r_borm *sum+ blNod->GetNormal());
 	norm0.normalize();
-	int t = 0;
 #endif
 	
 	constexpr double output_thredhold = thredhold * 0.8;
-	
+    int n = 0;
 	while (blNod->GetBeitaVisu(norm0) * 180 / PI < output_thredhold) {
-		if (t > 10) {
+		if (n > 10) {
 			return;
 		}
 		norm0 = (norm0 + 0.7*blNod->GetNormal());
 		norm0.normalize();
-		t++;
+		n++;
 	}
 	SetSymm(blNod, blNod->GetNodIdx());
 

@@ -429,10 +429,10 @@ namespace PRE {
         chamfer.BuildTopo();
 
         spdlog::info("Handling output mesh!");
-        chamfer.WritePls();
-        chamfer.WriteVtk();
-        chamfer.WriteNorm();
-		chamfer.WriteVol(cv.v,cv.f,cv.lower_point_num,blcf.len,cv.add_point_num);
+        //chamfer.WritePls();
+        //chamfer.WriteVtk();
+        //chamfer.WriteNorm();
+		chamfer.WriteVol(cv.v,cv.f,cv.s,cv.lower_point_num,blcf.len,cv.add_point_num);
         chamfer.WriteMem(f, points,blcf.len);
        // chamfer.GenerateFirstLayer(blcf.len);
         spdlog::info("Job Finished.");

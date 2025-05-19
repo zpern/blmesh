@@ -25,6 +25,7 @@ struct blpreConfig {
 struct ControlVolume{
 	std::vector<std::array<double, 3>> v;
 	std::vector<std::vector<int>> f;
+    std::vector<std::array<int,3>> s;
 	int lower_point_num;
 	int add_point_num;
 };

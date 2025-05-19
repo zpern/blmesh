@@ -24,7 +24,7 @@ void NormalSmoothStrategy::SmoothNormal()
 #endif
 
 	myvec.resize(nFrtNods,BLVector(-2,-1,-1));
-	double output_thredhold = 90;
+	double output_thredhold = 89.99;
 	for (int i = 0; i < nFrtNods; i++) {
 
 		if (node_array[i]->GetBeitaVisu(node_array[i]->GetNormal()) * 180 / PI < output_thredhold) {
