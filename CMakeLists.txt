@@ -84,7 +84,6 @@ add_subdirectory(blmesh)
 #add_subdirectory(tiger-sizeingfunc)
 add_subdirectory(2dremesh)
 add_subdirectory(vmesh)
-add_subdirectory(verdict)
 #add_subdirectory(create_sol)
 
 #install to a target 

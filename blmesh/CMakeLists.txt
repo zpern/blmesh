@@ -19,7 +19,7 @@ include/PrismStorehouse.h
 ../dtiso3d/dtiso3d/tiger_volmtetrahedralizer.h
 ../BLPre/include/blpre.h
 ../DistanceCaculator/include/dataio.h
-../verdict/verdict.h
+${CMAKE_SOURCE_DIR}/extern/verdict/verdict.h
 include/geom_func.h
 include/mesh_orient.h
 include/Octree.h
