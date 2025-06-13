@@ -25,11 +25,13 @@ namespace TiGER {
 			igl::boundary_loop(F,L_);
             judgyType(V_);
 		}
-		Eigen::MatrixXd V_;
+		
+        Eigen::MatrixXd V_;
 		Eigen::MatrixXi F_;
 		Eigen::VectorXi L_;
         double reference_length = 1;
-		SymmetryPlane(const Eigen::MatrixXd& V, const Eigen::MatrixXi& F) {
+		
+        SymmetryPlane(const Eigen::MatrixXd& V, const Eigen::MatrixXi& F) {
 			tree.init(V, F);
             V_ = V;
             F_ = F;
@@ -37,7 +39,8 @@ namespace TiGER {
             igl::boundary_loop(F, L_);
             judgyType(V_);
 		}
-		Eigen::RowVector3d project(const Eigen::RowVector3d& vec) {
+		
+        Eigen::RowVector3d project(const Eigen::RowVector3d& vec) {
 			Eigen::RowVector3d ans;
 			tree.projection(vec, ans);
 			if (std::isnan(ans(0)))
@@ -45,7 +48,7 @@ namespace TiGER {
 			return ans;
 		}
 		/**
-		* @brife adjust a normal that started from point
+		* @brife a normal that started from point
 		* try to project the normal
 		*/
 
@@ -57,7 +60,6 @@ namespace TiGER {
                 normal = nep - point;
             }
             else {
-                
                 nep = project(endpoint);
                 normal = nep - point;
                 if (stype == SType::x) {
@@ -151,12 +153,20 @@ namespace TiGER {
                     minV(j) = std::min(minV(j), V_(i, j));
                 }
             }
+
+            bool found_SType;
             for (int j = 0; j < 3; j++) {
                 if (maxV(j) - minV(j) < eps) {
                     stype = SType(j + 1);
+                    found_SType = true;
                     break;
                 }
             }
+            if( !found_SType )
+            {
+                stype = SType(0);
+            }
+
         }
 	};
 }

@@ -4912,7 +4912,6 @@ void BLMesh::prePropagate(BLFront *blFront)
 	{
 		for (int j = 0; j < DIM3; j++)
 		{
-
 			RmvUperNeigFronts(blNods[j]);
 			StopPropagateNode(blNods[j]);
 		}

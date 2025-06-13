@@ -174,10 +174,7 @@ public:
 	void PreparePotential();
 
 	//
-
-		
 	void GenerateBLMesh();
-	//
 	
 	//
 	double GetDistance(BLNode* nod);
