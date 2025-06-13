@@ -295,8 +295,7 @@ void MNormalMesh::WriteMem(std::string& f, std::vector<std::array<double, 3>>& p
 	points.resize(coordinate.size());
 	for (int k = 0; k < coordinate.size(); k++) {
 		for (int i = 0; i < 3; i++) {
-			points[k][i] = coordinate[k][i] +
-				len * point_normals[k][i];
+            points[k][i] = coordinate[k][i] + len * point_normals[k][i];
 		}
 	}
 

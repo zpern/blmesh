@@ -48,6 +48,7 @@ namespace TiGER {
 		* @brife adjust a normal that started from point
 		* try to project the normal
 		*/
+
         void adjustNormal(const Eigen::RowVector3d& point, Eigen::RowVector3d& normal, bool boundary = false) {
             Eigen::RowVector3d endpoint = point + normal* reference_length;
             Eigen::RowVector3d nep;
@@ -60,7 +61,7 @@ namespace TiGER {
                 nep = project(endpoint);
                 normal = nep - point;
                 if (stype == SType::x) {
-                    normal(0) = 0;
+                    normal(0) = 0; 
                 }
                 if (stype == SType::y) {
                     normal(1) = 0;
@@ -72,6 +73,7 @@ namespace TiGER {
             
             normal.normalize();
 		}
+
 		void connect(const SymmetryPlane& sp) {
 
 		}
@@ -140,7 +142,7 @@ namespace TiGER {
         void judgyType(const Eigen::MatrixXd& V_) {
             if (V_.rows() == 0)
                 return;
-            double eps = reference_length * 4e-2;
+            double eps = reference_length * 1e-1;
             Eigen::RowVector3d maxV(V_.row(0));
             Eigen::RowVector3d minV(V_.row(0));
             for (int i = 0; i < V_.rows(); i++) {

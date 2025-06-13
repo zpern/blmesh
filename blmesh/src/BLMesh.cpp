@@ -2980,8 +2980,9 @@ bool BLMesh::IsSymBdryDelete(int i)
 /**
  * @brief Key function in generating boundary layer mesh
  * @author yhf
- * @note Big function
- */
+ * @note Big function                                                                                                  \
+ */                                                                                                                    \
+#pragma optimize("", off)
 void BLMesh::GenerateBLMesh()
 {
 	int iLayer = 0, i, nNods, iNod, iNodNew, cnt = 0, nFrtNods;
@@ -3191,7 +3192,6 @@ void BLMesh::GenerateBLMesh()
 				if(faceid.size()==1)
 					faceid2sp[faceid[0]].adjustNormal(start_point,normal);
 				else{
-
 					for (int j = 0; j < 1; j++) {
 						faceid2sp[faceid[0]].adjustNormal(start_point, normal,true);
 						faceid2sp[faceid[1]].adjustNormal(start_point, normal,true);
@@ -3883,7 +3883,7 @@ _ASSERTE( _CrtCheckMemory( ) );
 
 	//free memory (due to fix)
 }
-
+#pragma optimize("", on)
 int BLMesh::ElmBdryPtCnt(int eidx)
 {
 	int i, j, dim = DIM3, pidx[DIM3], cnt;
