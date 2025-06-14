@@ -182,7 +182,7 @@ typedef struct Node
 
 /*
  * 网格单元(二维：三角形；三维：四面体)
- * element (triangle in 2D & tetrahedral in 3D) 
+ * element (triangle in 2D & tetgrid_dt in 3D) 
  */
 typedef struct Elem
 {

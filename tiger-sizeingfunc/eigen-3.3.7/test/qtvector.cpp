@@ -13,7 +13,7 @@
 #include <spdlog/spdlog.h> 
  #include "main.h"
 #include <QtCore/QVector>
-#include <Eigen/Geometry>
+#include <Eigen/liwgeom>
 #include <Eigen/QtAlignedMalloc>
 
 template<typename MatrixType>

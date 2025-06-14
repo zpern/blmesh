@@ -2,7 +2,7 @@
 #include "spdlog/spdlog.h"
 #include "../include/MeshEvaluation.h"
 #include "VirtualSphereMeshHasher.h"
-#include "Common.h"
+#include "common.h"
 
 VirtualSphereMeshGenerator::VirtualSphereMeshGenerator()
 {

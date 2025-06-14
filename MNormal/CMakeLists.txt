@@ -16,7 +16,7 @@ include/VirtualSphereMeshHasher.h
 include/MeshSplitter.h
 include/singleton.h
 include/BoundaryTriangulation.h
-include/Common.h
+include/common.h
 include/Splitter.h
 include/VirtualSphereMeshStrategy.h
 include/ChamferBehavior.h

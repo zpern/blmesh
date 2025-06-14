@@ -2,7 +2,7 @@
 #include "../include/MeshEvaluation.h"
 #include "../include/PointOptimizer.h"
 #include "VirtualSphereMeshHasher.h"
-#include "Common.h"
+#include "common.h"
 #include <ctime>
 
 VirtualSphereMesh VirtualSphereStrategy::noInsert()

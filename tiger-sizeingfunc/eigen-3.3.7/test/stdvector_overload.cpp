@@ -12,7 +12,7 @@
  #include "main.h"
 
 #include <Eigen/StdVector>
-#include <Eigen/Geometry>
+#include <Eigen/liwgeom>
 
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Vector4f)
 

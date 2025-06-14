@@ -33,7 +33,7 @@ int Config::SetDefaultConfig()
 
     iGeoType = 1;
     sKwGeoType = "geometry_type";
-    sCmtGeoType = "# Geometry type. 1: STEP";
+    sCmtGeoType = "# liwgeom type. 1: STEP";
 
     dSTolerance = 1.0e-6;				//set sTolerance, default value 1.0e-8
     sKwSTolerance = "sTolerance";

@@ -11,7 +11,7 @@
  #include "main.h"
 
 #include <Eigen/Core>
-#include <Eigen/Geometry>
+#include <Eigen/liwgeom>
 
 #include <Eigen/LU> // required for MatrixBase::determinant
 #include <Eigen/SVD> // required for SVD

@@ -622,7 +622,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
     EIGEN_DEVICE_FUNC inline void reverseInPlace();
 
-/////////// Geometry module ///////////
+/////////// liwgeom module ///////////
 
     typedef Homogeneous<ExpressionType,Direction> HomogeneousReturnType;
     EIGEN_DEVICE_FUNC

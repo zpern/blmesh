@@ -10,7 +10,7 @@
 #ifndef EIGEN_GPUHELPER_H
 #define EIGEN_GPUHELPER_H
 
-#include <Eigen/Geometry>
+#include <Eigen/liwgeom>
 #include <GL/gl.h>
 #include <vector>
 

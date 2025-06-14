@@ -495,7 +495,7 @@ bool InputData::writeGm3(string fileName) {
     }
     ofstream outfile;
     outfile.open(fileName);
-    outfile <<" 1.- Geometry Definition"<<endl;
+    outfile <<" 1.- liwgeom Definition"<<endl;
     outfile <<"\t"<<TigerV.size()<<"\t"<<cvNums<<"\t"<<fcNums<<endl;
     outfile <<"  Points"<<endl;
     for(int i=0;i<TigerV.size();i++) {

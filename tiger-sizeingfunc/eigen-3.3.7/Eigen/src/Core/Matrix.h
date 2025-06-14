@@ -380,7 +380,7 @@ class Matrix
     EIGEN_DEVICE_FUNC inline Index innerStride() const { return 1; }
     EIGEN_DEVICE_FUNC inline Index outerStride() const { return this->innerSize(); }
 
-    /////////// Geometry module ///////////
+    /////////// liwgeom module ///////////
 
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC

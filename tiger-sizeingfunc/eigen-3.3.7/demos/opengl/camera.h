@@ -10,7 +10,7 @@
 #ifndef EIGEN_CAMERA_H
 #define EIGEN_CAMERA_H
 
-#include <Eigen/Geometry>
+#include <Eigen/liwgeom>
 #include <QObject>
 // #include <frame.h>
 

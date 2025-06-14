@@ -384,7 +384,7 @@ int MasterHardDiskSerial::ReadPhysicalDriveInNTWithZeroRights (void)
 	         else
 	         {         
 	            DISK_GEOMETRY_EX* geom = (DISK_GEOMETRY_EX*) &cszBuffer;
-	            int iFixed = (geom->Geometry.MediaType == FixedMedia);
+	            int iFixed = (geom->liwgeom.MediaType == FixedMedia);
 	            __int64 i64Size = geom->DiskSize.QuadPart;
 				     
 	        }

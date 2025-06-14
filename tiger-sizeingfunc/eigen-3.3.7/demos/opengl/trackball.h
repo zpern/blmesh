@@ -10,7 +10,7 @@
 #ifndef EIGEN_TRACKBALL_H
 #define EIGEN_TRACKBALL_H
 
-#include <Eigen/Geometry>
+#include <Eigen/liwgeom>
 
 class Camera;
 

@@ -10,7 +10,7 @@
 #include <spdlog/spdlog.h> 
  #include "main.h"
 #include <Eigen/StdVector>
-#include <Eigen/Geometry>
+#include <Eigen/liwgeom>
 #include <unsupported/Eigen/BVH>
 
 namespace Eigen {

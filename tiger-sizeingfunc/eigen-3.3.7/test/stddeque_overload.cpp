@@ -12,7 +12,7 @@
  #include "main.h"
 
 #include <Eigen/StdDeque>
-#include <Eigen/Geometry>
+#include <Eigen/liwgeom>
 
 EIGEN_DEFINE_STL_DEQUE_SPECIALIZATION(Vector4f)
 

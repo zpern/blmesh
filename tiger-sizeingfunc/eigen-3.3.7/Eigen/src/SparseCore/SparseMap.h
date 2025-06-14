@@ -44,7 +44,7 @@ template<typename Derived,
 
 /** \ingroup SparseCore_Module
   * class SparseMapBase
-  * \brief Common base class for Map and Ref instance of sparse matrix and vector.
+  * \brief common base class for Map and Ref instance of sparse matrix and vector.
   */
 template<typename Derived>
 class SparseMapBase<Derived,ReadOnlyAccessors>
@@ -142,7 +142,7 @@ class SparseMapBase<Derived,ReadOnlyAccessors>
 
 /** \ingroup SparseCore_Module
   * class SparseMapBase
-  * \brief Common base class for writable Map and Ref instance of sparse matrix and vector.
+  * \brief common base class for writable Map and Ref instance of sparse matrix and vector.
   */
 template<typename Derived>
 class SparseMapBase<Derived,WriteAccessors>

@@ -116,7 +116,7 @@ typedef INTEGER NEIG_ARR[DIM+1];
 typedef NEIG_ARR FORM_ARR;
 typedef POINT FORM_PNTS[DIM+1];
 
-/* elements (triangle in 2D & tetrahedral in 3D) */
+/* elements (triangle in 2D & tetgrid_dt in 3D) */
 typedef struct Elem
 {
 	POINT cen;     /*center of circumcircle*/

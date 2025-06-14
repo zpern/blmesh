@@ -20,7 +20,7 @@ struct rotation_base_generic_product_selector;
 
 /** \class RotationBase
   *
-  * \brief Common base class for compact rotation representations
+  * \brief common base class for compact rotation representations
   *
   * \tparam Derived is the derived type, i.e., a rotation type
   * \tparam _Dim the dimension of the space

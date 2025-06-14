@@ -24,7 +24,7 @@ struct traits<SparseCompressedBase<Derived> > : traits<Derived>
 
 /** \ingroup SparseCore_Module
   * \class SparseCompressedBase
-  * \brief Common base class for sparse [compressed]-{row|column}-storage format.
+  * \brief common base class for sparse [compressed]-{row|column}-storage format.
   *
   * This class defines the common interface for all derived classes implementing the compressed sparse storage format, such as:
   *  - SparseMatrix

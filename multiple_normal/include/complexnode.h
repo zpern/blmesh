@@ -3,7 +3,7 @@
 #define _capoverlapregion_H_
 #include <list>
 #include <vector>
-#include "Common.h"
+#include "common.h"
 #include "VirtualSphereMeshGenerator.h"
 #include "sphericalCap.h"
 

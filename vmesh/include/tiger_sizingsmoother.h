@@ -24,7 +24,7 @@
 #define __tiger_sizingsmoother_h__
 
 /** -------------------------------------------------------------------------------
-	* Given a sizing function defined by a tetrahedral mesh, try to smooth it
+	* Given a sizing function defined by a tetgrid_dt mesh, try to smooth it
 	*	NOTE: 
 	* 1. no smoothing is done
 	* 2. linear function is used in default

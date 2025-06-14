@@ -2,7 +2,7 @@
  #include <iostream>
 #include <iomanip>
 #include <Eigen/Core>
-#include <Eigen/Geometry>
+#include <Eigen/liwgeom>
 #include <bench/BenchTimer.h>
 
 using namespace Eigen;

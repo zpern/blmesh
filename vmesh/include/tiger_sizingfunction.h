@@ -159,7 +159,7 @@ TigerAdasize_API int API_Create_SurfBKG_SF(
 	int *sfObjID
 );
 /** -------------------------------------------------------------------------------
-	* Given a sizing function defined by a tetrahedral mesh, try to create a sizing 
+	* Given a sizing function defined by a tetgrid_dt mesh, try to create a sizing 
 	* function to record it
 	*	NOTE: 
 	* 1. no smoothing is done

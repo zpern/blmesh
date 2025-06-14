@@ -9,7 +9,7 @@
 
 #include <spdlog/spdlog.h> 
  #include "main.h"
-#include <Eigen/Geometry>
+#include <Eigen/liwgeom>
 #include <Eigen/LU>
 #include <Eigen/SVD>
 

@@ -9,12 +9,12 @@
 
 #include <spdlog/spdlog.h> 
  #include "main.h"
-#include <Eigen/Geometry>
+#include <Eigen/liwgeom>
 #include <Eigen/LU>
 #include <Eigen/SVD>
 
 /* this test covers the following files:
-   Geometry/OrthoMethods.h
+   liwgeom/OrthoMethods.h
 */
 
 template<typename Scalar> void orthomethods_3()

@@ -11,7 +11,7 @@
 #include <spdlog/spdlog.h> 
  #include "main.h"
 #include <Eigen/StdDeque>
-#include <Eigen/Geometry>
+#include <Eigen/liwgeom>
 
 template<typename MatrixType>
 void check_stddeque_matrix(const MatrixType& m)

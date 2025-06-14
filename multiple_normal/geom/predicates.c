@@ -22,7 +22,7 @@
 /*    Point Arithmetic and Fast Robust Geometric Predicates."  Technical     */
 /*    Report CMU-CS-96-140, School of Computer Science, Carnegie Mellon      */
 /*    University, Pittsburgh, Pennsylvania, May 1996.  (Submitted to         */
-/*    Discrete & Computational Geometry.)                                    */
+/*    Discrete & Computational liwgeom.)                                    */
 /*                                                                           */
 /*  This file, the paper listed above, and other information are available   */
 /*    from the Web page http://www.cs.cmu.edu/~quake/robust.html .           */

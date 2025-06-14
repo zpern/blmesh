@@ -16,7 +16,7 @@ namespace Eigen {
 /** \class EigenBase
   * \ingroup Core_Module
   * 
-  * Common base class for all classes T such that MatrixBase has an operator=(T) and a constructor MatrixBase(T).
+  * common base class for all classes T such that MatrixBase has an operator=(T) and a constructor MatrixBase(T).
   *
   * In other words, an EigenBase object is an object that can be copied into a MatrixBase.
   *

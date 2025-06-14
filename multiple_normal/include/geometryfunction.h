@@ -3,7 +3,7 @@
 #define _geeometryfunction_H_
 #include "complexnode.h"
 #include <cmath>
-#include "Common.h"
+#include "common.h"
 namespace GEEOMETRY_FUNCTION{
 	enum INTER_STATUE {
 		disjoin = 0x00,

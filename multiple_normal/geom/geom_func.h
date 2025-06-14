@@ -2,7 +2,7 @@
  * ----------------------------------------------------------------------------
  *
  * 面向网格生成的几何函数库 (版本号：0.1)
- * Geometry Function Library for Mesh Generation (Version 0.1)
+ * liwgeom Function Library for Mesh Generation (Version 0.1)
  *
  * 陈建军 中国 浙江大学工程与科学计算研究中心
  * 版权所有	  2012年11月28日

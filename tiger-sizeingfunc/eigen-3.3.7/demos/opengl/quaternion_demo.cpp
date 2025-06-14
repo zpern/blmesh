@@ -11,7 +11,7 @@
  #include "quaternion_demo.h"
 #include "icosphere.h"
 
-#include <Eigen/Geometry>
+#include <Eigen/liwgeom>
 #include <Eigen/QR>
 #include <Eigen/LU>
 
