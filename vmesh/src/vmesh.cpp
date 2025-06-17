@@ -478,284 +478,234 @@ namespace TiGER {
 		return 0;
 
 	}
-    int API_Gen_Boundary_Mesh(
-        /* ------------------------- 输入参数 --------------------------**/
-        double* pdSNC,              /* 曲面网格节点坐标，coord[3*i], coord[3*i+1], coord[3*i+2]为第i个节点x,y,z坐标 **/
-        int nSN,                    /* 曲面网格边界节点数目 **/
-        int* pnSFFm,                /* 曲面网格单元节点编号 **/
-        int* pnSFTp,                /* 曲面网格单元类型。当前仅支持三角形单元 **/
-        int* pnSFPt,                /* 曲面网格单元所在几何面编号 ,从1开始 **/
-        int nSF,                    /* 曲面网格单元数目 **/
-        std::map<int, int> pnFT,    /* 几何面类型： 0为远场； 1 为物面； 2为对称面 ,3为不长边界层的面,4为周期性面**/
-        int nLN,                    /* 边界层层数 **/
-        std::vector<int> layer_vec, /* 边界层层数数组 **/
-        int max_layer_diff,         /*相邻网格边界层层数差*/
-        double dLen,                /* 边界层第一层厚度 **/
-        std::vector<double> length_vec, /* 边界层第一层厚度数组 **/
-        double dRto,                    /* 边界层厚度增长因子 **/
-        double max_skewnwass,           /* 各向异性停止**/
-        double bisostop,                /* 各向同性停止**/
-        /* ------------------------- 输出参数 -------------------------**/
-        double** ppdMNC, /* 体网格节点坐标 **/
-        int* pnMN,       /* 体网格节点数目 **/
-        int** ppnMEFm,   /* 体网格单元节点编号 **/
-        int** ppnMETp,   /* 体网格单元类型。当前支持单元类型：三棱柱，金字塔 **/
-        int* pnME,       /* 体网格单元数目 **/
-        /* ------------------------- 边界层网格顶面层面网格参数 -------------------------**/
-        double** ppdSNC0,   /* 顶面网格节点坐标，coord[3*i], coord[3*i+1], coord[3*i+2]为第i个节点x,y,z坐标 **/
-        int* pnSN0,         /* 顶面网格边界节点数目 **/
-        int* pnSEO,         /* 顶面网格单元数目 **/
-        int** ppnSFTpO,     /* 顶面网格单元类型。当前仅支持三角形单元 **/
-        int** ppnSFFmO,     /* 体网格单元数目 **/
-        int** l2g,          /*  顶面网格id到全局点id的映射  */
-        double** ppnsizing, /* 顶面网格目标尺寸 */
-        /////* ------------------------- 边界信息 ------------------------- **/
-        int* num_boundary_face, /////* 边界面网格数量 **/
-        int** boundary_mesh,    /////* 边界面网格，注意每四个为一组，而且注意如果为三角形，最后一项为-1，id从0开始 **/
-        int** boundary_face,    /////* 边界面网格对应的面id，长度为num_boundary_face **/
-        /* ------------------------- 其他参数 -------------------------**/
-        std::vector<std::array<int, 3>>& connector,
-        bool b_have_pyramid,         /* 是否有金字塔 **/
-        bool b_use_multiple_normals, /* 是否启用多法向 缺省为false **/
-        bool b_output_io_file,       /* 是否将api的输入和输出都输出到文件系统中（仅用于DEBUG）缺省为false **/
-        std::string filename,        /* 几何文件名，缺省为virtualmesh **/
-        std::array<double, 12>
-            per_matrix /* 周期性面控制矩阵,前9位为旋转矩阵 m00，m01，m02 .... ，后三位为位移向量xyz **/
-        
-    )
-    {
-        tiger::Config cf;
-        cf.SetDefaultConfig();
-        cf.isotropic_stop = 1;
-        cf.dStepLen = dLen;
-        cf.dStepLenRatio = dRto;
-        cf.nLayerNum = nLN;
-        cf.nInitLayerNum_vec = layer_vec;
-        cf.dStepLen_vec = length_vec;
-        cf.sGeoFileName = filename;
-        vector<vector<int>> bcs;
-        bcs.resize(10);
-        // vector<int> symm;
-        // vector<int> box;
-        // vector<int> match;
-        // vector<int> per;
-        for( auto i : pnFT )
-        {
-            bcs[i.second].push_back(i.first);
-        }
+	int API_Gen_Boundary_Mesh(
+		/* ------------------------- 输入参数 --------------------------**/
+		double		*pdSNC,			/* 曲面网格节点坐标，coord[3*i], coord[3*i+1], coord[3*i+2]为第i个节点x,y,z坐标 **/
+		int			nSN,			/* 曲面网格边界节点数目 **/
+		int			*pnSFFm,		/* 曲面网格单元节点编号 **/
+		int			*pnSFTp,		/* 曲面网格单元类型。当前仅支持三角形单元 **/
+		int			*pnSFPt,		/* 曲面网格单元所在几何面编号 ,从1开始 **/
+		int			nSF,			/* 曲面网格单元数目 **/
+		std::map<int, int> pnFT,			/* 几何面类型： 0为远场； 1 为物面； 2为对称面 ,3为不长边界层的面,4为周期性面**/
+		int			nLN,			/* 边界层层数 **/
+		std::vector<int> layer_vec, /* 边界层层数数组 **/
+		int			max_layer_diff, /*相邻网格边界层层数差*/
+		double		dLen,			/* 边界层第一层厚度 **/
+		std::vector<double> length_vec, /* 边界层第一层厚度数组 **/
+		double		dRto,			/* 边界层厚度增长因子 **/
+		double		max_skewnwass,  /* 各向异性停止**/
+		double		bisostop,       /* 各向同性停止**/
+		/* ------------------------- 输出参数 -------------------------**/
+		double	   **ppdMNC,		/* 体网格节点坐标 **/
+		int         *pnMN,			/* 体网格节点数目 **/
+		int         **ppnMEFm,		/* 体网格单元节点编号 **/
+		int         **ppnMETp,		/* 体网格单元类型。当前支持单元类型：三棱柱，金字塔 **/
+		int         *pnME,			/* 体网格单元数目 **/
+		/* ------------------------- 边界层网格顶面层面网格参数 -------------------------**/
+		double		**ppdSNC0,		/* 顶面网格节点坐标，coord[3*i], coord[3*i+1], coord[3*i+2]为第i个节点x,y,z坐标 **/
+		int			*pnSN0,			/* 顶面网格边界节点数目 **/
+		int			*pnSEO,			/* 顶面网格单元数目 **/
+		int			**ppnSFTpO,		/* 顶面网格单元类型。当前仅支持三角形单元 **/
+		int			**ppnSFFmO,			/* 体网格单元数目 **/
+        int         **l2g,             /*  顶面网格id到全局点id的映射  */
+            double **ppnsizing, /* 顶面网格目标尺寸 */
+		/////* ------------------------- 边界信息 ------------------------- **/ 
+		int         *num_boundary_face,  /////* 边界面网格数量 **/ 
+		int         **boundary_mesh,  /////* 边界面网格，注意每四个为一组，而且注意如果为三角形，最后一项为-1，id从0开始 **/ 
+		int         **boundary_face,  /////* 边界面网格对应的面id，长度为num_boundary_face **/ 
+		/* ------------------------- 其他参数 -------------------------**/ 
+		bool b_have_pyramid, /* 是否有金字塔 **/
+		bool b_use_multiple_normals, /* 是否启用多法向 缺省为false **/
+		bool b_output_io_file,  /* 是否将api的输入和输出都输出到文件系统中（仅用于DEBUG）缺省为false **/
+		std::string filename,   /* 几何文件名，缺省为virtualmesh **/
+		std::array<double, 12> per_matrix  /* 周期性面控制矩阵,前9位为旋转矩阵 m00，m01，m02 .... ，后三位为位移向量xyz **/
+	) {
+		tiger::Config cf;
+		cf.SetDefaultConfig();
+		cf.isotropic_stop = 1;
+		cf.dStepLen = dLen;
+		cf.dStepLenRatio = dRto;
+		cf.nLayerNum = nLN;
+		cf.nInitLayerNum_vec = layer_vec;
+		cf.dStepLen_vec = length_vec;
+		cf.sGeoFileName = filename;
+		vector<vector<int>> bcs;
+		bcs.resize(10);
+		//vector<int> symm;
+		//vector<int> box;
+		//vector<int> match;
+		//vector<int> per;
+		for (auto i: pnFT) {
+			bcs[i.second].push_back(i.first);
+		}
 
-        cf.vecBoxFc = bcs[0];
+		cf.vecBoxFc = bcs[0];
 
-        cf.vecSymmFc = bcs[2];
-        cf.vecMatchFc = bcs[4];
-        cf.vecAdjacentFc = bcs[5];
-        // cf.WriteConfigFile();
+		
+		cf.vecSymmFc = bcs[2];
+		cf.vecMatchFc = bcs[4];
+		cf.vecAdjacentFc = bcs[5];
+		//cf.WriteConfigFile();
 
-        int npt = nSN;
-        int nelm = nSF;
-        // ofstream fout("virtualmesh.pls");
-        stringstream* fout = new stringstream();
+		int npt = nSN;
+		int nelm = nSF;
+		//ofstream fout("virtualmesh.pls");
+		stringstream* fout = new stringstream();
 
-        *fout << nelm << " " << npt << " " << 0 << " " << 0 << " " << 0 << " " << 0 << endl;
 
-        std::vector<std::array<double, 3>> points;
-        for( int i = 0; i < npt; i++ )
-        {
-            points.push_back(std::array<double, 3>{pdSNC[3 * i + 0], pdSNC[3 * i + 1], pdSNC[3 * i + 2]});
-        }
-        for( int i = 0; i < nelm; i++ )
-        {
-            *fout << i + 1 << " " << pnSFFm[3 * i + 1] << " " << pnSFFm[3 * i + 0] << " " << pnSFFm[3 * i + 2] << " "
-                  << pnSFPt[i] << endl;
-        }
-        // fout.close();
-        string input(fout->str());
+		*fout << nelm << " " << npt << " " << 0 << " " << 0 << " " << 0 << " " << 0 << endl;
 
-        if( b_output_io_file )
-        {
-            ofstream ftest("BoundaryMeshing.txt");
-            ftest.setf(ios::fixed, ios::floatfield); // 设定为 fixed 模式，以小数点表示浮点数
-            ftest.precision(17);
-            ftest << "nLN: " << nLN << endl;
-            ftest << "dLen: " << dLen << endl;
-            ftest << "dRto: " << dRto << endl;
-            ftest << "max_skewnwass: " << max_skewnwass << endl;
-            ftest << "bisostop: " << bisostop << endl;
-            ftest << "boundary_info: " << endl;
-            for( auto i : pnFT )
-            {
-                ftest << i.first << " " << i.second << " " << std::endl;
-                ;
-            }
-            ftest << "b_use_multiple_normals: " << b_use_multiple_normals << endl;
-            ftest << nelm << " " << npt << " " << endl;
-            std::vector<std::array<double, 3>> points;
-            for( int i = 0; i < npt; i++ )
-            {
-                ftest << i + 1 << " " << pdSNC[3 * i + 0] << " " << pdSNC[3 * i + 1] << " " << pdSNC[3 * i + 2] << endl;
-            }
-            for( int i = 0; i < nelm; i++ )
-            {
-                ftest << i + 1 << " " << pnSFFm[3 * i + 1] << " " << pnSFFm[3 * i + 0] << " " << pnSFFm[3 * i + 2]
-                      << " " << pnSFPt[i] << endl;
-            }
+		std::vector<std::array<double, 3>> points;
+		for (int i = 0; i < npt; i++) {
+			points.push_back(std::array<double, 3>{pdSNC[3 * i + 0], pdSNC[3 * i + 1], pdSNC[3 * i + 2]});
+		}
+		for (int i = 0; i < nelm; i++) {
+			*fout << i + 1 << " " << pnSFFm[3 * i + 1] << " " << pnSFFm[3 * i + 0] << " " << pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
+		}
+		//fout.close();
+		string input(fout->str());
 
-            ftest.close();
-        }
+		if (b_output_io_file) {
+			ofstream ftest("BoundaryMeshing.txt");
+			ftest.setf(ios::fixed, ios::floatfield);  // 设定为 fixed 模式，以小数点表示浮点数
+			ftest.precision(17);
+			ftest << "nLN: " << nLN << endl;
+			ftest << "dLen: " << dLen << endl;
+			ftest << "dRto: " << dRto << endl;
+			ftest << "max_skewnwass: " << max_skewnwass << endl;
+			ftest << "bisostop: " << bisostop << endl;
+			ftest << "boundary_info: " << endl;
+			for (auto i : pnFT) {
+				ftest << i.first << " " << i.second << " " << std::endl;;
+			}
+			ftest << "b_use_multiple_normals: " << b_use_multiple_normals << endl;
+			ftest << nelm << " " << npt << " " << endl;
+			std::vector<std::array<double, 3>> points;
+			for (int i = 0; i < npt; i++) {
+				ftest << i + 1 << " " << pdSNC[3 * i + 0] << " " << pdSNC[3 * i + 1] << " " << pdSNC[3 * i + 2] << endl;
+			}
+			for (int i = 0; i < nelm; i++) {
+				ftest << i + 1 << " " << pnSFFm[3 * i + 1] << " " << pnSFFm[3 * i + 0] << " " << pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
+			}
 
-        blpreConfig blconfig;
+			ftest.close();
+		}
+
+		blpreConfig blconfig;
+		blconfig.n = nLN;
+		blconfig.Ro = dRto;
+		blconfig.len = dLen;
+		blconfig.layer_vec = layer_vec;
+		blconfig.len_vec = length_vec;
         blconfig.box = bcs[0];
+        blconfig.wall = bcs[1];
         blconfig.symm = bcs[2];
-        blconfig.n = nLN;
-        blconfig.Ro = dRto;
-        blconfig.len = dLen;
+		blconfig.match = bcs[3];
+		blconfig.per = bcs[4];
+		blconfig.adjacent = bcs[5];
+		blconfig.use_multiple_normals = b_use_multiple_normals;
+		blconfig.max_equal_skewnwass = max_skewnwass;
+		blconfig.max_layer_diff = max_layer_diff;
+		ControlVolume cv;
+		auto bdyfile = PRE::blpre(input, blconfig, points,cv);
+		delete fout;
 
-        blconfig.layer_vec = layer_vec;
-        blconfig.len_vec = length_vec;
-        blconfig.match = bcs[3];
-        blconfig.per = bcs[4];
-        blconfig.adjacent = bcs[5];
-        blconfig.use_multiple_normals = b_use_multiple_normals;
-        blconfig.max_equal_skewnwass = max_skewnwass;
-        blconfig.max_layer_diff = max_layer_diff;
-        ControlVolume cv;
-        auto bdyfile = PRE::blpre(input, blconfig, points, cv);
-        delete fout;
 
-        VM v = blmesh(bdyfile, blconfig, false, true, b_have_pyramid, bisostop, b_output_io_file, nullptr, 1.2, 0,
-                      per_matrix);
 
-        *ppdMNC = v.ppdMNC;
-        *pnMN = v.pnMN;
-        *pnME = v.pnME;
-        *ppnMEFm = v.ppnMEFm;
-        *ppnMETp = v.ppnMETp;
-        *pnSEO = v.pnSNO;
-        *ppnSFTpO = v.ppnSFTpO;
-        *ppnSFFmO = v.ppnSFFmO;
-        *ppdSNC0 = v.ppdSNC0;
-        *pnSN0 = v.nSN0;
-        *l2g = v.l2g;
-        *ppnsizing = v.sizing;
+		VM v = blmesh(bdyfile, blconfig, false, true, b_have_pyramid, bisostop, b_output_io_file, nullptr, 1.2, 0, per_matrix);
 
-        *boundary_face = v.boundary_face;
-        *boundary_mesh = v.boundary_mesh;
-        *num_boundary_face = v.num_boundary_face;
+		
+		*ppdMNC = v.ppdMNC;
+		*pnMN = v.pnMN;
+		*pnME = v.pnME;
+		*ppnMEFm = v.ppnMEFm;
+		*ppnMETp = v.ppnMETp;
+		*pnSEO = v.pnSNO;
+		*ppnSFTpO = v.ppnSFTpO;
+		*ppnSFFmO = v.ppnSFFmO;
+		*ppdSNC0 = v.ppdSNC0;
+		*pnSN0 = v.nSN0;
+                *l2g = v.l2g;
+                *ppnsizing = v.sizing;
 
-        if( cv.f.size() )
-        {
-            int old_point_num = *pnMN;
-            double* nppdMNC = new double[(*pnMN + cv.lower_point_num + cv.add_point_num) * 3];
-            std::map<std::array<double, 3>, int> coord_to_id;
-            for( int i = 0; i < (*pnMN); i++ )
-            {
-                coord_to_id[{(*ppdMNC)[3 * i + 0], (*ppdMNC)[3 * i + 1], (*ppdMNC)[3 * i + 2]}] = i;
-            }
-            for( int i = 0; i < (*pnMN) * 3; i++ )
-            {
-                nppdMNC[i] = (*ppdMNC)[i];
-            }
-            for( int i = 0; i < cv.lower_point_num; i++ )
-            {
-                for( int k = 0; k < 3; k++ )
-                {
-                    nppdMNC[(*pnMN) * 3 + 3 * i + k] = cv.v[i][k];
-                }
-            }
-            for( int i = 0; i < cv.add_point_num; i++ )
-            {
-                for( int k = 0; k < 3; k++ )
-                {
-                    nppdMNC[(*pnMN) * 3 + 3 * cv.lower_point_num + 3 * i + k] =
-                        cv.v[cv.v.size() - cv.add_point_num + i][k];
-                }
-            }
-            *pnMN = *pnMN + cv.lower_point_num + cv.add_point_num;
-            // delete* ppdMNC[];
-            *ppdMNC = nppdMNC;
-            int* nppnMEFm = new int[6 * (*pnME) + 6 * cv.f.size()];
-            int cnt = 0;
-            for( int i = 0; i < *pnME; i++ )
-            {
-                int k = 0;
-                if( (*ppnMETp)[i] == 11 )
-                {
-                    k = 4;
-                }
-                if( (*ppnMETp)[i] == 13 )
-                {
-                    k = 6;
-                }
-                if( (*ppnMETp)[i] == 14 )
-                {
-                    k = 5;
-                }
-                for( int j = 0; j < k; j++ )
-                {
-                    nppnMEFm[cnt] = (*ppnMEFm)[cnt];
-                    cnt++;
-                }
-            }
-            int* nppnMETp = new int[*pnME + cv.f.size()];
-            for( int i = 0; i < *pnME; i++ )
-            {
-                nppnMETp[i] = (*ppnMETp)[i];
-            }
-            int id = 0;
-            for( int i = 0; i < cv.f.size(); i++ )
-            {
-                int k = cv.f[i].size();
-                for( int j = 0; j < k; j++ )
-                {
-                    if( cv.f[i][j] >= cv.lower_point_num )
-                    {
-                        if( cv.f[i][j] >= cv.v.size() - cv.add_point_num )
-                        {
-                            nppnMEFm[cnt] =
-                                cv.f[i][j] - cv.v.size() + cv.add_point_num + cv.lower_point_num + old_point_num;
-                        }
-                        else
-                        {
-                            // nppnMEFm[cnt] = cv.f[i][j] - cv.lower_point_num;
-                            nppnMEFm[cnt] = coord_to_id[cv.v[cv.f[i][j]]];
-                            // if (cv.v[cv.f[i][j]][0] != (*ppdMNC)[3 * cv.f[i][j] - cv.lower_point_num]) {
-                            //	std::cout << "debug here";
-                            // }
-                        }
-                    }
-                    else
-                        nppnMEFm[cnt] = cv.f[i][j] + old_point_num;
-                    cnt++;
-                }
 
-                if( k == 4 )
-                {
-                    nppnMETp[*pnME + i] = 11;
-                }
-                if( k == 5 )
-                {
-                    nppnMETp[*pnME + i] = 14;
-                }
-                if( k == 6 )
-                {
-                    nppnMETp[*pnME + i] = 13;
-                }
-            }
+		*boundary_face = v.boundary_face;
+		*boundary_mesh = v.boundary_mesh;
+		*num_boundary_face = v.num_boundary_face;
 
-            *pnME = *pnME + cv.f.size();
-            *ppnMEFm = nppnMEFm;
-            *ppnMETp = nppnMETp;
-            connector.resize(cv.s.size());
-            for( int i = 0; i < cv.s.size(); i++ )
-            {
-                int k = cv.s[i].size();
-                for( int j = 0; j < k; j++ )
-                {
-                    connector[i][j] = cv.s[i][j] + old_point_num;
-                }
-            }
-        }
+		if (cv.f.size()) {
+			int old_point_num = *pnMN;
+			double* nppdMNC = new double[(*pnMN + cv.lower_point_num+cv.add_point_num) * 3];
+			std::map<std::array<double, 3>, int> coord_to_id;
+			for (int i = 0; i < (*pnMN) ; i++) {
+				coord_to_id[{(*ppdMNC)[3 * i + 0], (*ppdMNC)[3 * i + 1], (*ppdMNC)[3 * i + 2]}] = i;
+			}
+			for (int i = 0; i < (*pnMN) * 3; i++) {
+				nppdMNC[i] = (*ppdMNC)[i];
+			}
+			for (int i = 0; i < cv.lower_point_num; i++) {
+				for (int k = 0; k < 3; k++) {
+					nppdMNC[(*pnMN) * 3 + 3 * i + k] = cv.v[i][k];
+				}
+			}
+			for (int i = 0; i < cv.add_point_num; i++) {
+				for (int k = 0; k < 3; k++) {
+					nppdMNC[(*pnMN) * 3+3* cv.lower_point_num + 3 * i + k] = cv.v[cv.v.size()-cv.add_point_num+i][k];
+				}
+			}
+			*pnMN = *pnMN + cv.lower_point_num + cv.add_point_num;
+			//delete* ppdMNC[];
+			*ppdMNC = nppdMNC;
+			int* nppnMEFm = new int[6 * (*pnME) + 6 * cv.f.size()];
+			int cnt = 0;
+			for (int i = 0; i < *pnME; i++) {
+				int k = 0;
+				if ((*ppnMETp)[i] == 11) {
+					k = 4;
+				}
+				if ((*ppnMETp)[i] == 13) {
+					k = 6;
+				}
+				if ((*ppnMETp)[i] == 14) {
+					k = 5;
+				}
+				for (int j = 0; j < k; j++) {
+					nppnMEFm[cnt] = (*ppnMEFm)[cnt];
+					cnt++;
+				}
+			}
+			int* nppnMETp = new int[*pnME + cv.f.size()];
+			for (int i = 0; i < *pnME; i++) {
+				nppnMETp[i] = (*ppnMETp)[i];
+			}
+			for (int i = 0; i < cv.f.size(); i++) {
+				int k = cv.f[i].size();
+				for (int j = 0; j < k; j++) {
+					if (cv.f[i][j] >= cv.lower_point_num) {
+						if(cv.f[i][j]>= cv.v.size() -cv.add_point_num)
+							nppnMEFm[cnt] = cv.f[i][j] -cv.v.size() +cv.add_point_num + old_point_num +cv.lower_point_num;
+						else {
+							//nppnMEFm[cnt] = cv.f[i][j] - cv.lower_point_num;
+							nppnMEFm[cnt] = coord_to_id[cv.v[cv.f[i][j]]];
+							//if (cv.v[cv.f[i][j]][0] != (*ppdMNC)[3 * cv.f[i][j] - cv.lower_point_num]) {
+							//	std::cout << "debug here";
+							//}
+						}
+					}
+					else
+						nppnMEFm[cnt] = cv.f[i][j] + old_point_num;
+					cnt++;
+				}
 
+				if (k == 4) { nppnMETp[*pnME + i] = 11; }
+				if (k == 5) { nppnMETp[*pnME + i] = 14; }
+				if (k == 6) { nppnMETp[*pnME + i] = 13; }
+			}
+
+			*pnME = *pnME + cv.f.size();
+			*ppnMEFm = nppnMEFm;
+			*ppnMETp = nppnMETp;
+		}
 		return 0;
 
 	}

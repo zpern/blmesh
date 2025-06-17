@@ -3218,9 +3218,8 @@ void BLMesh::GenerateBLMesh()
 
 			//normn = blNod->GetNormal();
 #endif
-
 			normal = blNod->GetHeight();
-			
+
 
 			newpos = normal;
 			newpos.x += m_pNodes[iNod].coord[0];

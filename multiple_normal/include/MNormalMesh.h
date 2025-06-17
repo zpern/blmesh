@@ -16,8 +16,8 @@ public:
 	void ReadPls(string filename="");
 
 	void WriteNorm();
-	void WriteVol(std::vector<std::array<double, 3>>& v, std::vector<std::vector<int>>& f,std::vector<std::array<int,3>>& s, int& lower_num,double len,int& add_point_num);
-	void WriteMem(std::string& f,
+	void WriteVol(std::vector<std::array<double, 3>>& v, std::vector<std::vector<int>>& f, int& lower_num,double len,int& add_point_num);
+	void WriteMesh(std::string& f,
                            std::vector<std::array<double, 3>>& points,double d);
     void WriteMem(std::string& f,
                       std::vector<std::array<double, 3>>& points);
@@ -34,7 +34,7 @@ public:
 	 * @brief stiching the complex node with ordinary node 
 	 * 
 	 */
-	void BuildTopo();
+	void BuildTopo(int faceCount);
 	
 	/**
 	* @brief Generate only one layer of boundary layer mesh. 
@@ -51,7 +51,6 @@ public:
 	unsigned int number_of_origin_triangles;
 	unsigned int number_of_triangles;
 	std::vector<std::array<int, 3>> connector;
-    std::vector<std::array<int, 3>> connector_original;
 	std::vector<int> attribute;
 
 	vector<ComplexNode> node_array;
@@ -64,4 +63,10 @@ protected:
 private:
 	ChamferBehavior behavior_;
 };
+void splite_by_faceID(std::vector<std::array<double, 3>>& point, std::vector<std::array<double, 3>>& point_multiply,
+                      std::vector<std::array<double, 3>>& point_nonwall, std::string& f, std::string& f_multiply,
+                      std::string& f_nonwall, std::vector<int> srufaceID);
+void combine_by_faceID(std::vector<std::array<double, 3>>& points, std::vector<std::array<double, 3>> points_multiply,
+                       std::vector<std::array<double, 3>> points_nonwall, std::string& f, std::string f_multiply,
+                       std::string f_nonwall);
 #endif

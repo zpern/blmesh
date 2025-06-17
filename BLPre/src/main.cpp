@@ -399,6 +399,7 @@ namespace PRE {
 		blpreConfig blcf,
 	std::vector < std::array< double, 3> > points ,ControlVolume& cv) {
 	vector<int> symm = blcf.symm;
+    vector<int> wall = blcf.wall;
 	vector<int> box = blcf.box;
 	vector<int> match = blcf.match;
 	vector<int> per_face;
@@ -407,6 +408,7 @@ namespace PRE {
 		per_face.push_back(i);
 		symm.push_back(i);
 	}
+    int faceCount = symm.size() + wall.size() + box.size() + match.size() + adjacent_face.size();
 	int n = blcf.n;
 	double len = blcf.len;
 	double Ro = blcf.Ro;
@@ -415,26 +417,30 @@ namespace PRE {
 	char* argv[10];
 	string mfile = "";
 	if (use_multiple_normals) {
-                std::ofstream fout("111.txt");
-                fout << f << endl;
-        fout.close();
+        std::vector<std::array<double, 3>> points_multiply, points_nonwall;
+        std::string f_multiply, f_nonwall;
+        splite_by_faceID(points, points_multiply,points_nonwall, f, f_multiply,f_nonwall, wall);
 
         ChamferBehavior behavior;
         MNormalMesh chamfer;  // create one chamfer
         chamfer.SetBehavior(behavior);
-        chamfer.ReadPlsBuf(f,points);
+        chamfer.ReadPlsBuf(f_multiply, points_multiply);
         spdlog::info("Done!");
 
         chamfer.CalculateMultiNormal();
-        chamfer.BuildTopo();
+        chamfer.BuildTopo(faceCount);
 
         spdlog::info("Handling output mesh!");
+
         //chamfer.WritePls();
         //chamfer.WriteVtk();
         //chamfer.WriteNorm();
-		chamfer.WriteVol(cv.v,cv.f,cv.s,cv.lower_point_num,blcf.len,cv.add_point_num);
-        chamfer.WriteMem(f, points,blcf.len);
+		chamfer.WriteVol(cv.v,cv.f,cv.lower_point_num,blcf.len,cv.add_point_num);
+        chamfer.WriteMesh(f_multiply, points_multiply,blcf.len);
        // chamfer.GenerateFirstLayer(blcf.len);
+
+        combine_by_faceID(points, points_multiply, points_nonwall, f, f_multiply, f_nonwall);
+
         spdlog::info("Job Finished.");
 	//	mfile = T(f);
 	}
