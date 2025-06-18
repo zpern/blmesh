@@ -34,7 +34,7 @@ public:
 	 * @brief stiching the complex node with ordinary node 
 	 * 
 	 */
-	void BuildTopo(int faceCount);261816
+	void BuildTopo(int faceCount);
 	
 	/**
 	* @brief Generate only one layer of boundary layer mesh. 
