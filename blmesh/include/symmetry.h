@@ -53,7 +53,7 @@ namespace TiGER {
 		*/
 
         void adjustNormal(const Eigen::RowVector3d& point, Eigen::RowVector3d& normal, bool boundary = false) {
-            Eigen::RowVector3d endpoint = point + normal* reference_length;
+            Eigen::RowVector3d endpoint = point + normal;
             Eigen::RowVector3d nep;
             if (boundary) {
                 nep= projectToLoop(V_, L_, endpoint);
@@ -75,6 +75,35 @@ namespace TiGER {
             
             normal.normalize();
 		}
+        void adjustNormalSecond(const Eigen::RowVector3d& point, Eigen::RowVector3d& normal, bool boundary = false)
+        {
+            Eigen::RowVector3d endpoint = point + normal;
+            Eigen::RowVector3d nep;
+            if( boundary )
+            {
+                nep = projectToLoop(V_, L_, endpoint);
+                normal = nep - point;
+            }
+            else
+            {
+                nep = project(endpoint);
+                normal = nep - point;
+                if( stype == SType::x )
+                {
+                    normal(0) = 0;
+                }
+                if( stype == SType::y )
+                {
+                    normal(1) = 0;
+                }
+                if( stype == SType::z )
+                {
+                    normal(2) = 0;
+                }
+            }
+
+            normal.normalize();
+        }
 
 		void connect(const SymmetryPlane& sp) {
 
@@ -154,7 +183,7 @@ namespace TiGER {
                 }
             }
 
-            bool found_SType;
+            bool found_SType=false;
             for (int j = 0; j < 3; j++) {
                 if (maxV(j) - minV(j) < eps) {
                     stype = SType(j + 1);

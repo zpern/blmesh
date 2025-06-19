@@ -663,7 +663,7 @@ namespace PRE {
 	int fcnt = 0;
 	while (itbeg != itend)
 	{
-		double xcoord, ycoord, zcoord, eps = 1.0e-5;
+		double xcoord=0, ycoord, zcoord, eps = 1.0e-5;
 		double xttl = 0.0, yttl = 0.0, zttl = 0.0;
 		double xavg, yavg, zavg;
 		double xeps = 0, yeps = 0, zeps = 0;
