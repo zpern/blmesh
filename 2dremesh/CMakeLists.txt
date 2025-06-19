@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 3.5)
 project(2dremesh)
 #best opt
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0 -g")

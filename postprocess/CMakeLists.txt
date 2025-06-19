@@ -1,3 +1,4 @@
+cmake_minimum_required (VERSION 3.5)
 project(postprocess)
 set(POST_SRC
 	postprocess.cpp

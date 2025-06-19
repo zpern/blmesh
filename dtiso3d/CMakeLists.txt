@@ -4,7 +4,7 @@
 #                                                           #
 #############################################################
 
-cmake_minimum_required (VERSION 2.6) 
+cmake_minimum_required (VERSION 3.5) 
 option(DTISO3D_WITH_MMG               "Use mmg"                      OFF)
 MESSAGE(STATUS "###################################")
 MESSAGE("CMake config files are written by Jianjing Zheng")

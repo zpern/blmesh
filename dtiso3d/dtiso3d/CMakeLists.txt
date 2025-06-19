@@ -1,3 +1,4 @@
+cmake_minimum_required (VERSION 3.5) 
 # 设置编译的源文件
 set(COMMON_SRC
 	blockedarray_instance.cpp

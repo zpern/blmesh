@@ -1,6 +1,6 @@
+cmake_minimum_required (VERSION 3.5)
 set(CMAKE_DEBUG_POSTFIX "_d")
 set(CMAKE_RELEASE_POSTFIX "_r")
-cmake_minimum_required(VERSION 2.7.1 FATAL_ERROR)
 
 
 project(Tiger-SizingFunc LANGUAGES CXX)
@@ -20,7 +20,7 @@ include_directories(../third/eigen/libigl-2.1.0/include)
 set(EXTERN_DIR "${CMAKE_SOURCE_DIR}/extern")
 
 message("source = ${EXTERN_DIR}/geogram/src/lib")
-# ÅÐ¶Ï¸¸Ä¿Â¼ÊÇ·ñ´æÔÚ
+# ï¿½Ð¶Ï¸ï¿½Ä¿Â¼ï¿½Ç·ï¿½ï¿½ï¿½ï¿½
 if(EXISTS "${EXTERN_DIR}/geogram/src/lib")
     include_directories(${EXTERN_DIR}/geogram/src/lib)
 else()

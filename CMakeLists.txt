@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.6) 
+cmake_minimum_required (VERSION 3.30) 
 project(blmesh)
 if (MSVC)
     # 对于MSVC编译器，可以禁用所有警告
