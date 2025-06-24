@@ -77,7 +77,8 @@ int main(int argc, char** argv) {
 	spdlog::info("Done!");
 
 	chamfer.CalculateMultiNormal();
-	chamfer.BuildTopo();
+	int faceCount;
+	chamfer.BuildTopo(faceCount);
 	
 	spdlog::info("Handling output mesh!");
 	chamfer.WritePls();

@@ -14,6 +14,7 @@ struct blpreConfig {
 	std::vector<double> len_vec;
 	std::vector<int> layer_vec;
 	vector<int> symm;
+    vector<int> wall;
 	vector<int> box;
 	vector<int> match;
 	vector<int> per;

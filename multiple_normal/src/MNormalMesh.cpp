@@ -55,9 +55,11 @@ void MNormalMesh::ReadPlsBuf(std::string f,
         }
         connector.resize(number_of_element);
         attribute.resize(number_of_element);
+
         for (int i = 0; i < number_of_element; i++) {
           fin >> line >> connector[i][0] >> connector[i][1] >>
               connector[i][2] >> attribute[i];
+
 
           for (int k = 0; k < 3; k++) connector[i][k]--;  // start from 0
           for (int k = 0; k < 3; k++)
@@ -65,7 +67,7 @@ void MNormalMesh::ReadPlsBuf(std::string f,
           for (int k = 0; k < 3; k++)
             node_array[connector[i][k]].neighbour_front_index_.push_back(i);
         }
-        connector_original = connector;
+
         for (int i = 0; i < number_of_point; i++) {
           for (auto &j : graph[i]) {
             if (j[0] == i) {
@@ -96,6 +98,7 @@ void MNormalMesh::ReadPlsBuf(std::string f,
         CalculateNodeNormal();
         return;
 }
+
 void MNormalMesh::ReadPls(std::string filename)
 {
 
@@ -193,14 +196,7 @@ void MNormalMesh::WriteNorm()
 	spdlog::info("Writing {0}",filename);
 }
 
-void MNormalMesh::WriteMem(std::string& f,
-                           std::vector<std::array<double, 3>>& points) {
-
-	WriteMem(f, points, POINT_OFFSET);
-}
-
 void MNormalMesh::WriteVol(std::vector<std::array<double, 3>>& v, std::vector<std::vector<int>>& f,
-                           std::vector<std::array<int, 3>>& s,
                            int& lower_num, double len, int& add_point_num)
 {
 	std::map<std::array<double, 3>, int> coord_to_id;
@@ -235,7 +231,7 @@ void MNormalMesh::WriteVol(std::vector<std::array<double, 3>>& v, std::vector<st
 	}
 
 	add_point_num=0;
-    std::cout << "connector.size() = " << lower_ids.size() << std::endl;
+
 	for (int i = 0; i < connector.size(); i++) {
 		// 四面体情况
 		if (lower_ids[i][0] == lower_ids[i][1] && lower_ids[i][2] == lower_ids[i][1]) {
@@ -266,37 +262,21 @@ void MNormalMesh::WriteVol(std::vector<std::array<double, 3>>& v, std::vector<st
 				}
 			}
 			for (int k = 0; k < 3; k++) {
-				ncoord[k] /= 6;
+				ncoord[k] /= 5;
 			}
 			add_point_num++;
 			v.push_back(ncoord);			
 		}
 	}
-    s.resize(connector_original.size());
-    int id = 0;
-	for( int i = 0; i < lower_ids.size(); i++ )
-    {
-		if( lower_ids[i][0] != lower_ids[i][1] && lower_ids[i][2] != lower_ids[i][1] &&
-                 lower_ids[i][2] != lower_ids[i][0] )
-        {
-            s[id] = lower_ids[i];
-            id++;
-        }
-        else
-        {
-            continue;
-        }
-    }
 }
 
-void MNormalMesh::WriteMem(std::string& f, std::vector<std::array<double, 3>>& points, double len)
+void MNormalMesh::WriteMesh(std::string& f, std::vector<std::array<double, 3>>& points, double len)
 {
 
 	points.resize(coordinate.size());
 	for (int k = 0; k < coordinate.size(); k++) {
 		for (int i = 0; i < 3; i++) {
-			points[k][i] = coordinate[k][i] +
-				len * point_normals[k][i];
+            points[k][i] = coordinate[k][i] + len * point_normals[k][i];
 		}
 	}
 
@@ -465,10 +445,9 @@ void MNormalMesh::PrintVisibilityConeInfo()
 }
 
 
-void MNormalMesh::BuildTopo()
+void MNormalMesh::BuildTopo(int faceCount)
 {
-	auto max_attribute = max_element(attribute.begin(), attribute.end());
-	int new_attribute = *max_attribute + 1;
+	int new_attribute = faceCount+1;
 	map<int, map<int, vector<int>>> complex_edges;
 
 	for (auto i = node_array.begin(); i != node_array.end(); i++)
@@ -1084,3 +1063,121 @@ void MNormalMesh::CalculateNodeNormal()
 		point_normals[node.node_id_] = node.single_normal_;
 	}
 }
+
+void splite_by_faceID(std::vector<std::array<double, 3>>& points, std::vector<std::array<double, 3>>& points_multiply,
+                      std::vector<std::array<double, 3>>& points_nonwall, std::string& f, std::string& f_multiply,
+                      std::string& f_nonwall, std::vector<int> surfaceID)
+{
+    std::istringstream iss(f);
+    std::ostringstream oss_multiply, oss_nonwall;
+    std::string line;
+
+    std::map<int, int> used_ids_multiply;
+    std::map<int, int> used_ids_nonwall;
+
+    int pointid_multiply = 0;
+    int pointid_nonwall = 0;
+
+	int faceid_multiply = 0;
+    int faceid_nonwall = 0;
+
+	std::getline(iss, line); // 用来跳过 header 行
+
+	while(std::getline(iss, line)){
+        std::istringstream linestream(line);
+        int faceid, id1, id2, id3, surfaceid;
+        linestream >> faceid >> id1 >> id2 >> id3 >> surfaceid;
+
+        std::array<int, 3> ids = {id1, id2, id3};
+        std::array<int, 3> face;
+
+        bool is_multiply = std::find(surfaceID.begin(), surfaceID.end(), surfaceid) != surfaceID.end();
+
+        auto& used_ids = is_multiply ? used_ids_multiply : used_ids_nonwall;
+        auto& out_points = is_multiply ? points_multiply : points_nonwall;
+        auto& out_stream = is_multiply ? oss_multiply : oss_nonwall;
+        int& pointid = is_multiply ? pointid_multiply : pointid_nonwall;
+        int& out_faceid = is_multiply ? faceid_multiply : faceid_nonwall;
+
+        for( int i = 0; i < 3; ++i )
+        {
+            if( !used_ids.count(ids[i]) )
+            {
+                used_ids[ids[i]] = ++pointid;
+                face[i] = pointid;
+                out_points.push_back(points[ids[i]-1]); 
+            }
+            else
+            {
+                face[i] = used_ids[ids[i]];
+            }
+        }
+
+        out_stream << ++out_faceid << " " << face[0] << " " << face[1] << " " << face[2] << " " << surfaceid << "\n";
+    }
+    std::ostringstream header_multiply, header_nonwall;
+    header_multiply << faceid_multiply << " " << pointid_multiply  << " 0 0 0 0\n";
+    header_nonwall << faceid_nonwall << " " << pointid_nonwall << " 0 0 0 0\n";
+
+    f_multiply = header_multiply.str() + oss_multiply.str();
+    f_nonwall = header_nonwall.str() + oss_nonwall.str();
+}
+#pragma optimize("", off)
+void combine_by_faceID(std::vector<std::array<double, 3>>& points, std::vector<std::array<double, 3>> points_multiply,
+                       std::vector<std::array<double, 3>> points_nonwall, std::string& f, std::string f_multiply,
+                       std::string f_nonwall)
+{
+    std::map<std::array<double, 3>, int> point_to_new_id;
+    std::vector<std::array<double, 3>> new_points;
+    std::ostringstream oss;
+
+    // 添加点，并记录新编号（去重）
+    auto add_point = [&](const std::array<double, 3>& pt) -> int {
+        for( std::map<std::array<double, 3>, int>::const_iterator it = point_to_new_id.begin();
+             it != point_to_new_id.end(); ++it )
+        {
+            const std::array<double, 3>& existing_pt = it->first;
+            int idx = it->second;
+            double eps = 1e-8;
+            if( std::abs(existing_pt[0] - pt[0]) < eps && std::abs(existing_pt[1] - pt[1]) < eps &&
+                std::abs(existing_pt[2] - pt[2]) < eps )
+                return idx;
+        }
+        int id = static_cast<int>(new_points.size())+1;
+        point_to_new_id[pt] = id;
+        new_points.push_back(pt);
+        return id;
+    };
+
+    // 处理一个面数据字符串，转换面编号
+    auto process_faces = [&](const std::string& face_data, const std::vector<std::array<double, 3>>& source_points,
+                             int& face_id_counter) {
+        std::istringstream iss(face_data);
+        std::string line;
+        std::getline(iss, line); // 用来跳过 header 行
+
+        while( std::getline(iss, line) )
+        {
+            std::istringstream linestream(line);
+            int fid, p1, p2, p3, sid;
+            linestream >> fid >> p1 >> p2 >> p3 >> sid;
+
+            int new_p1 = add_point(source_points[p1-1]);
+            int new_p2 = add_point(source_points[p2-1]);
+            int new_p3 = add_point(source_points[p3-1]);
+
+            oss << ++face_id_counter << " " << new_p1 << " " << new_p2 << " " << new_p3 << " " << sid << "\n";
+        }
+    };
+
+    int face_id = 0;
+    process_faces(f_multiply, points_multiply, face_id);
+    process_faces(f_nonwall, points_nonwall, face_id);
+
+	std::ostringstream header;
+    header << face_id << " " << new_points.size() << " 0 0 0 0\n";
+
+    f = header.str() + oss.str();
+    points = new_points;
+}
+#pragma optimize("", off)
