@@ -20,7 +20,6 @@
 #include<atomic>
 #include <time.h>
 #include "dataio.h"
-#include "../verdict/verdict.h"
 #include "../postprocess/postprocess.h"
 
 #include "../include/distancecalculation.h"
