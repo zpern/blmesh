@@ -2982,7 +2982,7 @@ bool BLMesh::IsSymBdryDelete(int i)
  * @author yhf
  * @note Big function                                                                                                  \
  */                                                                                                                    \
-#pragma optimize("", off)
+
 void BLMesh::GenerateBLMesh()
 {
 	int iLayer = 0, i, nNods, iNod, iNodNew, cnt = 0, nFrtNods;
@@ -3903,7 +3903,7 @@ _ASSERTE( _CrtCheckMemory( ) );
 
 	//free memory (due to fix)
 }
-#pragma optimize("", on)
+
 int BLMesh::ElmBdryPtCnt(int eidx)
 {
 	int i, j, dim = DIM3, pidx[DIM3], cnt;
