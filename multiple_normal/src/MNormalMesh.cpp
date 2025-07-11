@@ -1122,7 +1122,6 @@ void splite_by_faceID(std::vector<std::array<double, 3>>& points, std::vector<st
     f_multiply = header_multiply.str() + oss_multiply.str();
     f_nonwall = header_nonwall.str() + oss_nonwall.str();
 }
-#pragma optimize("", off)
 void combine_by_faceID(std::vector<std::array<double, 3>>& points, std::vector<std::array<double, 3>> points_multiply,
                        std::vector<std::array<double, 3>> points_nonwall, std::string& f, std::string f_multiply,
                        std::string f_nonwall)
@@ -1133,17 +1132,9 @@ void combine_by_faceID(std::vector<std::array<double, 3>>& points, std::vector<s
 
     // 添加点，并记录新编号（去重）
     auto add_point = [&](const std::array<double, 3>& pt) -> int {
-        for( std::map<std::array<double, 3>, int>::const_iterator it = point_to_new_id.begin();
-             it != point_to_new_id.end(); ++it )
-        {
-            const std::array<double, 3>& existing_pt = it->first;
-            int idx = it->second;
-            double eps = 1e-8;
-            if( std::abs(existing_pt[0] - pt[0]) < eps && std::abs(existing_pt[1] - pt[1]) < eps &&
-                std::abs(existing_pt[2] - pt[2]) < eps )
-                return idx;
-        }
-        int id = static_cast<int>(new_points.size())+1;
+		if( point_to_new_id.find(pt)!=point_to_new_id.end() )  
+			return point_to_new_id[pt];
+        int id = new_points.size()+1;
         point_to_new_id[pt] = id;
         new_points.push_back(pt);
         return id;
@@ -1180,4 +1171,3 @@ void combine_by_faceID(std::vector<std::array<double, 3>>& points, std::vector<s
     f = header.str() + oss.str();
     points = new_points;
 }
-#pragma optimize("", off)
