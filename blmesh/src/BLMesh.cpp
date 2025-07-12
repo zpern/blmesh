@@ -4861,6 +4861,21 @@ void BLMesh::PreCheckPrismValid(BLFront *blFront)
 			return;
 		}
 	}
+#ifdef CHECK_EVERY_VOLUMN
+	if (!CheckPrismEveryVolumn(2 * nconn, conn)) {
+		blFront->is_prism_valid = 0;
+#ifdef _DEBUG
+		cout << "=====================================" << endl;
+		if (!CheckPrismVolumn(2 * nconn, conn))
+			cout << "volume  id=";
+
+		cout << blNod->GetDecentID() << endl;
+		;
+#endif
+		
+	}
+#endif
+
 #ifdef CHECK_VOLUMN
 	if (!CheckPrismVolumn(2 * nconn, conn)
 	|| !CheckPrismSkewness(2 * nconn, conn)) {
@@ -4877,7 +4892,6 @@ void BLMesh::PreCheckPrismValid(BLFront *blFront)
 #endif
 		
 	}
-
 #endif
 
 
@@ -6560,6 +6574,53 @@ bool BLMesh::CheckStop(BLNode *blNod, BLNode *blNodNew, int iLayer)
 
 	return false;
 }
+bool BLMesh::CheckPrismEveryVolumn(int nconn, int *conn)
+{
+#ifdef CHECK_VOLUMN
+    const double threshold = 1e-15 * cf.step_len;
+    BLVector gprism[6];
+    for (int i = 0; i < 6; i++)
+    {
+        gprism[i].x = m_pNodes[conn[i]].coord[0];
+        gprism[i].y = m_pNodes[conn[i]].coord[1];
+        gprism[i].z = m_pNodes[conn[i]].coord[2];
+    }
+
+    // 所有四面体体积
+    double vols[] = {
+        (gprism[3] - gprism[0]) * ((gprism[1] - gprism[0]) ^ (gprism[2] - gprism[0])) / 6, // volumn0123
+        (gprism[4] - gprism[0]) * ((gprism[1] - gprism[0]) ^ (gprism[2] - gprism[0])) / 6, // volumn0124
+        (gprism[5] - gprism[0]) * ((gprism[1] - gprism[0]) ^ (gprism[2] - gprism[0])) / 6, // volumn0125
+
+        (gprism[0] - gprism[3]) * ((gprism[5] - gprism[3]) ^ (gprism[4] - gprism[3])) / 6, // volumn3450
+        (gprism[1] - gprism[3]) * ((gprism[5] - gprism[3]) ^ (gprism[4] - gprism[3])) / 6, // volumn3451
+        (gprism[2] - gprism[3]) * ((gprism[5] - gprism[3]) ^ (gprism[4] - gprism[3])) / 6, // volumn3452
+
+        (gprism[5] - gprism[0]) * ((gprism[3] - gprism[0]) ^ (gprism[1] - gprism[0])) / 6, // volumn0135
+        (gprism[5] - gprism[0]) * ((gprism[4] - gprism[0]) ^ (gprism[1] - gprism[0])) / 6, // volumn0145
+
+        (gprism[3] - gprism[1]) * ((gprism[4] - gprism[1]) ^ (gprism[5] - gprism[1])) / 6, // volumn1243
+        (gprism[3] - gprism[1]) * ((gprism[5] - gprism[1]) ^ (gprism[2] - gprism[1])) / 6, // volumn1253
+
+        (gprism[4] - gprism[2]) * ((gprism[5] - gprism[2]) ^ (gprism[0] - gprism[2])) / 6, // volumn0254
+        (gprism[4] - gprism[2]) * ((gprism[3] - gprism[2]) ^ (gprism[0] - gprism[2])) / 6  // volumn0234
+    };
+
+    for (int i = 0; i < sizeof(vols)/sizeof(double); ++i)
+    {
+        if (fabs(vols[i]) < threshold)
+        {
+
+            std::cout << "Negative or tiny prism sub-volume detected: " << vols[i] << std::endl;
+            return false;
+        }
+    }
+    return true;
+#else
+    return true;
+#endif
+}
+
 bool BLMesh::CheckPrismVolumn(int nconn,int *conn)
 {
 #ifdef CHECK_VOLUMN

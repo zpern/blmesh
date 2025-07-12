@@ -272,7 +272,7 @@ public:
 	bool CheckIsotroStop(BLNode * blNod);
 
 	bool CheckStop(BLNode* blNod, BLNode* blNodNew, int iLayer);
-
+	bool CheckPrismEveryVolumn(int nconn, int * conn);
 	bool CheckPrismVolumn(int nconn, int * conn);
 
 	bool CheckPrismValidity(int nconn, int* conn, int* idx = NULL);

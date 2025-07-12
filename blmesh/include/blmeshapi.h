@@ -23,6 +23,7 @@
 #define REFER_DS 1 //1:array 2:hashtable 3:balance tree
 #define ONED_FILTER 1//1:enable 0:disable
 #define CHECK_VOLUMN
+#define CHECK_EVERY_VOLUMN
 //#define USE_OPENMP
 #define USE_DYNAMIC_ARRAY
 //#undef DEBUG
