@@ -21,6 +21,8 @@ struct blpreConfig {
 	vector<int> adjacent;
 	double max_equal_skewnwass;
 	bool use_multiple_normals;
+	int multiple_numlayer;
+    double multiple_steplength;
 	int max_layer_diff;
 };
 struct ControlVolume{

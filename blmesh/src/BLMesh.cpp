@@ -5211,7 +5211,7 @@ void BLMesh::SetFrontStopflag(BLFront* blFront)
 	int nflt, nnods, inei, conn[MAX_NCONN];
 	BLFront* blFrnts[DIM3], *blLowerFrt = nullptr;
 	BLNode* blnds[MAX_FRONT_NODES];
-	bool bstop = false, bcrepramid;
+	bool bstop = false, bcrepramid = false;
 
 	blFront->GetNodes(&nNods, blNods);
 

@@ -423,6 +423,8 @@ namespace PRE {
 
         ChamferBehavior behavior;
         MNormalMesh chamfer;  // create one chamfer
+        chamfer.number_of_layer = blcf.multiple_numlayer;
+        chamfer.step_of_length = blcf.multiple_steplength;
         chamfer.SetBehavior(behavior);
         chamfer.ReadPlsBuf(f_multiply, points_multiply);
         spdlog::info("Done!");
@@ -435,17 +437,19 @@ namespace PRE {
         //chamfer.WritePls();
         //chamfer.WriteVtk();
         //chamfer.WriteNorm();
-		chamfer.WriteVol(cv.v,cv.f,cv.lower_point_num,blcf.len,cv.add_point_num);
+		chamfer.WriteVol(cv.v,cv.f,cv.lower_point_num,cv.add_point_num);
         chamfer.WriteMesh(f_multiply, points_multiply,blcf.len);
        // chamfer.GenerateFirstLayer(blcf.len);
 
         combine_by_faceID(points, points_multiply, points_nonwall, f, f_multiply, f_nonwall);
 
         spdlog::info("Job Finished.");
-	//	mfile = T(f);
+		//mfile = T(f);
 	}
+
 	if (mfile.size() == 0) {
 		spdlog::info("use single-pass method");
+		
 		mfile = f;
 	}
 	spdlog::info("************************************************");
@@ -500,7 +504,6 @@ namespace PRE {
 #endif
 	spdlog::info("begin to covert...");
 //	ofstream	fout(string(outfile));
-
 	string trash;
 	string line;
 	
@@ -512,13 +515,13 @@ namespace PRE {
 
 	npt = npt1;
 	nelm = nelm1;
-
+	
 	pt = new double[3*npt];
 	//elm = new int[3*nelm];
 	elm = new int[4*nelm];
 	bc = new double[2*nelm];
 	wbc = new int[nelm];
-
+	
 	nsym = cf.symfc.size();
 	if (nsym) {
 		cout << "symm face";
@@ -574,7 +577,7 @@ namespace PRE {
 
 		nnmlt = nmpts.size();
 #endif
-
+	
 #ifndef _CONFIG_FILE
 		//wbc[i] = 0(wall)\1(farfield)\2(symmetry)
 		//if ((fi >= 16 && fi <= 21))
@@ -641,7 +644,7 @@ namespace PRE {
 		}
 #endif
 	}
-
+	
 	//获取边界点
 	int nbdryPt, *bpt, nbdry, *bdry;
 	MeshInfo mshInfo(MeshType::MESH_3D);
@@ -845,7 +848,7 @@ namespace PRE {
 		delete[]pSymFidx;
 		pSymFidx = nullptr;
 	}
-
+	
 	return std::make_tuple(fout.str(),pt,elm,wbc,sym_coord);
 }
 

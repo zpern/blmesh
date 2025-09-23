@@ -196,78 +196,168 @@ void MNormalMesh::WriteNorm()
 	spdlog::info("Writing {0}",filename);
 }
 
-void MNormalMesh::WriteVol(std::vector<std::array<double, 3>>& v, std::vector<std::vector<int>>& f,
-                           int& lower_num, double len, int& add_point_num)
+void MNormalMesh::WriteVol(std::vector<std::array<double, 3>> &v,
+                           std::vector<std::vector<int>> &f,
+                           int &lower_num,
+                           int &add_point_num)
 {
-	std::map<std::array<double, 3>, int> coord_to_id;
+    std::map<std::array<double, 3>, int> coord_to_id;
     std::vector<std::array<int, 3>> lower_ids(connector.size());
-	for (int i = 0; i < connector.size(); i++) {
-		int count = 0;
-		int lowerid_1=-1,lower_id2=-1;
-		std::array<int, 3>& ids= lower_ids[i];
-		for (int k = 0; k < 3; k++) {
-			std::array<double, 3> v;
-			v[0] = coordinate[connector[i][k]].x;
-			v[1] = coordinate[connector[i][k]].y;
-			v[2] = coordinate[connector[i][k]].z;
-			ids[k] = -1;
-			if (coord_to_id.find(v) == coord_to_id.end()) {
-				ids[k] = coord_to_id.size();
-				coord_to_id[v] = ids[k];
-			}
-			else
-				ids[k] = coord_to_id[v];
-		}
-	}
-	lower_num = coord_to_id.size();
-	v.resize(lower_num + coordinate.size());
-	for (auto i : coord_to_id) {
-		v[i.second] = i.first;
-	}
-	for (int i = 0; i < coordinate.size(); i++) {
+    for (int i = 0; i < connector.size(); i++) {
+        int count = 0;
+        int lowerid_1 = -1, lower_id2 = -1;
+        std::array<int, 3> &ids = lower_ids[i];
+        for (int k = 0; k < 3; k++) {
+            std::array<double, 3> v;
+            v[0] = coordinate[connector[i][k]].x;
+            v[1] = coordinate[connector[i][k]].y;
+            v[2] = coordinate[connector[i][k]].z;
+            ids[k] = -1;
+            if (coord_to_id.find(v) == coord_to_id.end()) {
+                ids[k] = coord_to_id.size();
+                coord_to_id[v] = ids[k];
+            } else {
+                ids[k] = coord_to_id[v];
+            }
+        }
+    }
+    lower_num = coord_to_id.size();
+    auto idx = [&](int base, int layer = 0) {
+        return static_cast<int>(base + lower_num + layer * coordinate.size());
+    };
+	
+    add_point_num = (number_of_layer-1)  * coordinate.size();
+    v.resize(lower_num + number_of_layer * coordinate.size());
+    for (auto i : coord_to_id) {
+        v[i.second] = i.first;
+    }
+    for (int j = 1; j <= number_of_layer; j++) {
+        for (int i = 0; i < coordinate.size(); i++) {
 
-		v[lower_num+i]={ coordinate[i].x + len * point_normals[i].x,
-			coordinate[i].y + len * point_normals[i].y, coordinate[i].z + len * point_normals[i].z };
-	}
+            v[idx(i,j-1)] = {coordinate[i].x + j * step_of_length * point_normals[i].x,
+                                coordinate[i].y + j * step_of_length * point_normals[i].y,
+                                coordinate[i].z + j * step_of_length * point_normals[i].z};
+        }
+    }
+    // 插点方案
 
-	add_point_num=0;
+    // for (int i = 0; i < connector.size(); i++) {
+    //	// 四面体情况
+    //	if (lower_ids[i][0] == lower_ids[i][1] && lower_ids[i][2] == lower_ids[i][1]) {
+    //		f.push_back({ lower_ids[i][0],connector[i][0]+lower_num,connector[i][1] + lower_num
+    //,connector[i][2] + lower_num });
+    //	}
+    //	else if (lower_ids[i][0] != lower_ids[i][1] && lower_ids[i][2] != lower_ids[i][1]&&
+    //lower_ids[i][2] != lower_ids[i][0]) { 		f.push_back({ lower_ids[i][0]
+    //,lower_ids[i][1],lower_ids[i][2],connector[i][0] + lower_num,connector[i][1] + lower_num
+    //,connector[i][2] + lower_num });
+    //	}
+    //	else {/// 复杂情况
+    //		int k1, k2,k3;
+    //		for (int j = 0; j < 3; j++) {
+    //			if (lower_ids[i][j] == lower_ids[i][(j + 1) % 3]) {
+    //				k1 = j;
+    //				k2 = (j + 1) % 3;
+    //				k3 = (j + 2) % 3;
+    //				break;
+    //			}
+    //		}
+    //           f.push_back({lower_ids[i][k3], connector[i][k3] + lower_num, connector[i][k1] +
+    //           lower_num, lower_ids[i][k1],(int)v.size()}); // pyramid
+    //		f.push_back({ lower_ids[i][k3] ,lower_ids[i][k2] ,connector[i][k2] +
+    //lower_num,connector[i][k3] + lower_num ,(int)v.size() });// pyramid
+    //           f.push_back({connector[i][k2] + lower_num, connector[i][k1] + lower_num,
+    //           connector[i][k3] + lower_num,(int)v.size()}); // tetra
+    //           f.push_back({connector[i][k1] + lower_num, connector[i][k2] + lower_num,
+    //           lower_ids[i][k1], (int)v.size()}); // tetra
+    //		std::array<double, 3> ncoord{0,0,0};
+    //		for (int k = 0; k < 3; k++) {
+    //			for (int j = 0; j < 3; j++) {
+    //				ncoord[k] += coordinate[connector[i][j]][k];
+    //				ncoord[k] += coordinate[connector[i][j]][k] + point_normals[connector[i][j]][k]
+    //* len;
+    //			}
+    //		}
+    //		for (int k = 0; k < 3; k++) {
+    //			ncoord[k] /= 5;
+    //		}
+    //		add_point_num++;
+    //		v.push_back(ncoord);
+    //	}
+    //}
 
-	for (int i = 0; i < connector.size(); i++) {
-		// 四面体情况
-		if (lower_ids[i][0] == lower_ids[i][1] && lower_ids[i][2] == lower_ids[i][1]) {
-			f.push_back({ lower_ids[i][0],connector[i][0]+lower_num,connector[i][1] + lower_num ,connector[i][2] + lower_num });
-		}
-		else if (lower_ids[i][0] != lower_ids[i][1] && lower_ids[i][2] != lower_ids[i][1]&& lower_ids[i][2] != lower_ids[i][0]) {
-			f.push_back({ lower_ids[i][0] ,lower_ids[i][1],lower_ids[i][2],connector[i][0] + lower_num,connector[i][1] + lower_num ,connector[i][2] + lower_num });
-		}
-		else {/// 复杂情况
-			int k1, k2,k3;
-			for (int j = 0; j < 3; j++) {
-				if (lower_ids[i][j] == lower_ids[i][(j + 1) % 3]) {
-					k1 = j;
-					k2 = (j + 1) % 3;
-					k3 = (j + 2) % 3;
-					break;
-				}
-			}
-            f.push_back({lower_ids[i][k3], connector[i][k3] + lower_num, connector[i][k1] + lower_num, lower_ids[i][k1],(int)v.size()}); // pyramid
-			f.push_back({ lower_ids[i][k3] ,lower_ids[i][k2] ,connector[i][k2] + lower_num,connector[i][k3] + lower_num ,(int)v.size() });// pyramid
-            f.push_back({connector[i][k2] + lower_num, connector[i][k1] + lower_num, connector[i][k3] + lower_num,(int)v.size()}); // tetra
-            f.push_back({connector[i][k1] + lower_num, connector[i][k2] + lower_num, lower_ids[i][k1], (int)v.size()}); // tetra
-			std::array<double, 3> ncoord{0,0,0};
-			for (int k = 0; k < 3; k++) {
-				for (int j = 0; j < 3; j++) {
-					ncoord[k] += coordinate[connector[i][j]][k];
-					ncoord[k] += coordinate[connector[i][j]][k] + point_normals[connector[i][j]][k] * len;
-				}
-			}
-			for (int k = 0; k < 3; k++) {
-				ncoord[k] /= 5;
-			}
-			add_point_num++;
-			v.push_back(ncoord);			
-		}
-	}
+    // 切割方案
+	//第一层
+    for (int i = 0; i < connector.size(); i++) {
+        // 三法向分裂情况
+        if (lower_ids[i][0] == lower_ids[i][1] && lower_ids[i][2] == lower_ids[i][1]) {
+            f.push_back({lower_ids[i][0],
+                         idx(connector[i][0]),
+                         idx(connector[i][1]),
+                         idx(connector[i][2])});
+        }
+        // 无法向分裂情况
+        else if (lower_ids[i][0] != lower_ids[i][1] && lower_ids[i][2] != lower_ids[i][1] &&
+                 lower_ids[i][2] != lower_ids[i][0]) {
+
+            int k1, k2, k3;
+            for (int j = 0; j < 3; j++) {
+                if (lower_ids[i][j] < lower_ids[i][(j + 1) % 3] &&
+                    lower_ids[i][j] < lower_ids[i][(j + 2) % 3]) {
+                    k1 = j;
+                    k2 = (lower_ids[i][(j + 2) % 3] < lower_ids[i][(j + 1) % 3]) ? (j + 2) % 3 : (j + 1) % 3;
+                    k3 = (lower_ids[i][(j + 2) % 3] > lower_ids[i][(j + 1) % 3]) ? (j + 2) % 3 : (j + 1) % 3;
+                    break;
+                }
+            }
+
+            f.push_back({lower_ids[i][k1], lower_ids[i][k2], idx(connector[i][k2]), idx(connector[i][k3])});
+            f.push_back({lower_ids[i][k1],idx(connector[i][k1]),idx(connector[i][k2]),idx(connector[i][k3])});
+            f.push_back({lower_ids[i][k1], lower_ids[i][k2], lower_ids[i][k3], idx(connector[i][k3])});
+        }
+        // 法向二分情况
+        else {
+            int k1, k2, k3;
+            for (int j = 0; j < 3; j++) {
+                if (lower_ids[i][j] == lower_ids[i][(j + 1) % 3]) {
+                    k1 = j;
+                    k2 = (j + 1) % 3;
+                    k3 = (j + 2) % 3;
+                    break;
+                }
+            }
+
+            if (lower_ids[i][k1] < lower_ids[i][k3]) {
+                f.push_back({lower_ids[i][k1],
+                             idx(connector[i][k1]),
+                             idx(connector[i][k2]),
+                             idx(connector[i][k3])});
+            } else {
+                f.push_back({lower_ids[i][k3],
+                             idx(connector[i][k1]),
+                             idx(connector[i][k2]),
+                             idx(connector[i][k3])});
+
+                f.push_back({lower_ids[i][k1],
+                             idx(connector[i][k1]),
+                             idx(connector[i][k2]),
+                             lower_ids[i][k3]});
+            }
+        }
+    }
+    //后续层
+	if (number_of_layer > 1) {
+        for (int j = 0; j < number_of_layer-1; j++) {
+            for (int i = 0; i < connector.size(); i++) {
+                f.push_back({idx(connector[i][0], j),
+                             idx(connector[i][1], j),
+                             idx(connector[i][2], j),
+                             idx(connector[i][0], j + 1),
+                             idx(connector[i][1], j + 1),
+                             idx(connector[i][2], j + 1)});
+            }
+        }
+    }
 }
 
 void MNormalMesh::WriteMesh(std::string& f, std::vector<std::array<double, 3>>& points, double len)
@@ -276,7 +366,7 @@ void MNormalMesh::WriteMesh(std::string& f, std::vector<std::array<double, 3>>& 
 	points.resize(coordinate.size());
 	for (int k = 0; k < coordinate.size(); k++) {
 		for (int i = 0; i < 3; i++) {
-            points[k][i] = coordinate[k][i] + len * point_normals[k][i];
+            points[k][i] = coordinate[k][i] + number_of_layer * step_of_length * point_normals[k][i];
 		}
 	}
 
@@ -1122,9 +1212,8 @@ void splite_by_faceID(std::vector<std::array<double, 3>>& points, std::vector<st
     f_multiply = header_multiply.str() + oss_multiply.str();
     f_nonwall = header_nonwall.str() + oss_nonwall.str();
 }
-void combine_by_faceID(std::vector<std::array<double, 3>>& points, std::vector<std::array<double, 3>> points_multiply,
-                       std::vector<std::array<double, 3>> points_nonwall, std::string& f, std::string f_multiply,
-                       std::string f_nonwall)
+void combine_by_faceID(std::vector<std::array<double, 3>>& points, std::vector<std::array<double, 3>> points_multiply,std::vector<std::array<double, 3>> points_nonwall, 
+	std::string& f, std::string f_multiply, std::string f_nonwall)
 {
     std::map<std::array<double, 3>, int> point_to_new_id;
     std::vector<std::array<double, 3>> new_points;

@@ -16,7 +16,7 @@ public:
 	void ReadPls(string filename="");
 
 	void WriteNorm();
-	void WriteVol(std::vector<std::array<double, 3>>& v, std::vector<std::vector<int>>& f, int& lower_num,double len,int& add_point_num);
+	void WriteVol(std::vector<std::array<double, 3>>& v, std::vector<std::vector<int>>& f, int& lower_num,int& add_point_num);
 	void WriteMesh(std::string& f,
                            std::vector<std::array<double, 3>>& points,double d);
     void WriteMem(std::string& f,
@@ -54,6 +54,10 @@ public:
 	std::vector<int> attribute;
 
 	vector<ComplexNode> node_array;
+
+	int number_of_layer;
+    double step_of_length;
+
 protected:
 	void CaculateFrontNormal();
 	void CalculateNodeNormal();
