@@ -404,6 +404,7 @@ namespace PRE {
 	vector<int> match = blcf.match;
 	vector<int> per_face;
 	vector<int> adjacent_face = blcf.adjacent;
+    bool fast_intersection = blcf.fast_intersection;
 	for (auto i : blcf.per) {
 		per_face.push_back(i);
 		symm.push_back(i);
@@ -417,6 +418,12 @@ namespace PRE {
 	char* argv[10];
 	string mfile = "";
 	if (use_multiple_normals) {
+		std::map<std::array<double,3>, double> point_to_length;
+        if (blcf.length_vec.size()) {
+            for (int i = 0; i < points.size(); i++) {
+                point_to_length[points[i]] = blcf.length_vec[i];
+            }
+        }
         std::vector<std::array<double, 3>> points_multiply, points_nonwall;
         std::string f_multiply, f_nonwall;
         splite_by_faceID(points, points_multiply,points_nonwall, f, f_multiply,f_nonwall, wall);
@@ -425,13 +432,15 @@ namespace PRE {
         MNormalMesh chamfer;  // create one chamfer
         chamfer.number_of_layer = blcf.multiple_numlayer;
         chamfer.step_of_length = blcf.multiple_steplength;
+        chamfer.point_to_length = point_to_length;
+        chamfer.fast_intersection = fast_intersection;
         chamfer.SetBehavior(behavior);
         chamfer.ReadPlsBuf(f_multiply, points_multiply);
         spdlog::info("Done!");
 
         chamfer.CalculateMultiNormal();
         chamfer.BuildTopo(faceCount);
-
+        //chamfer.SmoothNormalsSimple(5);
         spdlog::info("Handling output mesh!");
 
         //chamfer.WritePls();

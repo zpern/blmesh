@@ -175,7 +175,6 @@ BLVector BLVector::operator/(const BLVector & v) const
 	return  BLVector(x / v.x, y / v.y, z / v.z);
 }
 
-
 BLVector BLVector::getmul(const BLVector & v) const
 {
 	BLVector vr;

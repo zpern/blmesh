@@ -90,7 +90,12 @@ public:
 	BLVector operator - (const BLVector& v) const;
 	BLVector operator * (const double& s) const;
 	BLVector operator / (const double& s) const;
-
+    inline bool operator==(const BLVector& v) const {
+        const double eps = 1e-10;
+        return std::abs(x - v.x) < eps &&
+               std::abs(y - v.y) < eps &&
+               std::abs(z - v.z) < eps;
+    }
 	/*
 	* x,y,z分别除
 	*/

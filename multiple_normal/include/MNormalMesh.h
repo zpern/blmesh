@@ -6,6 +6,11 @@
 #include <array>
 #include "complexnode.h"
 #include "ChamferBehavior.h"
+#include "./hexa_octree.hpp"   // Uses the previously defined binary tree.
+#include "./hexa_tag.h"        // Provides HexaTag and HexaTagHash.
+#include "./geometry_check.hpp"  // Assumes it contains the declaration for tri_tri_intersect.
+#include "./intersection_check.hpp"
+
 class MNormalMesh {
 public:
 	MNormalMesh() {}
@@ -29,6 +34,7 @@ public:
 	 * 
 	 */
 	void CalculateMultiNormal();
+    void SmoothNormalsSimple(int itertion);
 	void PrintVisibilityConeInfo();
 	/**
 	 * @brief stiching the complex node with ordinary node 
@@ -57,6 +63,11 @@ public:
 
 	int number_of_layer;
     double step_of_length;
+	std::map<std::array<double,3>, double> point_to_length;
+    std::vector<double> length;
+    bool fast_intersection;
+
+	
 
 protected:
 	void CaculateFrontNormal();

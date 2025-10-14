@@ -559,8 +559,12 @@ namespace TiGER {
 			points.push_back(std::array<double, 3>{pdSNC[3 * i + 0], pdSNC[3 * i + 1], pdSNC[3 * i + 2]});
 		}
 		for (int i = 0; i < nelm; i++) {
-			*fout << i + 1 << " " << pnSFFm[3 * i + 1] << " " << pnSFFm[3 * i + 0] << " " << pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
+			*fout << i + 1 << " " << pnSFFm[3 * i + 0] << " " << pnSFFm[3 * i + 1] << " " << pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
 		}
+
+
+
+
 		//fout.close();
 		string input(fout->str());
 
@@ -744,6 +748,7 @@ namespace TiGER {
 		/* ------------------------- 其他参数 -------------------------**/
 		bool b_have_pyramid, /* 是否有金字塔 **/
 		bool b_use_multiple_normals, /* 是否启用多法向 缺省为false **/
+		bool fast_intersection,
 		bool b_output_io_file,  /* 是否将api的输入和输出都输出到文件系统中（仅用于DEBUG）缺省为false **/
 		std::string filename,   /* 几何文件名，缺省为virtualmesh **/
 		std::array<double, 12> per_matrix  /* 周期性面控制矩阵,前9位为旋转矩阵 m00，m01，m02 .... ，后三位为位移向量xyz **/
@@ -786,7 +791,7 @@ namespace TiGER {
 			points.push_back(std::array<double, 3>{pdSNC[3 * i + 0], pdSNC[3 * i + 1], pdSNC[3 * i + 2]});
 		}
 		for (int i = 0; i < nelm; i++) {
-			*fout << i + 1 << " " << pnSFFm[3 * i + 1] << " " << pnSFFm[3 * i + 0] << " " << pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
+			*fout << i + 1 << " " << pnSFFm[3 * i + 0] << " " << pnSFFm[3 * i + 1] << " " << pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
 		}
 		//fout.close();
 		string input(fout->str());
@@ -834,6 +839,8 @@ namespace TiGER {
         blconfig.multiple_steplength = multiple_steplength;
 		blconfig.max_equal_skewnwass = max_skewnwass;
 		blconfig.max_layer_diff = max_layer_diff;
+        blconfig.length_vec = length_vec;
+        blconfig.fast_intersection = fast_intersection;
 		ControlVolume cv;
 		auto bdyfile = PRE::blpre(input, blconfig, points,cv);
 		delete fout;
@@ -910,6 +917,9 @@ namespace TiGER {
                         nppnMEFm[cnt] = cv.f[i][j] + old_point_num;
                     } else {
                         // nppnMEFm[cnt] = cv.f[i][j] - cv.lower_point_num;
+                        if (coord_to_id.find(cv.v[cv.f[i][j]]) == coord_to_id.end()) {
+                            std::cout << "debug";
+						}
                         nppnMEFm[cnt] = coord_to_id[cv.v[cv.f[i][j]]];
                         // if (cv.v[cv.f[i][j]][0] != (*ppdMNC)[3 * cv.f[i][j] -
                         // cv.lower_point_num]) { 	std::cout << "debug here";

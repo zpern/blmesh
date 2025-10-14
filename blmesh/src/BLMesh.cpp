@@ -303,7 +303,6 @@ int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
 	m_TriElm.Reserve(10 * nelm);
 
 	//m_nTriElm = nelm;
-	m_nAllocTriElems = nelm;
 	// end of intersection data
 #endif
 
@@ -385,7 +384,7 @@ int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
 
 		m_pElems[i].topo = BLEntityTopology::TRIANGLE;
 
-		m_pElems[i].igom = ele[4 * i + 3];;
+		m_pElems[i].igom = ele[4 * i + 3];
 
 		//m_pElems[i].neig[0] = m_pElems[i].neig[1] = m_pElems[i].neig[2] = -1;
 		bct = get<3>(file)[i];
@@ -441,7 +440,6 @@ int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
             if( bct != BoundaryType::symmetry && bct != BoundaryType::per ){
                 id = m_TriElm.AddElem(element);
 				m_vecData.push_back(id);
-				
 				l2g[id] = i;
 			}
 			else{
@@ -681,7 +679,7 @@ int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
 
     // cout << max_depth_;
     m_ocAgent_symm = new OctreeAgent(m_TriElm, m_pNodes);
-	m_ocTree_symm = new OCT::Octree(m_ocAgent, max_depth_);
+	m_ocTree_symm = new OCT::Octree(m_ocAgent_symm, max_depth_);
 
 
 	for (int k = 0; k < 3; k++) {
@@ -4535,7 +4533,6 @@ void BLMesh::CheckInsertSuface(BLFront *blFront)
 	{
 		if (m_ocTree->check_intersection_in_set(blNods[k]->GetUpperNode()->GetNodIdx()))
 		{
-			
 			is_inserect = true;
 #ifdef _DEBUG
 			cout << "=====================" << endl;

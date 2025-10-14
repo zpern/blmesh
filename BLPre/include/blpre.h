@@ -23,7 +23,9 @@ struct blpreConfig {
 	bool use_multiple_normals;
 	int multiple_numlayer;
     double multiple_steplength;
+    std::vector<double> length_vec;
 	int max_layer_diff;
+    bool fast_intersection;
 };
 struct ControlVolume{
 	std::vector<std::array<double, 3>> v;
