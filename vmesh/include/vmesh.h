@@ -195,7 +195,8 @@ namespace TiGER {
         /* ------------------------- 其他参数 -------------------------**/
         bool b_have_pyramid = true,          /*是否有金字塔**/
         bool b_use_multiple_normals = false, /*是否启用多法向**/
-		bool fast_intersection = false,
+		bool fast_intersection = false,        /*是否启用快速相交检测*/
+		bool preMultiple = false,              /*是否对对法向角点进行预处理*/
         bool b_output_io_file = false, /*是否将api的输入和输出都输出到文件系统中（仅用于DEBUG）**/
         std::string filename = "virtualmesh", /*几何文件名，缺省为virtualmesh**/
         std::array<double, 12> per_matrix =

@@ -397,7 +397,7 @@ namespace PRE {
 	std::tuple<std::string, double*, int*, int*, std::vector<double>> blpre(
 		std::string& f,
 		blpreConfig blcf,
-	std::vector < std::array< double, 3> > points ,ControlVolume& cv) {
+	std::vector < std::array< double, 3> > points ,ControlVolume& cv1,ControlVolume& cv2) {
 	vector<int> symm = blcf.symm;
     vector<int> wall = blcf.wall;
 	vector<int> box = blcf.box;
@@ -405,6 +405,7 @@ namespace PRE {
 	vector<int> per_face;
 	vector<int> adjacent_face = blcf.adjacent;
     bool fast_intersection = blcf.fast_intersection;
+    bool exist_prism = blcf.preMultiple;
 	for (auto i : blcf.per) {
 		per_face.push_back(i);
 		symm.push_back(i);
@@ -418,42 +419,70 @@ namespace PRE {
 	char* argv[10];
 	string mfile = "";
 	if (use_multiple_normals) {
-		std::map<std::array<double,3>, double> point_to_length;
+		std::vector<std::array<double, 3>> points_multiply, points_nonwall;
+        std::string f_multiply, f_nonwall;
+        splite_by_faceID(points, points_multiply,points_nonwall,f,f_multiply,f_nonwall,wall);
+
+        if (exist_prism) {
+            std::map<std::array<double, 3>, double> point_to_length;
+            if (blcf.length_vec.size()) {
+                for (int i = 0; i < points.size(); i++) {
+                    point_to_length[points[i]] = blcf.length_vec[i];
+                }
+            }
+            ChamferBehavior behavior;
+            MNormalMesh chamfer; // create one chamfer
+            chamfer.number_of_layer = 1;
+            chamfer.step_of_length = blcf.multiple_steplength;
+            chamfer.point_to_length = point_to_length;
+            chamfer.fast_intersection = fast_intersection;
+            chamfer.SetBehavior(behavior);
+            chamfer.ReadPlsBuf(f_multiply, points_multiply);
+            spdlog::info("Done!");
+
+            chamfer.CalculateMultiNormal();
+            chamfer.BuildTopo(faceCount);
+            // chamfer.SmoothNormalsSimple(5);
+            spdlog::info("Handling output mesh!");
+
+            chamfer.pre_WriteVol(cv2.v, cv2.f, cv2.lower_point_num, cv2.add_point_num);
+            chamfer.WriteMesh(f_multiply, points_multiply, blcf.len);
+            // chamfer.GenerateFirstLayer(blcf.len);
+            spdlog::info("PreJob Finished.");
+            // mfile = T(f);
+        } 
+
+        std::map<std::array<double, 3>, double> point_to_length;
         if (blcf.length_vec.size()) {
             for (int i = 0; i < points.size(); i++) {
                 point_to_length[points[i]] = blcf.length_vec[i];
             }
         }
-        std::vector<std::array<double, 3>> points_multiply, points_nonwall;
-        std::string f_multiply, f_nonwall;
-        splite_by_faceID(points, points_multiply,points_nonwall, f, f_multiply,f_nonwall, wall);
 
         ChamferBehavior behavior;
-        MNormalMesh chamfer;  // create one chamfer
+        MNormalMesh chamfer; // create one chamfer
         chamfer.number_of_layer = blcf.multiple_numlayer;
         chamfer.step_of_length = blcf.multiple_steplength;
         chamfer.point_to_length = point_to_length;
         chamfer.fast_intersection = fast_intersection;
         chamfer.SetBehavior(behavior);
         chamfer.ReadPlsBuf(f_multiply, points_multiply);
+        chamfer.exist_prism = exist_prism;
         spdlog::info("Done!");
 
         chamfer.CalculateMultiNormal();
         chamfer.BuildTopo(faceCount);
-        //chamfer.SmoothNormalsSimple(5);
+        // chamfer.SmoothNormalsSimple(5);
         spdlog::info("Handling output mesh!");
+        chamfer.WriteVol(cv1.v, cv1.f, cv1.lower_point_num, cv1.add_point_num);
+        chamfer.WriteMesh(f_multiply, points_multiply, blcf.len);
 
-        //chamfer.WritePls();
-        //chamfer.WriteVtk();
-        //chamfer.WriteNorm();
-		chamfer.WriteVol(cv.v,cv.f,cv.lower_point_num,cv.add_point_num);
-        chamfer.WriteMesh(f_multiply, points_multiply,blcf.len);
-       // chamfer.GenerateFirstLayer(blcf.len);
+        // chamfer.GenerateFirstLayer(blcf.len);
 
         combine_by_faceID(points, points_multiply, points_nonwall, f, f_multiply, f_nonwall);
 
         spdlog::info("Job Finished.");
-		//mfile = T(f);
+        // mfile = T(f);
 	}
 
 	if (mfile.size() == 0) {

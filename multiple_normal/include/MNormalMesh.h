@@ -21,9 +21,15 @@ public:
 	void ReadPls(string filename="");
 
 	void WriteNorm();
+
+    void pre_WriteVol(std::vector<std::array<double, 3>> &v,
+                      std::vector<std::vector<int>> &f,
+                      int &lower_num,
+                      int &add_point_num);
+		void pre_WriteMesh(std::string& f,std::vector<std::array<double, 3>>& points,double d);
 	void WriteVol(std::vector<std::array<double, 3>>& v, std::vector<std::vector<int>>& f, int& lower_num,int& add_point_num);
-	void WriteMesh(std::string& f,
-                           std::vector<std::array<double, 3>>& points,double d);
+	void WriteMesh(std::string& f,std::vector<std::array<double, 3>>& points,double d);
+
     void WriteMem(std::string& f,
                       std::vector<std::array<double, 3>>& points);
 	void WriteVtk();
@@ -66,6 +72,7 @@ public:
 	std::map<std::array<double,3>, double> point_to_length;
     std::vector<double> length;
     bool fast_intersection;
+    bool exist_prism = false;
 
 	
 

@@ -26,6 +26,7 @@ struct blpreConfig {
     std::vector<double> length_vec;
 	int max_layer_diff;
     bool fast_intersection;
+    bool preMultiple;
 };
 struct ControlVolume{
 	std::vector<std::array<double, 3>> v;
@@ -36,6 +37,6 @@ struct ControlVolume{
 };
 namespace PRE {
 	static ControlVolume empty;
-	std::tuple<std::string, double*, int*, int*, std::vector<double>> blpre(std::string& f, blpreConfig cf, std::vector < std::array< double, 3> > points = std::vector < std::array< double, 3> >(), ControlVolume& cv = empty);
+	std::tuple<std::string, double*, int*, int*, std::vector<double>> blpre(std::string& f, blpreConfig cf, std::vector < std::array< double, 3> > points = std::vector < std::array< double, 3> >(), ControlVolume& cv1 = empty, ControlVolume& cv2 = empty);
 }
 #endif
