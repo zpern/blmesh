@@ -1178,11 +1178,11 @@ void MNormalMesh::WriteVol(std::vector<std::array<double, 3>> &v,std::vector<std
 
      //ºóÐø²ã
     if (number_of_layer > 1) {
-        for (int j = 0; j < number_of_layer ; j++) {
+        for (int j = 0; j < number_of_layer-1 ; j++) {
             for (int i = 0; i < connector.size(); i++) {
                 f.push_back({idx(connector[i][0], j ),
-                                idx(connector[i][0], j ),
-                                idx(connector[i][0], j ),
+                                idx(connector[i][1], j ),
+                                idx(connector[i][2], j ),
                                 idx(connector[i][0], j+1 ),
                                 idx(connector[i][1], j+1 ),
                                 idx(connector[i][2], j+1)});
@@ -1432,7 +1432,7 @@ void MNormalMesh::BuildTopo(int faceCount)
 		}
 	}
 	// mesh stitching
-
+    std::cout << "1" << std::endl;
 	struct pos
 	{
 		int original_index;
@@ -1470,7 +1470,7 @@ void MNormalMesh::BuildTopo(int faceCount)
 			}
 		}
 	}
-
+    std::cout << "2" << std::endl;
 	// enumate all the possible item
 	static vector<vector<int>> connection[2][2] = { vector<vector<int>>() };
 	static bool create = false;
@@ -1495,7 +1495,7 @@ void MNormalMesh::BuildTopo(int faceCount)
 		connection[1][1].push_back(vector<int>{1, -2, 2, -1});
 		connection[1][1].push_back(vector<int>{-2, 1, 2, -1});
 	}
-
+    std::cout << "3" << std::endl;
 	for (auto edge : complex_edges_pair)
 	{
 		int s = edge.first[0];
@@ -1508,6 +1508,7 @@ void MNormalMesh::BuildTopo(int faceCount)
 
 		vector<pair<int, int>>
 			active_triangles_left; // fist is triangle index, second is 0-3 point index in the triangle
+        std::cout << "3.1" << std::endl;
 		for (int i = 0; i < node_array[s].getFinalMesh().triangle_lists_.size(); i++)
 		{
 			for (int j = 0; j < 3; j++)
@@ -1521,6 +1522,7 @@ void MNormalMesh::BuildTopo(int faceCount)
 				}
 			}
 		}
+        std::cout << "3.2" << std::endl;
 		vector<pair<int, int>>
 			active_triangles_right; // fist is triangle index, second is 0-3 point index in the triangle
 		for (int i = 0; i < node_array[e].getFinalMesh().triangle_lists_.size(); i++)
@@ -1536,6 +1538,7 @@ void MNormalMesh::BuildTopo(int faceCount)
 				}
 			}
 		}
+        std::cout << "3.3" << std::endl;
 		// Sort the active triangles, TODO ::max triangles = 2, do not support more than 2 triangles
 		if (active_triangles_left.size() == 2)
 			if (meshs.triangle_lists_[active_triangles_left[0].first]
@@ -1545,6 +1548,7 @@ void MNormalMesh::BuildTopo(int faceCount)
 			{
 				swap(active_triangles_left[0], active_triangles_left[1]);
 			}
+        std::cout << "3.3.0" << std::endl;
 		if (active_triangles_right.size() == 2)
 			if (meshe.triangle_lists_[active_triangles_right[0].first]
 				.point_index_[(active_triangles_right[0].second + 1) % 3] ==
@@ -1553,14 +1557,21 @@ void MNormalMesh::BuildTopo(int faceCount)
 			{
 				swap(active_triangles_right[0], active_triangles_right[1]);
 			}
+        std::cout << "3.3.1" << std::endl;
+        if ((active_triangles_left.size() > 2) || active_triangles_right.size() > 2) {
+            throw std::runtime_error("wake up and write code for zero!");
+
 		if ((active_triangles_left.size() > 2) || active_triangles_right.size() > 2)
 			throw std::runtime_error("wake up and write code for more than 2!");
-
+        std::cout << "3.3.2" << std::endl;
+        std::cout << active_triangles_left.size() << std::endl;
+        std::cout << active_triangles_right.size() << std::endl;
 		auto combination = connection[active_triangles_left.size() - 1][active_triangles_right.size() - 1];
-
+        std::cout << "3.3.3" << std::endl;
 		vector<int> best_combination;
 		double min_cost = 100;
 		// find best combination
+        std::cout << "3.4" << std::endl;
 		for (auto c : combination)
 		{
 			// TODO : there should consider the real facts
@@ -1607,7 +1618,7 @@ void MNormalMesh::BuildTopo(int faceCount)
 		// find api point
 		std::queue<int> api_point_left;
 		std::stack<int> api_point_right;
-
+        std::cout << "3.5" << std::endl;
 		for (int i = 0; i < active_triangles_left.size(); i++)
 		{
 			auto conn = meshs.triangle_lists_[active_triangles_left[i].first].point_index_;
@@ -1626,6 +1637,7 @@ void MNormalMesh::BuildTopo(int faceCount)
 			api_point_right.push(
 				meshe.virtual_point_lists_[conn[(active_triangles_right[i].second + 1) % 3]].getGlobalIndex());
 		}
+        std::cout << "3.6" << std::endl;
 		api_point_right.push(
 			meshe
 			.virtual_point_lists_
@@ -1634,6 +1646,7 @@ void MNormalMesh::BuildTopo(int faceCount)
 			.getGlobalIndex());
 
 		pair<int, int> last_changed{ 0, 0 };
+        std::cout << "3.7" << std::endl;
 		for (int i = 0; i < best_combination.size(); i++)
 		{
 			std::array<int, 3> new_tri;
@@ -1701,7 +1714,7 @@ void MNormalMesh::BuildTopo(int faceCount)
 			attribute.push_back(new_attribute);
 		}
 	}
-
+    std::cout << "4" << std::endl;
 	// add inner new triangles without other complex node
 	for (auto i = node_array.begin(); i != node_array.end(); i++)
 	{
@@ -1722,6 +1735,7 @@ void MNormalMesh::BuildTopo(int faceCount)
 			}
 		}
 	}
+    std::cout << "5" << std::endl;
 }
 
 void MNormalMesh::GenerateFirstLayer(double step_len)

@@ -748,8 +748,8 @@ namespace TiGER {
 		/* ------------------------- 其他参数 -------------------------**/
 		bool b_have_pyramid, /* 是否有金字塔 **/
 		bool b_use_multiple_normals, /* 是否启用多法向 缺省为false **/
-        bool fast_intersection,      /*是否启用快速相交检测*/
-        bool preMultiple,            /*是否对多法向角点做预处理*/
+        bool fast_intersection,      /*是否启用快速相交检测**/
+        bool preMultiple,            /*是否对多法向角点做预处理**/
 		bool b_output_io_file,  /* 是否将api的输入和输出都输出到文件系统中（仅用于DEBUG）缺省为false **/
 		std::string filename,   /* 几何文件名，缺省为virtualmesh **/
 		std::array<double, 12> per_matrix  /* 周期性面控制矩阵,前9位为旋转矩阵 m00，m01，m02 .... ，后三位为位移向量xyz **/
@@ -842,7 +842,7 @@ namespace TiGER {
 		blconfig.max_layer_diff = max_layer_diff;
         blconfig.length_vec = length_vec;
         blconfig.fast_intersection = fast_intersection;
-        blconfig.preMultiple = false;
+        blconfig.preMultiple = preMultiple;
 		ControlVolume cv1;
         ControlVolume cv2;
 		auto bdyfile = PRE::blpre(input, blconfig, points,cv1,cv2);
