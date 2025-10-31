@@ -73,30 +73,54 @@ void MNormalMesh::ReadPlsBuf(std::string f,
         }
 
         for (int i = 0; i < number_of_point; i++) {
-          for (auto &j : graph[i]) {
-            if (j[0] == i) {
-              j[0] = j[1];
-              j[1] = j[2];
-            } else if (j[1] == i) {
-              j[1] = j[0];
-              j[0] = j[2];
-            }
-          }
-          int start = graph[i][0][0];
-          int pos = start;
-          while (true) {
             for (auto &j : graph[i]) {
-              if (j[0] == pos) {
-                pos = j[1];
-                node_array[i].neighbour_node_.push_back(node_array.begin() +
-                                                        j[1]);
-                break;
-              }
+                if (j[0] == i) {
+                    j[0] = j[1];
+                    j[1] = j[2];
+                } else if (j[1] == i) {
+                    j[1] = j[0];
+                    j[0] = j[2];
+                }
             }
-            if (pos == start) {
-              break;
+
+            // 寻找起始点
+            unordered_map<int, int> count_map;
+            int start = graph[i][0][0];
+            int pos = start;
+
+            // 统计 j[0] 出现的次数
+             for (const auto &j : graph[i]) {
+                 count_map[j[0]]++;
+             }
+             for (const auto& j : graph[i]) {
+                 if (count_map.find(j[1]) != count_map.end()) {
+                     count_map[j[1]]++;
+                 }
+             }
+
+             for (const auto &entry : count_map) {
+                 if (entry.second == 1) {
+                     avoid_spliteNode.push_back(i);
+                     start = entry.first;
+                     pos = start;
+                     break;
+                 }
+             }
+
+            while (true) {
+                bool reach_end = true;
+                for (auto &j : graph[i]) {
+                    if (j[0] == pos) {
+                        pos = j[1];
+                        node_array[i].neighbour_node_.push_back(node_array.begin() + j[1]);
+                        reach_end = false;
+                        break;
+                    }
+                }
+                if (pos == start || reach_end) {
+                    break;
+                }
             }
-          }
         }
         CaculateFrontNormal();
         CalculateNodeNormal();
@@ -1331,6 +1355,11 @@ void MNormalMesh::CalculateMultiNormal()
 	double d = 0;
 	for (auto i = node_array.begin(); i != node_array.end(); i++) {
 		d = max(d, i->original_skewness_);
+        // 如果节点在 avoid_spliteNode 中，则跳过该节点
+        if (std::find(avoid_spliteNode.begin(), avoid_spliteNode.end(), i->node_id_) !=
+            avoid_spliteNode.end()) {
+            continue; // 跳过当前节点
+        }
         if (exist_prism) {
             if (i->original_skewness_ > 1) { // naca 0.14459
                 need_to_split.push_back(i);
@@ -1376,50 +1405,63 @@ void MNormalMesh::PrintVisibilityConeInfo()
 	
 }
 
-
 void MNormalMesh::BuildTopo(int faceCount)
 {
     int new_attribute = faceCount + 1;
-    map<int, map<int, vector<int>>> complex_edges;
+    std::map<int, std::map<int, std::vector<int>>> complex_edges;
 
-    for (auto i = node_array.begin(); i != node_array.end(); i++) {
-        auto &local_mesh = i->getFinalMesh();
-        if (local_mesh.getExtraPointCount()) {
+    // ==============================
+    // Step 1: 初始化所有局部节点
+    // ==============================
+    for (auto i = node_array.begin(); i != node_array.end(); i++)
+    {
+        auto& local_mesh = i->getFinalMesh();
+
+        if (local_mesh.getExtraPointCount())
+        {
             std::vector<int> point_index_map(local_mesh.getValidPointCount());
             std::map<int, int> valid_map;
 
             point_index_map[0] = i->node_id_;
-            for (int j = 0; j < local_mesh.getExtraPointCount() - 1; j++) {
+
+            for (int j = 0; j < local_mesh.getExtraPointCount() - 1; j++)
+            {
                 point_index_map[j + 1] = coordinate.size();
                 coordinate.push_back(i->coordinate);
                 point_normals.push_back(BLVector());
                 real_node_id_.push_back(i->node_id_);
             }
+
             real_node_id_[i->node_id_] = i->node_id_;
 
             int count = -1;
-            for (int k = 0; k < local_mesh.virtual_point_lists_.size(); k++) {
+            for (int k = 0; k < local_mesh.virtual_point_lists_.size(); k++)
+            {
                 if (local_mesh.valid.find(k) == local_mesh.valid.end() ||
-                    local_mesh.virtual_point_lists_[k].isFarNode()) {
+                    local_mesh.virtual_point_lists_[k].isFarNode())
                     continue;
-                }
+
                 count++;
                 valid_map[k] = count;
                 local_mesh.virtual_point_lists_[k].setGlobalIndex(point_index_map[count]);
 
                 if ((!local_mesh.virtual_point_lists_[k].getGlobalNeighbourTriIndex().empty()) ||
                     (local_mesh.valid.find(ONE_INSERT) != local_mesh.valid.end() &&
-                     k == local_mesh.virtual_point_lists_.size() - 1)) {
+                     k == local_mesh.virtual_point_lists_.size() - 1))
+                {
                     coordinate[point_index_map[count]] = coordinate[point_index_map[count]];
-                    point_normals[point_index_map[count]] =
-                        local_mesh.virtual_point_lists_[k].getCoord();
+                    point_normals[point_index_map[count]] = local_mesh.virtual_point_lists_[k].getCoord();
+
                     if (local_mesh.virtual_point_lists_[k].getCoord().magnitude2() < 0.9 ||
-                        local_mesh.virtual_point_lists_[k].getCoord().magnitude2() > 1.1) {
+                        local_mesh.virtual_point_lists_[k].getCoord().magnitude2() > 1.1)
                         throw std::logic_error("zero vector found!");
-                    }
-                    for (auto j : local_mesh.virtual_point_lists_[k].getGlobalNeighbourTriIndex()) {
-                        for (int l = 0; l < 3; l++) {
-                            if (connector[j][l] == i->node_id_) {
+
+                    for (auto j : local_mesh.virtual_point_lists_[k].getGlobalNeighbourTriIndex())
+                    {
+                        for (int l = 0; l < 3; l++)
+                        {
+                            if (connector[j][l] == i->node_id_)
+                            {
                                 connector[j][l] = point_index_map[count];
                             }
                         }
@@ -1428,325 +1470,307 @@ void MNormalMesh::BuildTopo(int faceCount)
             }
         }
     }
-    // mesh stitching
-    std::cout << "1" << std::endl;
-    struct pos {
+
+    // ==============================
+    // Step 2: mesh stitching
+    // ==============================
+    struct pos
+    {
         int original_index;
         BLVector left;
         BLVector right;
     };
+
     std::map<std::array<int, 2>, pos> complex_edges_pair;
-    map<std::array<int, 2>, int>
-        global_far_node_map; // store global point idx for each virtual edge
-    for (auto i = node_array.begin(); i != node_array.end(); i++) {
-        auto &local_mesh = i->getFinalMesh();
-        if (local_mesh.getExtraPointCount()) {
-            for (int k1 = 0; k1 < local_mesh.boundary_edges_.size(); k1++) {
+    std::map<std::array<int, 2>, int> global_far_node_map; // store global point idx for each virtual edge
+
+    for (auto i = node_array.begin(); i != node_array.end(); i++)
+    {
+        auto& local_mesh = i->getFinalMesh();
+
+        if (local_mesh.getExtraPointCount())
+        {
+            for (int k1 = 0; k1 < local_mesh.boundary_edges_.size(); k1++)
+            {
                 int k = local_mesh.boundary_edges_[k1][0];
+
                 if (local_mesh.valid.find(k) == local_mesh.valid.end() ||
-                    !local_mesh.virtual_point_lists_[k].isFarNode()) { // far point
+                    !local_mesh.virtual_point_lists_[k].isFarNode()) // far point
                     continue;
-                }
+
                 int index = local_mesh.virtual_point_lists_[k].getGlobalIndex();
-                if (node_array[index].getFinalMesh().getExtraPointCount()) {
-                    complex_edges_pair[std::array<int, 2>{i->node_id_, index}] = pos();
-                    // for (auto l : node_array[index].getFinalMesh().boundary_edges_) {
-                    //	// TODO should not be the first edge, should sort
-                    //	if
-                    //(node_array[index].getFinalMesh().virtual_point_lists_[l[1]].isFarNode()&&node_array[index].getFinalMesh().virtual_point_lists_[l[1]].getGlobalIndex()
-                    //== i->node_id_) 		global_far_node_map[std::array<int, 2>{i->node_id_,
-                    //index}] =
-                    // node_array[index].getFinalMesh().virtual_point_lists_[l[0]].getGlobalIndex();
-                    // }
-                } else {
-                    global_far_node_map[std::array<int, 2>{i->node_id_, index}] =
-                        index; // do nothing ,just record the index to map
+
+                if (node_array[index].getFinalMesh().getExtraPointCount())
+                {
+                    complex_edges_pair[{i->node_id_, index}] = pos();
+                    // TODO: further edge processing
+                }
+                else
+                {
+                    global_far_node_map[{i->node_id_, index}] = index; // just record
                 }
             }
         }
     }
-    std::cout << "2" << std::endl;
-    // enumate all the possible item
-    static vector<vector<int>> connection[2][2] = {vector<vector<int>>()};
+
+    // ==============================
+    // Step 3: 枚举所有可能连接模式
+    // ==============================
+    static std::vector<std::vector<int>> connection[2][2] = { std::vector<std::vector<int>>() };
     static bool create = false;
-    if (!create) {
+
+    if (!create)
+    {
         create = true;
-        connection[0][0].push_back(vector<int>{-1, 1});
-        connection[0][0].push_back(vector<int>{1, -1});
 
-        connection[0][1].push_back(vector<int>{1, -2, -1});
-        connection[0][1].push_back(vector<int>{-2, 1, -1});
-        connection[0][1].push_back(vector<int>{-2, -1, 1});
+        connection[0][0].push_back({ -1, 1 });
+        connection[0][0].push_back({ 1, -1 });
 
-        connection[1][0].push_back(vector<int>{1, 2, -1});
-        connection[1][0].push_back(vector<int>{1, -1, 2});
-        connection[1][0].push_back(vector<int>{-1, 1, 2});
+        connection[0][1].push_back({ 1, -2, -1 });
+        connection[0][1].push_back({ -2, 1, -1 });
+        connection[0][1].push_back({ -2, -1, 1 });
 
-        connection[1][1].push_back(vector<int>{-2, -1, 1, 2});
-        connection[1][1].push_back(vector<int>{1, -2, -1, 2});
-        connection[1][1].push_back(vector<int>{-2, 1, -1, 2});
-        connection[1][1].push_back(vector<int>{1, 2, -2, -1});
-        connection[1][1].push_back(vector<int>{1, -2, 2, -1});
-        connection[1][1].push_back(vector<int>{-2, 1, 2, -1});
+        connection[1][0].push_back({ 1, 2, -1 });
+        connection[1][0].push_back({ 1, -1, 2 });
+        connection[1][0].push_back({ -1, 1, 2 });
+
+        connection[1][1].push_back({ -2, -1, 1, 2 });
+        connection[1][1].push_back({ 1, -2, -1, 2 });
+        connection[1][1].push_back({ -2, 1, -1, 2 });
+        connection[1][1].push_back({ 1, 2, -2, -1 });
+        connection[1][1].push_back({ 1, -2, 2, -1 });
+        connection[1][1].push_back({ -2, 1, 2, -1 });
     }
-    std::cout << "3" << std::endl;
-    for (auto edge : complex_edges_pair) {
+
+    // ==============================
+    // Step 4: 遍历所有复杂边对
+    // ==============================
+    for (auto edge : complex_edges_pair)
+    {
         int s = edge.first[0];
         int e = edge.first[1];
-        if (s > e) {
-            continue;
-        }
-        auto &meshs = node_array[s].getFinalMesh();
-        auto &meshe = node_array[e].getFinalMesh();
-        // Here we should care about oritation
+        if (s > e) continue;
 
-        vector<pair<int, int>> active_triangles_left; // fist is triangle index, second is 0-3 point
-                                                      // index in the triangle
-        std::cout << "3.1" << std::endl;
-        for (int i = 0; i < node_array[s].getFinalMesh().triangle_lists_.size(); i++) {
-            for (int j = 0; j < 3; j++) {
-                if (node_array[s]
-                        .getFinalMesh()
-                        .virtual_point_lists_
-                            [node_array[s].getFinalMesh().triangle_lists_[i].point_index_[j]]
-                        .getGlobalIndex() == e) {
-                    active_triangles_left.push_back(pair<int, int>{i, j});
+        auto& meshs = node_array[s].getFinalMesh();
+        auto& meshe = node_array[e].getFinalMesh();
+
+        // --- Collect left active triangles ---
+        std::vector<std::pair<int, int>> active_triangles_left;
+        for (int i = 0; i < meshs.triangle_lists_.size(); i++)
+        {
+            for (int j = 0; j < 3; j++)
+            {
+                if (meshs.virtual_point_lists_[meshs.triangle_lists_[i].point_index_[j]].getGlobalIndex() == e)
+                {
+                    active_triangles_left.push_back({ i, j });
                 }
             }
         }
-        std::cout << "3.2" << std::endl;
-        vector<pair<int, int>> active_triangles_right; // fist is triangle index, second is 0-3
-                                                       // point index in the triangle
-        for (int i = 0; i < node_array[e].getFinalMesh().triangle_lists_.size(); i++) {
-            for (int j = 0; j < 3; j++) {
-                if (node_array[e]
-                        .getFinalMesh()
-                        .virtual_point_lists_
-                            [node_array[e].getFinalMesh().triangle_lists_[i].point_index_[j]]
-                        .getGlobalIndex() == s) {
-                    active_triangles_right.push_back(pair<int, int>{i, j});
+
+        // --- Collect right active triangles ---
+        std::vector<std::pair<int, int>> active_triangles_right;
+        for (int i = 0; i < meshe.triangle_lists_.size(); i++)
+        {
+            for (int j = 0; j < 3; j++)
+            {
+                if (meshe.virtual_point_lists_[meshe.triangle_lists_[i].point_index_[j]].getGlobalIndex() == s)
+                {
+                    active_triangles_right.push_back({ i, j });
                 }
             }
         }
-        std::cout << "3.3" << std::endl;
-        // Sort the active triangles, TODO ::max triangles = 2, do not support more than 2 triangles
-        if (active_triangles_left.size() == 2) {
+
+        // --- Sort triangles if 2 on each side ---
+        if (active_triangles_left.size() == 2)
+        {
             if (meshs.triangle_lists_[active_triangles_left[0].first]
-                    .point_index_[(active_triangles_left[0].second + 1) % 3] ==
+                .point_index_[(active_triangles_left[0].second + 1) % 3] ==
                 meshs.triangle_lists_[active_triangles_left[1].first]
-                    .point_index_[(active_triangles_left[1].second + 2) % 3]) {
-                swap(active_triangles_left[0], active_triangles_left[1]);
+                .point_index_[(active_triangles_left[1].second + 2) % 3])
+            {
+                std::swap(active_triangles_left[0], active_triangles_left[1]);
             }
         }
-        std::cout << "3.3.0" << std::endl;
-        if (active_triangles_right.size() == 2) {
+
+        if (active_triangles_right.size() == 2)
+        {
             if (meshe.triangle_lists_[active_triangles_right[0].first]
-                    .point_index_[(active_triangles_right[0].second + 1) % 3] ==
+                .point_index_[(active_triangles_right[0].second + 1) % 3] ==
                 meshe.triangle_lists_[active_triangles_right[1].first]
-                    .point_index_[(active_triangles_right[1].second + 2) % 3]) {
-                swap(active_triangles_right[0], active_triangles_right[1]);
+                .point_index_[(active_triangles_right[1].second + 2) % 3])
+            {
+                std::swap(active_triangles_right[0], active_triangles_right[1]);
             }
         }
-        std::cout << "3.3.1" << std::endl;
-        if ((active_triangles_left.size() > 2) || active_triangles_right.size() > 2) {
-            throw std::runtime_error("wake up and write code for zero!");
 
-            if ((active_triangles_left.size() > 2) || active_triangles_right.size() > 2) {
-                throw std::runtime_error("wake up and write code for more than 2!");
-            }
-            std::cout << "3.3.2" << std::endl;
-            std::cout << active_triangles_left.size() << std::endl;
-            std::cout << active_triangles_right.size() << std::endl;
-            auto combination =
-                connection[active_triangles_left.size() - 1][active_triangles_right.size() - 1];
-            std::cout << "3.3.3" << std::endl;
-            vector<int> best_combination;
-            double min_cost = 100;
-            // find best combination
-            std::cout << "3.4" << std::endl;
-            for (auto c : combination) {
-                // TODO : there should consider the real facts
-                vector<BLVector> normals;
-                for (int i = 0; i < c.size(); i++) {
-                    if (c[i] > 0) {
-                        auto conn = meshs.triangle_lists_[active_triangles_left[c[i] - 1].first]
-                                        .point_index_;
-                        BLVector n1 =
-                            meshs
-                                .virtual_point_lists_
-                                    [conn[(active_triangles_left[c[i] - 1].second + 1) % 3]]
-                                .getCoord() -
-                            meshs
-                                .virtual_point_lists_
-                                    [conn[(active_triangles_left[c[i] - 1].second + 0) % 3]]
-                                .getCoord();
-                        BLVector n2 =
-                            meshs
-                                .virtual_point_lists_
-                                    [conn[(active_triangles_left[c[i] - 1].second + 2) % 3]]
-                                .getCoord() -
-                            meshs
-                                .virtual_point_lists_
-                                    [conn[(active_triangles_left[c[i] - 1].second + 1) % 3]]
-                                .getCoord();
-                        normals.push_back((n1 ^ n2).normalized());
-                    } else {
-                        auto conn = meshe.triangle_lists_[active_triangles_right[-c[i] - 1].first]
-                                        .point_index_;
-                        BLVector n1 =
-                            meshe
-                                .virtual_point_lists_
-                                    [conn[(active_triangles_right[-c[i] - 1].second + 1) % 3]]
-                                .getCoord() -
-                            meshe
-                                .virtual_point_lists_
-                                    [conn[(active_triangles_right[-c[i] - 1].second + 0) % 3]]
-                                .getCoord();
-                        BLVector n2 =
-                            meshe
-                                .virtual_point_lists_
-                                    [conn[(active_triangles_right[-c[i] - 1].second + 2) % 3]]
-                                .getCoord() -
-                            meshe
-                                .virtual_point_lists_
-                                    [conn[(active_triangles_right[-c[i] - 1].second + 1) % 3]]
-                                .getCoord();
-                        normals.push_back((n1 ^ n2).normalized());
-                    }
+        if ((active_triangles_left.size() > 2) || (active_triangles_right.size() > 2))
+            throw std::runtime_error("wake up and write code for more than 2!");
+
+        // --- Determine combination ---
+        auto combination = connection[active_triangles_left.size() - 1][active_triangles_right.size() - 1];
+        std::vector<int> best_combination;
+        double min_cost = 100;
+
+        // ==============================
+        // Step 5: Evaluate best combination
+        // ==============================
+        for (auto c : combination)
+        {
+            std::vector<BLVector> normals;
+
+            for (int i = 0; i < c.size(); i++)
+            {
+                if (c[i] > 0)
+                {
+                    auto conn = meshs.triangle_lists_[active_triangles_left[c[i] - 1].first].point_index_;
+                    BLVector n1 = meshs.virtual_point_lists_[conn[(active_triangles_left[c[i] - 1].second + 1) % 3]].getCoord() -
+                                  meshs.virtual_point_lists_[conn[(active_triangles_left[c[i] - 1].second + 0) % 3]].getCoord();
+                    BLVector n2 = meshs.virtual_point_lists_[conn[(active_triangles_left[c[i] - 1].second + 2) % 3]].getCoord() -
+                                  meshs.virtual_point_lists_[conn[(active_triangles_left[c[i] - 1].second + 1) % 3]].getCoord();
+                    normals.push_back((n1 ^ n2).normalized());
                 }
-                double cost = 0;
-                for (int i = 0; i < c.size() - 1; i++) {
-                    cost += abs((normals[i] * normals[i + 1]) - 1);
-                }
-                if (min_cost > cost) {
-                    min_cost = cost;
-                    best_combination = c;
+                else
+                {
+                    auto conn = meshe.triangle_lists_[active_triangles_right[-c[i] - 1].first].point_index_;
+                    BLVector n1 = meshe.virtual_point_lists_[conn[(active_triangles_right[-c[i] - 1].second + 1) % 3]].getCoord() -
+                                  meshe.virtual_point_lists_[conn[(active_triangles_right[-c[i] - 1].second + 0) % 3]].getCoord();
+                    BLVector n2 = meshe.virtual_point_lists_[conn[(active_triangles_right[-c[i] - 1].second + 2) % 3]].getCoord() -
+                                  meshe.virtual_point_lists_[conn[(active_triangles_right[-c[i] - 1].second + 1) % 3]].getCoord();
+                    normals.push_back((n1 ^ n2).normalized());
                 }
             }
 
-            // find api point
-            std::queue<int> api_point_left;
-            std::stack<int> api_point_right;
-            std::cout << "3.5" << std::endl;
-            for (int i = 0; i < active_triangles_left.size(); i++) {
-                auto conn = meshs.triangle_lists_[active_triangles_left[i].first].point_index_;
-                api_point_left.push(
-                    meshs.virtual_point_lists_[conn[(active_triangles_left[i].second + 1) % 3]]
-                        .getGlobalIndex());
+            double cost = 0;
+            for (int i = 0; i < c.size() - 1; i++)
+            {
+                cost += std::abs((normals[i] * normals[i + 1]) - 1);
             }
-            api_point_left.push(
-                meshs
-                    .virtual_point_lists_
-                        [meshs
-                             .triangle_lists_
-                                 [active_triangles_left[active_triangles_left.size() - 1].first]
-                             .point_index_[(active_triangles_left[active_triangles_left.size() - 1]
-                                                .second +
-                                            2) %
-                                           3]]
-                    .getGlobalIndex());
-            for (int i = 0; i < active_triangles_right.size(); i++) {
-                auto conn = meshe.triangle_lists_[active_triangles_right[i].first].point_index_;
-                api_point_right.push(
-                    meshe.virtual_point_lists_[conn[(active_triangles_right[i].second + 1) % 3]]
-                        .getGlobalIndex());
-            }
-            std::cout << "3.6" << std::endl;
-            api_point_right.push(
-                meshe
-                    .virtual_point_lists_
-                        [meshe
-                             .triangle_lists_
-                                 [active_triangles_right[active_triangles_right.size() - 1].first]
-                             .point_index_[(active_triangles_right[active_triangles_right.size() -
-                                                                   1]
-                                                .second +
-                                            2) %
-                                           3]]
-                    .getGlobalIndex());
 
-            pair<int, int> last_changed{0, 0};
-            std::cout << "3.7" << std::endl;
-            for (int i = 0; i < best_combination.size(); i++) {
+            if (min_cost > cost)
+            {
+                min_cost = cost;
+                best_combination = c;
+            }
+        }
+
+        // ==============================
+        // Step 6: Build new triangles
+        // ==============================
+        std::queue<int> api_point_left;
+        std::stack<int> api_point_right;
+
+        for (int i = 0; i < active_triangles_left.size(); i++)
+        {
+            auto conn = meshs.triangle_lists_[active_triangles_left[i].first].point_index_;
+            api_point_left.push(meshs.virtual_point_lists_[conn[(active_triangles_left[i].second + 1) % 3]].getGlobalIndex());
+        }
+
+        api_point_left.push(
+            meshs.virtual_point_lists_[
+                meshs.triangle_lists_[active_triangles_left.back().first]
+                .point_index_[(active_triangles_left.back().second + 2) % 3]
+            ].getGlobalIndex());
+
+        for (int i = 0; i < active_triangles_right.size(); i++)
+        {
+            auto conn = meshe.triangle_lists_[active_triangles_right[i].first].point_index_;
+            api_point_right.push(meshe.virtual_point_lists_[conn[(active_triangles_right[i].second + 1) % 3]].getGlobalIndex());
+        }
+
+        api_point_right.push(
+            meshe.virtual_point_lists_[
+                meshe.triangle_lists_[active_triangles_right.back().first]
+                .point_index_[(active_triangles_right.back().second + 2) % 3]
+            ].getGlobalIndex());
+
+        std::pair<int, int> last_changed{0, 0};
+
+        for (int i = 0; i < best_combination.size(); i++)
+        {
+            std::array<int, 3> new_tri;
+
+            if (best_combination[i] > 0)
+            {
+                int index = best_combination[i] - 1;
+
+                while (last_changed.second)
+                {
+                    last_changed.second--;
+                    api_point_right.pop();
+                }
+
+                last_changed.first++;
+                int api_point_index = api_point_right.top();
+
+                for (int j = 0; j < 3; j++)
+                {
+                    if (meshs.virtual_point_lists_[meshs.triangle_lists_[active_triangles_left[index].first]
+                        .point_index_[j]].getGlobalIndex() == e)
+                        new_tri[j] = api_point_index;
+                    else
+                        new_tri[j] = meshs.virtual_point_lists_[meshs.triangle_lists_[active_triangles_left[index].first]
+                            .point_index_[j]].getGlobalIndex();
+                }
+
+                meshs.triangle_lists_[active_triangles_left[index].first].added_flag = true;
+            }
+            else
+            {
+                int index = -best_combination[i] - 1;
+
+                while (last_changed.first)
+                {
+                    last_changed.first--;
+                    api_point_left.pop();
+                }
+
+                last_changed.second++;
+                int api_point_index = api_point_left.front();
+
+                for (int j = 0; j < 3; j++)
+                {
+                    if (meshe.virtual_point_lists_[meshe.triangle_lists_[active_triangles_right[index].first]
+                        .point_index_[j]].getGlobalIndex() == s)
+                        new_tri[j] = api_point_index;
+                    else
+                        new_tri[j] = meshe.virtual_point_lists_[meshe.triangle_lists_[active_triangles_right[index].first]
+                            .point_index_[j]].getGlobalIndex();
+                }
+
+                meshe.triangle_lists_[active_triangles_right[index].first].added_flag = true;
+            }
+
+            connector.push_back(new_tri);
+            attribute.push_back(new_attribute);
+        }
+    }
+
+    // ==============================
+    // Step 7: Add remaining inner triangles
+    // ==============================
+    for (auto i = node_array.begin(); i != node_array.end(); i++)
+    {
+        auto& local_mesh = i->getFinalMesh();
+
+        if (local_mesh.getExtraPointCount())
+        {
+            for (auto& k : local_mesh.triangle_lists_)
+            {
+                if (k.added_flag)
+                    continue;
+
                 std::array<int, 3> new_tri;
-                if (best_combination[i] > 0) {
-                    int index = best_combination[i] - 1;
-                    while (last_changed.second) {
-                        last_changed.second--;
-                        api_point_right.pop();
-                    }
-                    last_changed.first++;
-                    int api_point_index = api_point_right.top();
-                    for (int j = 0; j < 3; j++) {
-                        if (meshs
-                                .virtual_point_lists_
-                                    [meshs.triangle_lists_[active_triangles_left[index].first]
-                                         .point_index_[j]]
-                                .getGlobalIndex() == e) {
-                            new_tri[j] = api_point_index;
-                        } else {
-                            new_tri[j] =
-                                meshs
-                                    .virtual_point_lists_
-                                        [meshs.triangle_lists_[active_triangles_left[index].first]
-                                             .point_index_[j]]
-                                    .getGlobalIndex();
-                        }
-                    }
-                    meshs.triangle_lists_[active_triangles_left[index].first].added_flag = true;
-                } else {
-                    int index = -best_combination[i] - 1;
-                    while (last_changed.first) {
-                        last_changed.first--;
-                        api_point_left.pop();
-                    }
-                    last_changed.second++;
-                    int api_point_index = api_point_left.front();
-                    for (int j = 0; j < 3; j++) {
-                        if (meshe
-                                .virtual_point_lists_
-                                    [meshe.triangle_lists_[active_triangles_right[index].first]
-                                         .point_index_[j]]
-                                .getGlobalIndex() == s) {
-                            new_tri[j] = api_point_index;
-                        } else {
-                            new_tri[j] =
-                                meshe
-                                    .virtual_point_lists_
-                                        [meshe.triangle_lists_[active_triangles_right[index].first]
-                                             .point_index_[j]]
-                                    .getGlobalIndex();
-                        }
-                    }
-                    meshe.triangle_lists_[active_triangles_right[index].first].added_flag = true;
-                }
+                for (int j = 0; j < 3; j++)
+                    new_tri[j] = local_mesh.virtual_point_lists_[k.point_index_[j]].getGlobalIndex();
 
                 connector.push_back(new_tri);
                 attribute.push_back(new_attribute);
             }
         }
-        std::cout << "4" << std::endl;
-        // add inner new triangles without other complex node
-        for (auto i = node_array.begin(); i != node_array.end(); i++) {
-            auto &local_mesh = i->getFinalMesh();
-            if (local_mesh.getExtraPointCount()) {
-                for (auto k : local_mesh.triangle_lists_) {
-                    if (k.added_flag) {
-                        continue;
-                    }
-                    std::array<int, 3> new_tri;
-                    for (int j = 0; j < 3; j++) {
-                        new_tri[j] =
-                            local_mesh.virtual_point_lists_[k.point_index_[j]].getGlobalIndex();
-                    }
-                    connector.push_back(new_tri);
-                    attribute.push_back(new_attribute);
-                }
-            }
-        }
-        std::cout << "5" << std::endl;
     }
 }
+
+
 void MNormalMesh::GenerateFirstLayer(double step_len)
 {
 	spdlog::info("Try to generate the first layer of mesh");

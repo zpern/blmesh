@@ -72,8 +72,8 @@ public:
 	std::map<std::array<double,3>, double> point_to_length;
     std::vector<double> length;
     bool fast_intersection;
-    bool exist_prism = false;
-
+    bool exist_prism =false;
+    std::vector<int> avoid_spliteNode;
 	
 
 protected:
