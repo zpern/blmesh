@@ -3842,7 +3842,9 @@ void BLMesh::GenerateBLMesh()
 		blFrtNods = nullptr;
 	}
 #ifdef WIN32
-_ASSERTE( _CrtCheckMemory( ) );
+	#ifdef MSC VER
+		_ASSERTE( _CrtCheckMemory( ) );
+	#endif
 #endif
 	//m_ocTree->printElement("after.pls");
 	RemoveOutbdry(boundary_to_delete_.size() / 3, boundary_to_delete_.data());
