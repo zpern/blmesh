@@ -559,7 +559,7 @@ namespace TiGER {
 			points.push_back(std::array<double, 3>{pdSNC[3 * i + 0], pdSNC[3 * i + 1], pdSNC[3 * i + 2]});
 		}
 		for (int i = 0; i < nelm; i++) {
-			*fout << i + 1 << " " << pnSFFm[3 * i + 0] << " " << pnSFFm[3 * i + 2] << " " << pnSFFm[3 * i + 1] << " " << pnSFPt[i] << endl;
+			*fout << i + 1 << " " << pnSFFm[3 * i + 0] << " " << pnSFFm[3 * i + 1] << " " << pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
 		}
 
 
