@@ -421,6 +421,9 @@ namespace PRE {
 	if (use_multiple_normals) {
 		std::vector<std::array<double, 3>> points_multiply, points_nonwall;
         std::string f_multiply, f_nonwall;
+        bool multiplySuccess;
+        std::string f_temp = f;
+        std::vector<std::array<double, 3>> points_temp = points;
         splite_by_faceID(points, points_multiply,points_nonwall,f,f_multiply,f_nonwall,wall);
         std::cout << "finish splite" << std::endl;
         if (exist_prism) {
@@ -458,34 +461,41 @@ namespace PRE {
                 point_to_length[points[i]] = blcf.length_vec[i];
             }
         }
+        if (blcf.multiple_numlayer > 0) {
+            ChamferBehavior behavior;
+            MNormalMesh chamfer; // create one chamfer
+            chamfer.number_of_layer = blcf.multiple_numlayer;
+            chamfer.step_of_length = blcf.multiple_steplength;
+            chamfer.point_to_length = point_to_length;
+            chamfer.fast_intersection = fast_intersection;
+            chamfer.SetBehavior(behavior);
+            chamfer.ReadPlsBuf(f_multiply, points_multiply);
+            chamfer.exist_prism = exist_prism;
+            spdlog::info("Done!");
 
-		if (blcf.multiple_numlayer > 0) {
-				ChamferBehavior behavior;
-				MNormalMesh chamfer; // create one chamfer
-				chamfer.number_of_layer = blcf.multiple_numlayer;
-				chamfer.step_of_length = blcf.multiple_steplength;
-				chamfer.point_to_length = point_to_length;
-				chamfer.fast_intersection = fast_intersection;
-				chamfer.SetBehavior(behavior);
-				chamfer.ReadPlsBuf(f_multiply, points_multiply);
-				chamfer.exist_prism = exist_prism;
-				spdlog::info("Done!");
-
-				chamfer.CalculateMultiNormal();
-                std::cout << faceCount << std::endl;
-				chamfer.BuildTopo(faceCount);
-                std::cout << "finish buildtopo" << std::endl;
-				// chamfer.SmoothNormalsSimple(5);
-				spdlog::info("Handling output mesh!");
-				chamfer.WriteVol(cv1.v, cv1.f, cv1.lower_point_num, cv1.add_point_num);
-                std::cout << "writevol" << std::endl;
-				chamfer.WriteMesh(f_multiply, points_multiply, blcf.len);
-			} else {
+            chamfer.CalculateMultiNormal();
+            std::cout << faceCount << std::endl;
+            chamfer.BuildTopo(faceCount);
+            std::cout << "finish buildtopo" << std::endl;
+            // chamfer.SmoothNormalsSimple(5);
+            spdlog::info("Handling output mesh!");
+            chamfer.WriteVol(cv1.v, cv1.f, cv1.lower_point_num, cv1.add_point_num);
+            std::cout << "writevol" << std::endl;
+            if (multiplySuccess) {
+                chamfer.WriteMesh(f_multiply, points_multiply, blcf.len);
+            } else {
+                multiplySuccess = chamfer.multiplySuccess;
+            }
+        } 
+		else {
 				spdlog::info("Skipping Chamfer processing because number_of_layer is 0");
 			}
 
         combine_by_faceID(points, points_multiply, points_nonwall, f, f_multiply, f_nonwall);
-
+		if (!multiplySuccess) {
+            f = f_temp;
+            points = points_temp;
+			}
         spdlog::info("Job Finished.");
         // mfile = T(f);
 	}

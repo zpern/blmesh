@@ -25,8 +25,8 @@ struct blpreConfig {
     double multiple_steplength;
     std::vector<double> length_vec;
 	int max_layer_diff;
-    bool fast_intersection;
-    bool preMultiple;
+    bool fast_intersection = true;
+    bool preMultiple = false;
 };
 struct ControlVolume{
 	std::vector<std::array<double, 3>> v;

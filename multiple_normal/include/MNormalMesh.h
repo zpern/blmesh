@@ -71,8 +71,9 @@ public:
     double step_of_length;
 	std::map<std::array<double,3>, double> point_to_length;
     std::vector<double> length;
-    bool fast_intersection;
+    bool fast_intersection = true;
     bool exist_prism =false;
+    bool multiplySuccess = true;
     std::vector<int> avoid_spliteNode;
 	
 

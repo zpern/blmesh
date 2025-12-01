@@ -594,53 +594,6 @@ for (int i = 0; i < lower_ids.size(); ++i) {
         }
     }
 
-    // 插点方案
-    // for (int i = 0; i < connector.size(); i++) {
-    //	// 四面体情况
-    //	if (lower_ids[i][0] == lower_ids[i][1] && lower_ids[i][2] == lower_ids[i][1]) {
-    //		f.push_back({ lower_ids[i][0],connector[i][0]+lower_num,connector[i][1] + lower_num
-    //,connector[i][2] + lower_num });
-    //	}
-    //	else if (lower_ids[i][0] != lower_ids[i][1] && lower_ids[i][2] != lower_ids[i][1]&&
-    // lower_ids[i][2] != lower_ids[i][0]) { 		f.push_back({ lower_ids[i][0]
-    //,lower_ids[i][1],lower_ids[i][2],connector[i][0] + lower_num,connector[i][1] + lower_num
-    //,connector[i][2] + lower_num });
-    //	}
-    //	else {/// 复杂情况
-    //		int k1, k2,k3;
-    //		for (int j = 0; j < 3; j++) {
-    //			if (lower_ids[i][j] == lower_ids[i][(j + 1) % 3]) {
-    //				k1 = j;
-    //				k2 = (j + 1) % 3;
-    //				k3 = (j + 2) % 3;
-    //				break;
-    //			}
-    //		}
-    //           f.push_back({lower_ids[i][k3], connector[i][k3] + lower_num, connector[i][k1] +
-    //           lower_num, lower_ids[i][k1],(int)v.size()}); // pyramid
-    //		f.push_back({ lower_ids[i][k3] ,lower_ids[i][k2] ,connector[i][k2] +
-    // lower_num,connector[i][k3] + lower_num ,(int)v.size() });// pyramid
-    //           f.push_back({connector[i][k2] + lower_num, connector[i][k1] + lower_num,
-    //           connector[i][k3] + lower_num,(int)v.size()}); // tetra
-    //           f.push_back({connector[i][k1] + lower_num, connector[i][k2] + lower_num,
-    //           lower_ids[i][k1], (int)v.size()}); // tetra
-    //		std::array<double, 3> ncoord{0,0,0};
-    //		for (int k = 0; k < 3; k++) {
-    //			for (int j = 0; j < 3; j++) {
-    //				ncoord[k] += coordinate[connector[i][j]][k];
-    //				ncoord[k] += coordinate[connector[i][j]][k] +
-    // point_normals[connector[i][j]][k]
-    //* len;
-    //			}
-    //		}
-    //		for (int k = 0; k < 3; k++) {
-    //			ncoord[k] /= 5;
-    //		}
-    //		add_point_num++;
-    //		v.push_back(ncoord);
-    //	}
-    //}
-
     // 切割方案
     // 第一层
     for (int i = 0; i < connector.size(); i++) {
@@ -739,6 +692,7 @@ void MNormalMesh::pre_WriteMesh(std::string& f, std::vector<std::array<double, 3
 	f = ss.str();
 
 }
+
 void MNormalMesh::WriteVol(std::vector<std::array<double, 3>> &v,std::vector<std::vector<int>> &f,int &lower_num,int &add_point_num)
 {
     std::map<std::array<double, 3>, int> coord_to_id;
@@ -783,8 +737,97 @@ void MNormalMesh::WriteVol(std::vector<std::array<double, 3>> &v,std::vector<std
         }
     }
 
-    // Intersection
-    if (!fast_intersection) {
+     //Intersection
+    if (fast_intersection) {
+        std::set<int> record_point;
+        int iter_count = 0;       // 加循环计数
+        const int MAX_ITER = 30; // 最大迭代次数
+        do {
+            IntersecChecker checker_;
+            BoundingBox box({std::numeric_limits<double>::max(),
+                             std::numeric_limits<double>::max(),
+                             std::numeric_limits<double>::max(),
+                             std::numeric_limits<double>::lowest(),
+                             std::numeric_limits<double>::lowest(),
+                             std::numeric_limits<double>::lowest()});
+            for (int i = 0; i < coordinate.size(); i++) {
+                box[0] = std::min(box[0], coordinate[i].x);
+                box[1] = std::min(box[1], coordinate[i].y);
+                box[2] = std::min(box[2], coordinate[i].z);
+                box[3] = std::max(box[3], coordinate[i].x);
+                box[4] = std::max(box[4], coordinate[i].y);
+                box[5] = std::max(box[5], coordinate[i].z);
+            }
+            checker_.init(box);
+
+            // inner
+            int first_id = checker_.addPoint([&]() {
+                std::vector<BLVector> tmp;
+                tmp.reserve(lower_num);
+                for (size_t i = 0; i < lower_num; ++i) {
+                    tmp.emplace_back(v[i][0], v[i][1], v[i][2]);
+                }
+                return tmp;
+            }());
+
+            std::vector<std::pair<HexaTag, std::vector<int>>> elements;
+            for (size_t i = 0; i < connector.size(); ++i) {
+                if (lower_ids[i][0] != lower_ids[i][1] && lower_ids[i][1] != lower_ids[i][2] &&
+                    lower_ids[i][0] != lower_ids[i][2]) {
+                    elements.emplace_back(
+                        HexaTag(i, 0, TRI_BOTTOM),
+                        std::vector<int>{lower_ids[i][0], lower_ids[i][1], lower_ids[i][2]});
+                }
+            }
+            checker_.addElements(elements);
+           
+             //side and top
+            if (iter_count < MAX_ITER) {
+                for (auto i : record_point) {
+                    length[i] *= 0.8;
+                }
+                record_point.clear();
+                iter_count++;
+            }
+            else{
+                spdlog::info("The surface mesh quality is too poor. Temporarily revert to using a single normal.");
+                multiplySuccess = false;
+                return;
+            }
+
+
+            std::vector<BLVector> grown_coordinate;
+            grown_coordinate.resize(length.size());
+            for (int i = 0; i < coordinate.size(); i++) {
+                grown_coordinate[i] = {
+                    coordinate[i].x + number_of_layer * length[i] * point_normals[i].x,
+                    coordinate[i].y + number_of_layer * length[i] * point_normals[i].y,
+                    coordinate[i].z + number_of_layer * length[i] * point_normals[i].z};
+            }
+            checker_.addPoint(grown_coordinate);
+
+            int number = 0;
+            for (const auto &tri : connector) {
+                checker_.addElement(HexaTag(number++, 1, TRI_TOP),
+                                    std::vector<int>{idx(tri[0]), idx(tri[1]), idx(tri[2])});
+            }
+            int i = -1;
+            for (const auto &tri : connector) {
+                i++;
+                std::vector<int> candidate = {idx(tri[0]), idx(tri[1]), idx(tri[2])};
+
+
+                if (checker_.checkIntersect(candidate)) {
+                    record_point.insert(tri[0]);
+                    record_point.insert(tri[1]);
+                    record_point.insert(tri[2]);
+                    continue;
+                }
+            }
+        } while (!record_point.empty());
+        std::cout << "finish intersection" << std::endl;
+    }
+    else {
         std::set<int> record_point;
         do {
             IntersecChecker checker_;
@@ -954,118 +997,9 @@ void MNormalMesh::WriteVol(std::vector<std::array<double, 3>> &v,std::vector<std
                 }
             }
         } while (!record_point.empty());
-    }
-    else {
-        std::set<int> record_point;
-        do {
-            IntersecChecker checker_;
-            BoundingBox box({std::numeric_limits<double>::max(),
-                             std::numeric_limits<double>::max(),
-                             std::numeric_limits<double>::max(),
-                             std::numeric_limits<double>::lowest(),
-                             std::numeric_limits<double>::lowest(),
-                             std::numeric_limits<double>::lowest()});
-            for (int i = 0; i < coordinate.size(); i++) {
-                box[0] = std::min(box[0], coordinate[i].x);
-                box[1] = std::min(box[1], coordinate[i].y);
-                box[2] = std::min(box[2], coordinate[i].z);
-                box[3] = std::max(box[3], coordinate[i].x);
-                box[4] = std::max(box[4], coordinate[i].y);
-                box[5] = std::max(box[5], coordinate[i].z);
-            }
-            checker_.init(box);
-
-            // inner
-            int first_id = checker_.addPoint([&]() {
-                std::vector<BLVector> tmp;
-                tmp.reserve(lower_num);
-                for (size_t i = 0; i < lower_num; ++i) {
-                    tmp.emplace_back(v[i][0], v[i][1], v[i][2]);
-                }
-                return tmp;
-            }());
-
-            std::vector<std::pair<HexaTag, std::vector<int>>> elements;
-            for (size_t i = 0; i < connector.size(); ++i) {
-                if (lower_ids[i][0] != lower_ids[i][1] && lower_ids[i][1] != lower_ids[i][2] &&
-                    lower_ids[i][0] != lower_ids[i][2]) {
-                    elements.emplace_back(
-                        HexaTag(i, 0, TRI_BOTTOM),
-                        std::vector<int>{lower_ids[i][0], lower_ids[i][1], lower_ids[i][2]});
-                }
-            }
-            checker_.addElements(elements);
-
-            // side and top
-            for (auto i : record_point) {
-                length[i] *= 0.9;
-            }
-            record_point.clear();
-
-            std::vector<BLVector> grown_coordinate;
-            grown_coordinate.resize(length.size());
-            for (int i = 0; i < coordinate.size(); i++) {
-                grown_coordinate[i] = {
-                    coordinate[i].x + number_of_layer * length[i] * point_normals[i].x,
-                    coordinate[i].y + number_of_layer * length[i] * point_normals[i].y,
-                    coordinate[i].z + number_of_layer * length[i] * point_normals[i].z};
-            }
-            checker_.addPoint(grown_coordinate);
-
-            int number = 0;
-            for (const auto &tri : connector) {
-                checker_.addElement(HexaTag(number++, 1, TRI_TOP),
-                                    std::vector<int>{idx(tri[0]), idx(tri[1]), idx(tri[2])});
-            }
-            for (const auto &tri : connector) {
-                std::vector<int> candidate = {idx(tri[0]), idx(tri[1]), idx(tri[2])};
-                if (checker_.checkIntersect(candidate)) {
-                    record_point.insert(tri[0]);
-                    record_point.insert(tri[1]);
-                    record_point.insert(tri[2]);
-                    continue;
-                }
-            }
-            std::vector<std::set<int>> thread_local_sets;
-
-            // #pragma omp parallel   // 开启 OpenMP 并行区域
-            //{
-            //	int tid = omp_get_thread_num();
-
-            //	#pragma omp single
-            //	{
-            //		thread_local_sets.resize(omp_get_num_threads());
-            //	}
-
-            //	std::set<int>& local_set = thread_local_sets[tid];
-
-            //	#pragma omp for schedule(dynamic)
-            //	for (int i = 0; i < static_cast<int>(connector.size()); ++i) {
-            //		std::vector<int> candidate = {
-            //			idx(connector[i][0]),
-            //			idx(connector[i][1]),
-            //			idx(connector[i][2])
-            //		};
-
-            //		// 检查该三角形是否发生相交
-            //		if (checker_.checkIntersect(candidate)) {
-            //			local_set.insert(idx(connector[i][0], -1));
-            //			local_set.insert(idx(connector[i][1], -1));
-            //			local_set.insert(idx(connector[i][2], -1));
-            //		}
-            //	}
-            //}
-            // for (const auto& s : thread_local_sets) {
-            //	record_point.insert(s.begin(), s.end());
-            //}
-        } while (!record_point.empty());
-        std::cout << "finish intersection" << std::endl;
+        
         }
 
-    //// 留空
-    //for (auto &x : length) {
-    //    x = x * 0.8;
-    //}
     for (int j = 1; j <= number_of_layer; j++) {
         for (int i = 0; i < coordinate.size(); i++) {
 
@@ -1074,53 +1008,6 @@ void MNormalMesh::WriteVol(std::vector<std::array<double, 3>> &v,std::vector<std
                                 coordinate[i].z + j * length[i] * point_normals[i].z};
         }
     }
-
-    // 插点方案
-    // for (int i = 0; i < connector.size(); i++) {
-    //	// 四面体情况
-    //	if (lower_ids[i][0] == lower_ids[i][1] && lower_ids[i][2] == lower_ids[i][1]) {
-    //		f.push_back({ lower_ids[i][0],connector[i][0]+lower_num,connector[i][1] + lower_num
-    //,connector[i][2] + lower_num });
-    //	}
-    //	else if (lower_ids[i][0] != lower_ids[i][1] && lower_ids[i][2] != lower_ids[i][1]&&
-    // lower_ids[i][2] != lower_ids[i][0]) { 		f.push_back({ lower_ids[i][0]
-    //,lower_ids[i][1],lower_ids[i][2],connector[i][0] + lower_num,connector[i][1] + lower_num
-    //,connector[i][2] + lower_num });
-    //	}
-    //	else {/// 复杂情况
-    //		int k1, k2,k3;
-    //		for (int j = 0; j < 3; j++) {
-    //			if (lower_ids[i][j] == lower_ids[i][(j + 1) % 3]) {
-    //				k1 = j;
-    //				k2 = (j + 1) % 3;
-    //				k3 = (j + 2) % 3;
-    //				break;
-    //			}
-    //		}
-    //           f.push_back({lower_ids[i][k3], connector[i][k3] + lower_num, connector[i][k1] +
-    //           lower_num, lower_ids[i][k1],(int)v.size()}); // pyramid
-    //		f.push_back({ lower_ids[i][k3] ,lower_ids[i][k2] ,connector[i][k2] +
-    // lower_num,connector[i][k3] + lower_num ,(int)v.size() });// pyramid
-    //           f.push_back({connector[i][k2] + lower_num, connector[i][k1] + lower_num,
-    //           connector[i][k3] + lower_num,(int)v.size()}); // tetra
-    //           f.push_back({connector[i][k1] + lower_num, connector[i][k2] + lower_num,
-    //           lower_ids[i][k1], (int)v.size()}); // tetra
-    //		std::array<double, 3> ncoord{0,0,0};
-    //		for (int k = 0; k < 3; k++) {
-    //			for (int j = 0; j < 3; j++) {
-    //				ncoord[k] += coordinate[connector[i][j]][k];
-    //				ncoord[k] += coordinate[connector[i][j]][k] +
-    // point_normals[connector[i][j]][k]
-    //* len;
-    //			}
-    //		}
-    //		for (int k = 0; k < 3; k++) {
-    //			ncoord[k] /= 5;
-    //		}
-    //		add_point_num++;
-    //		v.push_back(ncoord);
-    //	}
-    //}
 
     //预处理后的直接生长
     if (exist_prism) {
@@ -1216,6 +1103,7 @@ void MNormalMesh::WriteVol(std::vector<std::array<double, 3>> &v,std::vector<std
 
     return;
     }
+
 void MNormalMesh::WriteMesh(std::string& f, std::vector<std::array<double, 3>>& points, double len)
 {
 
