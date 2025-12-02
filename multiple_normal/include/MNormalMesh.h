@@ -22,11 +22,7 @@ public:
 
 	void WriteNorm();
 
-    void pre_WriteVol(std::vector<std::array<double, 3>> &v,
-                      std::vector<std::vector<int>> &f,
-                      int &lower_num,
-                      int &add_point_num);
-		void pre_WriteMesh(std::string& f,std::vector<std::array<double, 3>>& points,double d);
+    void pre_WriteVol(std::vector<std::array<double, 3>> &v,std::vector<std::vector<int>> &f,int &lower_num,int &add_point_num);
 	void WriteVol(std::vector<std::array<double, 3>>& v, std::vector<std::vector<int>>& f, int& lower_num,int& add_point_num);
 	void WriteMesh(std::string& f,std::vector<std::array<double, 3>>& points,double d);
 

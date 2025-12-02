@@ -611,8 +611,9 @@ namespace TiGER {
         blconfig.multiple_steplength = dLen;
 		blconfig.max_equal_skewnwass = max_skewnwass;
 		blconfig.max_layer_diff = max_layer_diff;
-		ControlVolume cv;
-		auto bdyfile = PRE::blpre(input, blconfig, points,cv);
+		ControlVolume cv1;
+		ControlVolume cv2;
+		auto bdyfile = PRE::blpre(input, blconfig, points,cv1,cv2);
 		delete fout;
 
 		VM v = blmesh(bdyfile, blconfig, false, true, b_have_pyramid, bisostop, b_output_io_file, nullptr, 1.2, 0, per_matrix);
@@ -627,83 +628,133 @@ namespace TiGER {
 		*ppnSFFmO = v.ppnSFFmO;
 		*ppdSNC0 = v.ppdSNC0;
 		*pnSN0 = v.nSN0;
-                *l2g = v.l2g;
-                *ppnsizing = v.sizing;
+        *l2g = v.l2g;
+        *ppnsizing = v.sizing;
 
 
 		*boundary_face = v.boundary_face;
 		*boundary_mesh = v.boundary_mesh;
 		*num_boundary_face = v.num_boundary_face;
 
-		if (cv.f.size()) {
-			int old_point_num = *pnMN;
-			double* nppdMNC = new double[(*pnMN + cv.lower_point_num+cv.add_point_num) * 3];
-			std::map<std::array<double, 3>, int> coord_to_id;
-			for (int i = 0; i < (*pnMN) ; i++) {
-				coord_to_id[{(*ppdMNC)[3 * i + 0], (*ppdMNC)[3 * i + 1], (*ppdMNC)[3 * i + 2]}] = i;
-			}
-			for (int i = 0; i < (*pnMN) * 3; i++) {
-				nppdMNC[i] = (*ppdMNC)[i];
-			}
-			for (int i = 0; i < cv.lower_point_num; i++) {
-				for (int k = 0; k < 3; k++) {
-					nppdMNC[(*pnMN) * 3 + 3 * i + k] = cv.v[i][k];
-				}
-			}
-			for (int i = 0; i < cv.add_point_num; i++) {
-				for (int k = 0; k < 3; k++) {
-					nppdMNC[(*pnMN) * 3+3* cv.lower_point_num + 3 * i + k] = cv.v[cv.lower_point_num+i][k];
-				}
-			}
-			*pnMN = *pnMN + cv.lower_point_num + cv.add_point_num;
-			//delete* ppdMNC[];
-			*ppdMNC = nppdMNC;
-			int* nppnMEFm = new int[6 * (*pnME) + 6 * cv.f.size()];
-			int cnt = 0;
-			for (int i = 0; i < *pnME; i++) {
-				int k = 0;
-				if ((*ppnMETp)[i] == 11) {
-					k = 4;
-				}
-				if ((*ppnMETp)[i] == 13) {
-					k = 6;
-				}
-				if ((*ppnMETp)[i] == 14) {
-					k = 5;
-				}
-				for (int j = 0; j < k; j++) {
-					nppnMEFm[cnt] = (*ppnMEFm)[cnt];
-					cnt++;
-				}
-			}
-			int* nppnMETp = new int[*pnME + cv.f.size()];
-			for (int i = 0; i < *pnME; i++) {
-				nppnMETp[i] = (*ppnMETp)[i];
-			}
-			for (int i = 0; i < cv.f.size(); i++) {
-				int k = cv.f[i].size();
-				for (int j = 0; j < k; j++) {
-                    if (cv.f[i][j] < cv.lower_point_num + cv.add_point_num) {
-                        nppnMEFm[cnt] = cv.f[i][j] + old_point_num;
-                    } else {
-                        // nppnMEFm[cnt] = cv.f[i][j] - cv.lower_point_num;
-                        nppnMEFm[cnt] = coord_to_id[cv.v[cv.f[i][j]]];
-                        // if (cv.v[cv.f[i][j]][0] != (*ppdMNC)[3 * cv.f[i][j] -
-                        // cv.lower_point_num]) { 	std::cout << "debug here";
-                        // }
-                    }
-					cnt++;
-				}
+		// 全局 coord_to_id，用于去重
+        std::map<std::array<double, 3>, int> coord_to_id;
 
-				if (k == 4) { nppnMETp[*pnME + i] = 11; }
-				if (k == 5) { nppnMETp[*pnME + i] = 14; }
-				if (k == 6) { nppnMETp[*pnME + i] = 13; }
-			}
+        // 新的节点数组
+        std::vector<double> nppdMNC;
+        nppdMNC.reserve((*pnMN + cv1.v.size() + cv2.v.size()) * 3);
 
-			*pnME = *pnME + cv.f.size();
-			*ppnMEFm = nppnMEFm;
-			*ppnMETp = nppnMETp;
-		}
+        // ------------------ 1. 处理原始节点 ------------------
+        for (int i = 0; i < *pnMN; i++) {
+            std::array<double, 3> coord = {(*ppdMNC)[3 * i],
+                                           (*ppdMNC)[3 * i + 1],
+                                           (*ppdMNC)[3 * i + 2]};
+            coord_to_id[coord] = i;
+
+            nppdMNC.push_back(coord[0]);
+            nppdMNC.push_back(coord[1]);
+            nppdMNC.push_back(coord[2]);
+        }
+
+        // ------------------ 2. 封装合并函数 ------------------
+        auto merge_cv = [&](const auto &cv) {
+            // 添加新节点，去重
+            for (int i = 0; i < cv.v.size(); i++) {
+                std::array<double, 3> coord = {cv.v[i][0], cv.v[i][1], cv.v[i][2]};
+                if (coord_to_id.find(coord) == coord_to_id.end()) {
+                    int new_idx = static_cast<int>(coord_to_id.size());
+                    coord_to_id[coord] = new_idx;
+
+                    nppdMNC.push_back(coord[0]);
+                    nppdMNC.push_back(coord[1]);
+                    nppdMNC.push_back(coord[2]);
+                }
+            }
+        };
+
+		// 合并 cv1 和 cv2
+        if (!cv1.f.empty()) {
+            merge_cv(cv1);
+        }
+        if (!cv2.f.empty()) {
+            merge_cv(cv2);
+        }
+
+        // 更新节点数量
+        *pnMN = static_cast<int>(coord_to_id.size());
+        delete[] *ppdMNC; // 如果之前已经分配过，先释放
+        *ppdMNC = new double[nppdMNC.size()];
+        std::copy(nppdMNC.begin(), nppdMNC.end(), *ppdMNC);
+
+
+
+        // ------------------ 3. 合并单元 ------------------
+        std::vector<int> nppnMEFm;
+        std::vector<int> nppnMETp;
+        nppnMEFm.reserve(6 * (*pnME) + 6 * cv1.f.size() + 6 * cv2.f.size());
+        nppnMETp.reserve(*pnME + cv1.f.size() + cv2.f.size());
+
+        // 拷贝原单元
+        int offset = 0;
+        for (int i = 0; i < *pnME; i++) {
+            int k = 0;
+            if ((*ppnMETp)[i] == 11) {
+                k = 4;
+            } else if ((*ppnMETp)[i] == 13) {
+                k = 6;
+            } else if ((*ppnMETp)[i] == 14) {
+                k = 5;
+            }
+
+            for (int j = 0; j < k; j++) {
+                nppnMEFm.push_back((*ppnMEFm)[offset + j]);
+            }
+            offset += k; // 更新偏移量
+            nppnMETp.push_back((*ppnMETp)[i]);
+        }
+
+
+        // 封装函数添加 cv 单元
+        auto merge_cv_elements = [&](const auto &cv) {
+            for (int i = 0; i < cv.f.size(); i++) {
+                int k = cv.f[i].size();
+                for (int j = 0; j < k; j++) {
+                    std::array<double, 3> coord = {cv.v[cv.f[i][j]][0],
+                                                   cv.v[cv.f[i][j]][1],
+                                                   cv.v[cv.f[i][j]][2]};
+                    int idx = coord_to_id[coord]; // 获取全局索引
+                    nppnMEFm.push_back(idx);
+                }
+
+                if (k == 4) {
+                    nppnMETp.push_back(11);
+                } else if (k == 5) {
+                    nppnMETp.push_back(14);
+                } else if (k == 6) {
+                    nppnMETp.push_back(13);
+                }
+            }
+        };
+
+        if (!cv1.f.empty()) {
+            merge_cv_elements(cv1);
+        }
+        if (!cv2.f.empty()) {
+            merge_cv_elements(cv2);
+        }
+
+        // 更新单元数量
+        *pnME = static_cast<int>(nppnMETp.size());
+        delete[] *ppnMEFm; // 如果之前已经分配过，先释放
+        delete[] *ppnMETp;
+
+        *ppnMEFm = new int[nppnMEFm.size()];
+        std::copy(nppnMEFm.begin(), nppnMEFm.end(), *ppnMEFm);
+
+        *ppnMETp = new int[nppnMETp.size()];
+        std::copy(nppnMETp.begin(), nppnMETp.end(), *ppnMETp);
+
+        *pnME = static_cast<int>(nppnMETp.size());
+
 		return 0;
 
 	}
