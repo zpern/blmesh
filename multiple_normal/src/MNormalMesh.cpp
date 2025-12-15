@@ -294,6 +294,7 @@ void MNormalMesh::pre_WriteVol(std::vector<std::array<double, 3>> &v,std::vector
     }
 
     // Intersection
+    
     if(fast_intersection) {
         std::set<int> record_point;
         int iter_count = 0;
@@ -1379,206 +1380,264 @@ void MNormalMesh::BuildTopo(int faceCount)
     // ==============================
     // Step 4: 遍历所有复杂边对
     // ==============================
-    for (auto edge : complex_edges_pair)
-    {
+    for (auto edge : complex_edges_pair) {
         int s = edge.first[0];
         int e = edge.first[1];
-        if (s > e) continue;
+        if (s > e) {
+            continue;
+        }
 
-        auto& meshs = node_array[s].getFinalMesh();
-        auto& meshe = node_array[e].getFinalMesh();
+        auto &meshs = node_array[s].getFinalMesh();
+        auto &meshe = node_array[e].getFinalMesh();
 
         // --- Collect left active triangles ---
         std::vector<std::pair<int, int>> active_triangles_left;
-        for (int i = 0; i < meshs.triangle_lists_.size(); i++)
-        {
-            for (int j = 0; j < 3; j++)
-            {
-                if (meshs.virtual_point_lists_[meshs.triangle_lists_[i].point_index_[j]].getGlobalIndex() == e)
-                {
-                    active_triangles_left.push_back({ i, j });
+        for (int i = 0; i < meshs.triangle_lists_.size(); i++) {
+            for (int j = 0; j < 3; j++) {
+                if (meshs.virtual_point_lists_[meshs.triangle_lists_[i].point_index_[j]]
+                        .getGlobalIndex() == e) {
+                    active_triangles_left.push_back({i, j});
                 }
             }
         }
 
         // --- Collect right active triangles ---
         std::vector<std::pair<int, int>> active_triangles_right;
-        for (int i = 0; i < meshe.triangle_lists_.size(); i++)
-        {
-            for (int j = 0; j < 3; j++)
-            {
-                if (meshe.virtual_point_lists_[meshe.triangle_lists_[i].point_index_[j]].getGlobalIndex() == s)
-                {
-                    active_triangles_right.push_back({ i, j });
+        for (int i = 0; i < meshe.triangle_lists_.size(); i++) {
+            for (int j = 0; j < 3; j++) {
+                if (meshe.virtual_point_lists_[meshe.triangle_lists_[i].point_index_[j]]
+                        .getGlobalIndex() == s) {
+                    active_triangles_right.push_back({i, j});
                 }
             }
         }
 
         // --- Sort triangles if 2 on each side ---
-        if (active_triangles_left.size() == 2)
-        {
+        if (active_triangles_left.size() == 2) {
             if (meshs.triangle_lists_[active_triangles_left[0].first]
-                .point_index_[(active_triangles_left[0].second + 1) % 3] ==
+                    .point_index_[(active_triangles_left[0].second + 1) % 3] ==
                 meshs.triangle_lists_[active_triangles_left[1].first]
-                .point_index_[(active_triangles_left[1].second + 2) % 3])
-            {
+                    .point_index_[(active_triangles_left[1].second + 2) % 3]) {
                 std::swap(active_triangles_left[0], active_triangles_left[1]);
             }
         }
 
-        if (active_triangles_right.size() == 2)
-        {
+        if (active_triangles_right.size() == 2) {
             if (meshe.triangle_lists_[active_triangles_right[0].first]
-                .point_index_[(active_triangles_right[0].second + 1) % 3] ==
+                    .point_index_[(active_triangles_right[0].second + 1) % 3] ==
                 meshe.triangle_lists_[active_triangles_right[1].first]
-                .point_index_[(active_triangles_right[1].second + 2) % 3])
-            {
+                    .point_index_[(active_triangles_right[1].second + 2) % 3]) {
                 std::swap(active_triangles_right[0], active_triangles_right[1]);
             }
         }
 
-        if ((active_triangles_left.size() > 2) || (active_triangles_right.size() > 2))
+        if ((active_triangles_left.size() > 2) || (active_triangles_right.size() > 2)) {
             throw std::runtime_error("wake up and write code for more than 2!");
-
-        // --- Determine combination ---
-        auto combination = connection[active_triangles_left.size() - 1][active_triangles_right.size() - 1];
-        std::vector<int> best_combination;
-        double min_cost = 100;
-
-        // ==============================
-        // Step 5: Evaluate best combination
-        // ==============================
-        for (auto c : combination)
-        {
-            std::vector<BLVector> normals;
-
-            for (int i = 0; i < c.size(); i++)
-            {
-                if (c[i] > 0)
-                {
-                    auto conn = meshs.triangle_lists_[active_triangles_left[c[i] - 1].first].point_index_;
-                    BLVector n1 = meshs.virtual_point_lists_[conn[(active_triangles_left[c[i] - 1].second + 1) % 3]].getCoord() -
-                                  meshs.virtual_point_lists_[conn[(active_triangles_left[c[i] - 1].second + 0) % 3]].getCoord();
-                    BLVector n2 = meshs.virtual_point_lists_[conn[(active_triangles_left[c[i] - 1].second + 2) % 3]].getCoord() -
-                                  meshs.virtual_point_lists_[conn[(active_triangles_left[c[i] - 1].second + 1) % 3]].getCoord();
-                    normals.push_back((n1 ^ n2).normalized());
-                }
-                else
-                {
-                    auto conn = meshe.triangle_lists_[active_triangles_right[-c[i] - 1].first].point_index_;
-                    BLVector n1 = meshe.virtual_point_lists_[conn[(active_triangles_right[-c[i] - 1].second + 1) % 3]].getCoord() -
-                                  meshe.virtual_point_lists_[conn[(active_triangles_right[-c[i] - 1].second + 0) % 3]].getCoord();
-                    BLVector n2 = meshe.virtual_point_lists_[conn[(active_triangles_right[-c[i] - 1].second + 2) % 3]].getCoord() -
-                                  meshe.virtual_point_lists_[conn[(active_triangles_right[-c[i] - 1].second + 1) % 3]].getCoord();
-                    normals.push_back((n1 ^ n2).normalized());
-                }
-            }
-
-            double cost = 0;
-            for (int i = 0; i < c.size() - 1; i++)
-            {
-                cost += std::abs((normals[i] * normals[i + 1]) - 1);
-            }
-
-            if (min_cost > cost)
-            {
-                min_cost = cost;
-                best_combination = c;
-            }
         }
 
-        // ==============================
-        // Step 6: Build new triangles
-        // ==============================
-        std::queue<int> api_point_left;
-        std::stack<int> api_point_right;
-
-        for (int i = 0; i < active_triangles_left.size(); i++)
-        {
-            auto conn = meshs.triangle_lists_[active_triangles_left[i].first].point_index_;
-            api_point_left.push(meshs.virtual_point_lists_[conn[(active_triangles_left[i].second + 1) % 3]].getGlobalIndex());
-        }
-
-        api_point_left.push(
-            meshs.virtual_point_lists_[
-                meshs.triangle_lists_[active_triangles_left.back().first]
-                .point_index_[(active_triangles_left.back().second + 2) % 3]
-            ].getGlobalIndex());
-
-        for (int i = 0; i < active_triangles_right.size(); i++)
-        {
-            auto conn = meshe.triangle_lists_[active_triangles_right[i].first].point_index_;
-            api_point_right.push(meshe.virtual_point_lists_[conn[(active_triangles_right[i].second + 1) % 3]].getGlobalIndex());
-        }
-
-        api_point_right.push(
-            meshe.virtual_point_lists_[
-                meshe.triangle_lists_[active_triangles_right.back().first]
-                .point_index_[(active_triangles_right.back().second + 2) % 3]
-            ].getGlobalIndex());
-
-        std::pair<int, int> last_changed{0, 0};
-
-        for (int i = 0; i < best_combination.size(); i++)
-        {
-            std::array<int, 3> new_tri;
-
-            if (best_combination[i] > 0)
-            {
-                int index = best_combination[i] - 1;
-
-                while (last_changed.second)
-                {
-                    last_changed.second--;
-                    api_point_right.pop();
+        if (active_triangles_left.size() == 0 || active_triangles_right.size() == 0) {
+            if (!active_triangles_left.empty()) {
+                for (auto &tri_info : active_triangles_left) {
+                    std::array<int, 3> new_tri;
+                    auto &tri = meshs.triangle_lists_[tri_info.first];
+                    for (int j = 0; j < 3; j++) {
+                        new_tri[j] =
+                            meshs.virtual_point_lists_[tri.point_index_[j]].getGlobalIndex();
+                    }
+                    tri.added_flag = true;
+                    connector.push_back(new_tri);
+                    attribute.push_back(new_attribute);
                 }
-
-                last_changed.first++;
-                int api_point_index = api_point_right.top();
-
-                for (int j = 0; j < 3; j++)
-                {
-                    if (meshs.virtual_point_lists_[meshs.triangle_lists_[active_triangles_left[index].first]
-                        .point_index_[j]].getGlobalIndex() == e)
-                        new_tri[j] = api_point_index;
-                    else
-                        new_tri[j] = meshs.virtual_point_lists_[meshs.triangle_lists_[active_triangles_left[index].first]
-                            .point_index_[j]].getGlobalIndex();
+            } else if (!active_triangles_right.empty()) {
+                for (auto &tri_info : active_triangles_right) {
+                    std::array<int, 3> new_tri;
+                    auto &tri = meshe.triangle_lists_[tri_info.first];
+                    for (int j = 0; j < 3; j++) {
+                        new_tri[j] =
+                            meshe.virtual_point_lists_[tri.point_index_[j]].getGlobalIndex();
+                    }
+                    tri.added_flag = true;
+                    connector.push_back(new_tri);
+                    attribute.push_back(new_attribute);
                 }
-
-                meshs.triangle_lists_[active_triangles_left[index].first].added_flag = true;
             }
-            else
-            {
-                int index = -best_combination[i] - 1;
+        } else {
 
-                while (last_changed.first)
-                {
-                    last_changed.first--;
-                    api_point_left.pop();
+            // --- Determine combination ---
+            auto combination =
+                connection[active_triangles_left.size() - 1][active_triangles_right.size() - 1];
+            std::vector<int> best_combination;
+            double min_cost = 100;
+
+            // ==============================
+            // Step 5: Evaluate best combination
+            // ==============================
+            for (auto c : combination) {
+                std::vector<BLVector> normals;
+
+                for (int i = 0; i < c.size(); i++) {
+                    if (c[i] > 0) {
+                        auto conn = meshs.triangle_lists_[active_triangles_left[c[i] - 1].first]
+                                        .point_index_;
+                        BLVector n1 =
+                            meshs
+                                .virtual_point_lists_
+                                    [conn[(active_triangles_left[c[i] - 1].second + 1) % 3]]
+                                .getCoord() -
+                            meshs
+                                .virtual_point_lists_
+                                    [conn[(active_triangles_left[c[i] - 1].second + 0) % 3]]
+                                .getCoord();
+                        BLVector n2 =
+                            meshs
+                                .virtual_point_lists_
+                                    [conn[(active_triangles_left[c[i] - 1].second + 2) % 3]]
+                                .getCoord() -
+                            meshs
+                                .virtual_point_lists_
+                                    [conn[(active_triangles_left[c[i] - 1].second + 1) % 3]]
+                                .getCoord();
+                        normals.push_back((n1 ^ n2).normalized());
+                    } else {
+                        auto conn = meshe.triangle_lists_[active_triangles_right[-c[i] - 1].first]
+                                        .point_index_;
+                        BLVector n1 =
+                            meshe
+                                .virtual_point_lists_
+                                    [conn[(active_triangles_right[-c[i] - 1].second + 1) % 3]]
+                                .getCoord() -
+                            meshe
+                                .virtual_point_lists_
+                                    [conn[(active_triangles_right[-c[i] - 1].second + 0) % 3]]
+                                .getCoord();
+                        BLVector n2 =
+                            meshe
+                                .virtual_point_lists_
+                                    [conn[(active_triangles_right[-c[i] - 1].second + 2) % 3]]
+                                .getCoord() -
+                            meshe
+                                .virtual_point_lists_
+                                    [conn[(active_triangles_right[-c[i] - 1].second + 1) % 3]]
+                                .getCoord();
+                        normals.push_back((n1 ^ n2).normalized());
+                    }
                 }
 
-                last_changed.second++;
-                int api_point_index = api_point_left.front();
-
-                for (int j = 0; j < 3; j++)
-                {
-                    if (meshe.virtual_point_lists_[meshe.triangle_lists_[active_triangles_right[index].first]
-                        .point_index_[j]].getGlobalIndex() == s)
-                        new_tri[j] = api_point_index;
-                    else
-                        new_tri[j] = meshe.virtual_point_lists_[meshe.triangle_lists_[active_triangles_right[index].first]
-                            .point_index_[j]].getGlobalIndex();
+                double cost = 0;
+                for (int i = 0; i < c.size() - 1; i++) {
+                    cost += std::abs((normals[i] * normals[i + 1]) - 1);
                 }
 
-                meshe.triangle_lists_[active_triangles_right[index].first].added_flag = true;
+                if (min_cost > cost) {
+                    min_cost = cost;
+                    best_combination = c;
+                }
             }
 
-            connector.push_back(new_tri);
-            attribute.push_back(new_attribute);
+            // ==============================
+            // Step 6: Build new triangles
+            // ==============================
+            std::queue<int> api_point_left;
+            std::stack<int> api_point_right;
+
+            for (int i = 0; i < active_triangles_left.size(); i++) {
+                auto conn = meshs.triangle_lists_[active_triangles_left[i].first].point_index_;
+                api_point_left.push(
+                    meshs.virtual_point_lists_[conn[(active_triangles_left[i].second + 1) % 3]]
+                        .getGlobalIndex());
+            }
+
+            api_point_left.push(
+                meshs
+                    .virtual_point_lists_
+                        [meshs.triangle_lists_[active_triangles_left.back().first]
+                             .point_index_[(active_triangles_left.back().second + 2) % 3]]
+                    .getGlobalIndex());
+
+            for (int i = 0; i < active_triangles_right.size(); i++) {
+                auto conn = meshe.triangle_lists_[active_triangles_right[i].first].point_index_;
+                api_point_right.push(
+                    meshe.virtual_point_lists_[conn[(active_triangles_right[i].second + 1) % 3]]
+                        .getGlobalIndex());
+            }
+
+            api_point_right.push(
+                meshe
+                    .virtual_point_lists_
+                        [meshe.triangle_lists_[active_triangles_right.back().first]
+                             .point_index_[(active_triangles_right.back().second + 2) % 3]]
+                    .getGlobalIndex());
+
+            std::pair<int, int> last_changed{0, 0};
+
+            for (int i = 0; i < best_combination.size(); i++) {
+                std::array<int, 3> new_tri;
+
+                if (best_combination[i] > 0) {
+                    int index = best_combination[i] - 1;
+
+                    while (last_changed.second) {
+                        last_changed.second--;
+                        api_point_right.pop();
+                    }
+
+                    last_changed.first++;
+                    int api_point_index = api_point_right.top();
+
+                    for (int j = 0; j < 3; j++) {
+                        if (meshs
+                                .virtual_point_lists_
+                                    [meshs.triangle_lists_[active_triangles_left[index].first]
+                                         .point_index_[j]]
+                                .getGlobalIndex() == e) {
+                            new_tri[j] = api_point_index;
+                        } else {
+                            new_tri[j] =
+                                meshs
+                                    .virtual_point_lists_
+                                        [meshs.triangle_lists_[active_triangles_left[index].first]
+                                             .point_index_[j]]
+                                    .getGlobalIndex();
+                        }
+                    }
+
+                    meshs.triangle_lists_[active_triangles_left[index].first].added_flag = true;
+                } else {
+                    int index = -best_combination[i] - 1;
+
+                    while (last_changed.first) {
+                        last_changed.first--;
+                        api_point_left.pop();
+                    }
+
+                    last_changed.second++;
+                    int api_point_index = api_point_left.front();
+
+                    for (int j = 0; j < 3; j++) {
+                        if (meshe
+                                .virtual_point_lists_
+                                    [meshe.triangle_lists_[active_triangles_right[index].first]
+                                         .point_index_[j]]
+                                .getGlobalIndex() == s) {
+                            new_tri[j] = api_point_index;
+                        } else {
+                            new_tri[j] =
+                                meshe
+                                    .virtual_point_lists_
+                                        [meshe.triangle_lists_[active_triangles_right[index].first]
+                                             .point_index_[j]]
+                                    .getGlobalIndex();
+                        }
+                    }
+
+                    meshe.triangle_lists_[active_triangles_right[index].first].added_flag = true;
+                }
+
+                connector.push_back(new_tri);
+                attribute.push_back(new_attribute);
+            }
         }
     }
-
     // ==============================
     // Step 7: Add remaining inner triangles
     // ==============================

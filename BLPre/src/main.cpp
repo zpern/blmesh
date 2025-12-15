@@ -907,7 +907,7 @@ namespace PRE {
 	return std::make_tuple(fout.str(),pt,elm,wbc,sym_coord);
 }
 
-void setpntelm()
+	void setpntelm()
 {
 	int i, j, start/*, *idx, *pelem*/;
 	int npoints, nelm;
@@ -999,8 +999,5 @@ bool isnear(int pidx, int eidx, double *pt, int npt, int *elm)
 
 	return false;
 }
-
-
-
 
 }
