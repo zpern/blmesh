@@ -345,9 +345,11 @@ void MNormalMesh::pre_WriteVol(std::vector<std::array<double, 3>> &v,std::vector
                 }
                 iter_count++;
             } else {
-                spdlog::info("Temporarily revert to using a single normal.");
-                multiplySuccess = false;
-                return;
+                 for (auto i : record_point) {
+                        length[i] *= 0;
+                    }
+                    record_point.clear();
+                    break;
             }
             record_point.clear();
 
@@ -685,268 +687,275 @@ void MNormalMesh::WriteVol(std::vector<std::array<double, 3>> &v,std::vector<std
     }
 
      //Intersection
-    if (fast_intersection) {
-        std::set<int> record_point;
-        int iter_count = 0;       // 加循环计数
-        const int MAX_ITER = 30; // 最大迭代次数
-        do {
-            IntersecChecker checker_;
-            BoundingBox box({std::numeric_limits<double>::max(),
-                             std::numeric_limits<double>::max(),
-                             std::numeric_limits<double>::max(),
-                             std::numeric_limits<double>::lowest(),
-                             std::numeric_limits<double>::lowest(),
-                             std::numeric_limits<double>::lowest()});
-            for (int i = 0; i < coordinate.size(); i++) {
-                box[0] = std::min(box[0], coordinate[i].x);
-                box[1] = std::min(box[1], coordinate[i].y);
-                box[2] = std::min(box[2], coordinate[i].z);
-                box[3] = std::max(box[3], coordinate[i].x);
-                box[4] = std::max(box[4], coordinate[i].y);
-                box[5] = std::max(box[5], coordinate[i].z);
-            }
-            checker_.init(box);
-
-            // inner
-            int first_id = checker_.addPoint([&]() {
-                std::vector<BLVector> tmp;
-                tmp.reserve(lower_num);
-                for (size_t i = 0; i < lower_num; ++i) {
-                    tmp.emplace_back(v[i][0], v[i][1], v[i][2]);
+    if (true) {
+        if (fast_intersection) {
+            std::set<int> record_point;
+            int iter_count = 0;      // 加循环计数
+            const int MAX_ITER = 30; // 最大迭代次数
+            do {
+                IntersecChecker checker_;
+                BoundingBox box({std::numeric_limits<double>::max(),
+                                 std::numeric_limits<double>::max(),
+                                 std::numeric_limits<double>::max(),
+                                 std::numeric_limits<double>::lowest(),
+                                 std::numeric_limits<double>::lowest(),
+                                 std::numeric_limits<double>::lowest()});
+                for (int i = 0; i < coordinate.size(); i++) {
+                    box[0] = std::min(box[0], coordinate[i].x);
+                    box[1] = std::min(box[1], coordinate[i].y);
+                    box[2] = std::min(box[2], coordinate[i].z);
+                    box[3] = std::max(box[3], coordinate[i].x);
+                    box[4] = std::max(box[4], coordinate[i].y);
+                    box[5] = std::max(box[5], coordinate[i].z);
                 }
-                return tmp;
-            }());
+                checker_.init(box);
 
-            std::vector<std::pair<HexaTag, std::vector<int>>> elements;
-            for (size_t i = 0; i < connector.size(); ++i) {
-                if (lower_ids[i][0] != lower_ids[i][1] && lower_ids[i][1] != lower_ids[i][2] &&
-                    lower_ids[i][0] != lower_ids[i][2]) {
-                    elements.emplace_back(
-                        HexaTag(i, 0, TRI_BOTTOM),
-                        std::vector<int>{lower_ids[i][0], lower_ids[i][1], lower_ids[i][2]});
+                // inner
+                int first_id = checker_.addPoint([&]() {
+                    std::vector<BLVector> tmp;
+                    tmp.reserve(lower_num);
+                    for (size_t i = 0; i < lower_num; ++i) {
+                        tmp.emplace_back(v[i][0], v[i][1], v[i][2]);
+                    }
+                    return tmp;
+                }());
+
+                std::vector<std::pair<HexaTag, std::vector<int>>> elements;
+                for (size_t i = 0; i < connector.size(); ++i) {
+                    if (lower_ids[i][0] != lower_ids[i][1] && lower_ids[i][1] != lower_ids[i][2] &&
+                        lower_ids[i][0] != lower_ids[i][2]) {
+                        elements.emplace_back(
+                            HexaTag(i, 0, TRI_BOTTOM),
+                            std::vector<int>{lower_ids[i][0], lower_ids[i][1], lower_ids[i][2]});
+                    }
                 }
-            }
-            checker_.addElements(elements);
-           
-             //side and top
-            if (iter_count < MAX_ITER) {
+                checker_.addElements(elements);
+
+                // side and top
+                if (iter_count < MAX_ITER) {
+                    for (auto i : record_point) {
+                        length[i] *= 0.8;
+                    }
+                    record_point.clear();
+                    iter_count++;
+                } else {
+                    for (auto i : record_point) {
+                        length[i] *= 0;
+                    }
+                    record_point.clear();
+                    break;
+                    // spdlog::info("Temporarily revert to using a single normal.");
+                    // multiplySuccess = false;
+                    // return;
+                }
+
+                std::vector<BLVector> grown_coordinate;
+                grown_coordinate.resize(length.size());
+                for (int i = 0; i < coordinate.size(); i++) {
+                    grown_coordinate[i] = {
+                        coordinate[i].x + number_of_layer * length[i] * point_normals[i].x,
+                        coordinate[i].y + number_of_layer * length[i] * point_normals[i].y,
+                        coordinate[i].z + number_of_layer * length[i] * point_normals[i].z};
+                }
+                checker_.addPoint(grown_coordinate);
+
+                int number = 0;
+                for (const auto &tri : connector) {
+                    checker_.addElement(HexaTag(number++, 1, TRI_TOP),
+                                        std::vector<int>{idx(tri[0]), idx(tri[1]), idx(tri[2])});
+                }
+                int i = -1;
+                for (const auto &tri : connector) {
+                    i++;
+                    std::vector<int> candidate = {idx(tri[0]), idx(tri[1]), idx(tri[2])};
+                    if (grown_coordinate[tri[0]] == grown_coordinate[tri[1]] ||
+                        grown_coordinate[tri[0]] == grown_coordinate[tri[2]] ||
+                        grown_coordinate[tri[1]] == grown_coordinate[tri[2]]) {
+                        continue;
+                    }
+                    if (checker_.checkIntersect(candidate)) {
+                        record_point.insert(tri[0]);
+                        record_point.insert(tri[1]);
+                        record_point.insert(tri[2]);
+                        continue;
+                    }
+                }
+            } while (!record_point.empty());
+            std::cout << "finish intersection" << std::endl;
+        } 
+        else {
+            std::set<int> record_point;
+            do {
+                IntersecChecker checker_;
+                BoundingBox box({std::numeric_limits<double>::max(),
+                                 std::numeric_limits<double>::max(),
+                                 std::numeric_limits<double>::max(),
+                                 std::numeric_limits<double>::lowest(),
+                                 std::numeric_limits<double>::lowest(),
+                                 std::numeric_limits<double>::lowest()});
+                for (int i = 0; i < coordinate.size(); i++) {
+                    box[0] = std::min(box[0], coordinate[i].x);
+                    box[1] = std::min(box[1], coordinate[i].y);
+                    box[2] = std::min(box[2], coordinate[i].z);
+                    box[3] = std::max(box[3], coordinate[i].x);
+                    box[4] = std::max(box[4], coordinate[i].y);
+                    box[5] = std::max(box[5], coordinate[i].z);
+                }
+                checker_.init(box);
+
+                // inner
+                int first_id = checker_.addPoint([&]() {
+                    std::vector<BLVector> tmp;
+                    tmp.reserve(lower_num);
+                    for (size_t i = 0; i < lower_num; ++i) {
+                        tmp.emplace_back(v[i][0], v[i][1], v[i][2]);
+                    }
+                    return tmp;
+                }());
+
+                std::vector<std::pair<HexaTag, std::vector<int>>> elements;
+                for (size_t i = 0; i < connector.size(); ++i) {
+                    if (lower_ids[i][0] != lower_ids[i][1] && lower_ids[i][2] != lower_ids[i][1] &&
+                        lower_ids[i][2] != lower_ids[i][0]) {
+                        elements.emplace_back(
+                            HexaTag(i, 0, TRI_BOTTOM),
+                            std::vector<int>{lower_ids[i][0], lower_ids[i][1], lower_ids[i][2]});
+                    }
+                }
+                checker_.addElements(elements);
+
+                // side and top
                 for (auto i : record_point) {
                     length[i] *= 0.8;
                 }
                 record_point.clear();
-                iter_count++;
-            }
-            else{
-                spdlog::info("Temporarily revert to using a single normal.");
-                multiplySuccess = false;
-                return;
-            }
-
-
-            std::vector<BLVector> grown_coordinate;
-            grown_coordinate.resize(length.size());
-            for (int i = 0; i < coordinate.size(); i++) {
-                grown_coordinate[i] = {
-                    coordinate[i].x + number_of_layer * length[i] * point_normals[i].x,
-                    coordinate[i].y + number_of_layer * length[i] * point_normals[i].y,
-                    coordinate[i].z + number_of_layer * length[i] * point_normals[i].z};
-            }
-            checker_.addPoint(grown_coordinate);
-
-            int number = 0;
-            for (const auto &tri : connector) {
-                checker_.addElement(HexaTag(number++, 1, TRI_TOP),
-                                    std::vector<int>{idx(tri[0]), idx(tri[1]), idx(tri[2])});
-            }
-            int i = -1;
-            for (const auto &tri : connector) {
-                i++;
-                std::vector<int> candidate = {idx(tri[0]), idx(tri[1]), idx(tri[2])};
-
-
-                if (checker_.checkIntersect(candidate)) {
-                    record_point.insert(tri[0]);
-                    record_point.insert(tri[1]);
-                    record_point.insert(tri[2]);
-                    continue;
+                std::vector<BLVector> grown_coordinate;
+                grown_coordinate.resize(length.size());
+                for (int i = 0; i < coordinate.size(); i++) {
+                    grown_coordinate[i] = {
+                        coordinate[i].x + number_of_layer * length[i] * point_normals[i].x,
+                        coordinate[i].y + number_of_layer * length[i] * point_normals[i].y,
+                        coordinate[i].z + number_of_layer * length[i] * point_normals[i].z};
                 }
-            }
-        } while (!record_point.empty());
-        std::cout << "finish intersection" << std::endl;
-    }
-    else {
-        std::set<int> record_point;
-        do {
-            IntersecChecker checker_;
-            BoundingBox box({std::numeric_limits<double>::max(),
-                             std::numeric_limits<double>::max(),
-                             std::numeric_limits<double>::max(),
-                             std::numeric_limits<double>::lowest(),
-                             std::numeric_limits<double>::lowest(),
-                             std::numeric_limits<double>::lowest()});
-            for (int i = 0; i < coordinate.size(); i++) {
-                box[0] = std::min(box[0], coordinate[i].x);
-                box[1] = std::min(box[1], coordinate[i].y);
-                box[2] = std::min(box[2], coordinate[i].z);
-                box[3] = std::max(box[3], coordinate[i].x);
-                box[4] = std::max(box[4], coordinate[i].y);
-                box[5] = std::max(box[5], coordinate[i].z);
-            }
-            checker_.init(box);
+                checker_.addPoint(grown_coordinate);
 
-            // inner
-            int first_id = checker_.addPoint([&]() {
-                std::vector<BLVector> tmp;
-                tmp.reserve(lower_num);
-                for (size_t i = 0; i < lower_num; ++i) {
-                    tmp.emplace_back(v[i][0], v[i][1], v[i][2]);
-                }
-                return tmp;
-            }());
+                std::map<std::array<int, 3>, int> visited_faces;
+                int number = 0;
+                for (int i = 0; i < connector.size(); i++) {
 
-            std::vector<std::pair<HexaTag, std::vector<int>>> elements;
-            for (size_t i = 0; i < connector.size(); ++i) {
-                if (lower_ids[i][0] != lower_ids[i][1] && lower_ids[i][2] != lower_ids[i][1] &&
-                    lower_ids[i][2] != lower_ids[i][0]) {
-                    elements.emplace_back(
-                        HexaTag(i, 0, TRI_BOTTOM),
-                        std::vector<int>{lower_ids[i][0], lower_ids[i][1], lower_ids[i][2]});
-                }
-            }
-            checker_.addElements(elements);
+                    bool intersected = false;
+                    std::vector<std::vector<int>> check_candidates;
+                    check_candidates.push_back(
+                        {idx(connector[i][0]), idx(connector[i][1]), idx(connector[i][2])});
 
-            // side and top
-            for (auto i : record_point) {
-                length[i] *= 0.8;
-            }
-            record_point.clear();
-            std::vector<BLVector> grown_coordinate;
-            grown_coordinate.resize(length.size());
-            for (int i = 0; i < coordinate.size(); i++) {
-                grown_coordinate[i] = {
-                    coordinate[i].x + number_of_layer * length[i] * point_normals[i].x,
-                    coordinate[i].y + number_of_layer * length[i] * point_normals[i].y,
-                    coordinate[i].z + number_of_layer * length[i] * point_normals[i].z};
-            }
-            checker_.addPoint(grown_coordinate);
-
-            std::map<std::array<int, 3>, int> visited_faces;
-            int number = 0;
-            for (int i = 0; i < connector.size(); i++) {
-
-                bool intersected = false;
-                std::vector<std::vector<int>> check_candidates;
-                check_candidates.push_back(
-                    {idx(connector[i][0]), idx(connector[i][1]), idx(connector[i][2])});
-
-                // 三法向分裂情况
-                if (lower_ids[i][0] == lower_ids[i][1] && lower_ids[i][2] == lower_ids[i][1]) {
-                    for (int k = 0; k < 3; k++) {
-                        check_candidates.push_back({lower_ids[i][0],
-                                                    idx(connector[i][k]),
-                                                    idx(connector[i][(k + 1) % 3])});
-                    }
-                }
-                // 无法向分裂情况
-                else if (lower_ids[i][0] != lower_ids[i][1] && lower_ids[i][2] != lower_ids[i][1] &&
-                         lower_ids[i][2] != lower_ids[i][0]) {
-                    int k1, k2, k3;
-                    for (int j = 0; j < 3; j++) {
-                        if (lower_ids[i][j] < lower_ids[i][(j + 1) % 3] &&
-                            lower_ids[i][j] < lower_ids[i][(j + 2) % 3]) {
-                            k1 = j;
-                            k2 = (lower_ids[i][(j + 2) % 3] < lower_ids[i][(j + 1) % 3])
-                                   ? (j + 2) % 3
-                                   : (j + 1) % 3;
-                            k3 = (lower_ids[i][(j + 2) % 3] > lower_ids[i][(j + 1) % 3])
-                                   ? (j + 2) % 3
-                                   : (j + 1) % 3;
-                            break;
+                    // 三法向分裂情况
+                    if (lower_ids[i][0] == lower_ids[i][1] && lower_ids[i][2] == lower_ids[i][1]) {
+                        for (int k = 0; k < 3; k++) {
+                            check_candidates.push_back({lower_ids[i][0],
+                                                        idx(connector[i][k]),
+                                                        idx(connector[i][(k + 1) % 3])});
                         }
                     }
-                    check_candidates.push_back(
-                        {lower_ids[i][k1], lower_ids[i][k2], idx(connector[i][k2])});
-                    check_candidates.push_back(
-                        {lower_ids[i][k2], lower_ids[i][k3], idx(connector[i][k3])});
-                    check_candidates.push_back(
-                        {lower_ids[i][k1], lower_ids[i][k3], idx(connector[i][k3])});
-                    check_candidates.push_back(
-                        {lower_ids[i][k1], idx(connector[i][k1]), idx(connector[i][k2])});
-                    check_candidates.push_back(
-                        {lower_ids[i][k1], idx(connector[i][k1]), idx(connector[i][k3])});
-                    check_candidates.push_back(
-                        {lower_ids[i][k2], idx(connector[i][k2]), idx(connector[i][k3])});
-                }
-                // 法向二分情况
-                else {
-                    int k1, k2, k3;
-                    for (int j = 0; j < 3; j++) {
-                        if (lower_ids[i][j] == lower_ids[i][(j + 1) % 3]) {
-                            k1 = j;
-                            k2 = (j + 1) % 3;
-                            k3 = (j + 2) % 3;
-                            break;
+                    // 无法向分裂情况
+                    else if (lower_ids[i][0] != lower_ids[i][1] &&
+                             lower_ids[i][2] != lower_ids[i][1] &&
+                             lower_ids[i][2] != lower_ids[i][0]) {
+                        int k1, k2, k3;
+                        for (int j = 0; j < 3; j++) {
+                            if (lower_ids[i][j] < lower_ids[i][(j + 1) % 3] &&
+                                lower_ids[i][j] < lower_ids[i][(j + 2) % 3]) {
+                                k1 = j;
+                                k2 = (lower_ids[i][(j + 2) % 3] < lower_ids[i][(j + 1) % 3])
+                                       ? (j + 2) % 3
+                                       : (j + 1) % 3;
+                                k3 = (lower_ids[i][(j + 2) % 3] > lower_ids[i][(j + 1) % 3])
+                                       ? (j + 2) % 3
+                                       : (j + 1) % 3;
+                                break;
+                            }
                         }
-                    }
-
-                    if (lower_ids[i][k1] < lower_ids[i][k3]) {
+                        check_candidates.push_back(
+                            {lower_ids[i][k1], lower_ids[i][k2], idx(connector[i][k2])});
+                        check_candidates.push_back(
+                            {lower_ids[i][k2], lower_ids[i][k3], idx(connector[i][k3])});
+                        check_candidates.push_back(
+                            {lower_ids[i][k1], lower_ids[i][k3], idx(connector[i][k3])});
                         check_candidates.push_back(
                             {lower_ids[i][k1], idx(connector[i][k1]), idx(connector[i][k2])});
                         check_candidates.push_back(
                             {lower_ids[i][k1], idx(connector[i][k1]), idx(connector[i][k3])});
                         check_candidates.push_back(
-                            {lower_ids[i][k1], idx(connector[i][k2]), idx(connector[i][k3])});
-                    } else {
-                        check_candidates.push_back(
-                            {lower_ids[i][k3], lower_ids[i][k1], idx(connector[i][k1])});
-                        check_candidates.push_back(
-                            {lower_ids[i][k3], lower_ids[i][k1], idx(connector[i][k2])});
-                        check_candidates.push_back(
-                            {lower_ids[i][k3], idx(connector[i][k3]), idx(connector[i][k1])});
-                        check_candidates.push_back(
-                            {lower_ids[i][k3], idx(connector[i][k3]), idx(connector[i][k2])});
-                        check_candidates.push_back(
-                            {lower_ids[i][k1], idx(connector[i][k2]), idx(connector[i][k1])});
+                            {lower_ids[i][k2], idx(connector[i][k2]), idx(connector[i][k3])});
                     }
-                }
-
-                for (auto candidate : check_candidates) {
-                    // 排序三个点，得到唯一表示
-                    std::array<int, 3> face = {candidate[0], candidate[1], candidate[2]};
-                    std::sort(candidate.begin(), candidate.end());
-                    // 如果没检测过，才做检测
-                    if (visited_faces.find(face) == visited_faces.end()) {
-                        if (checker_.checkIntersect(candidate)) {
-                            intersected = true;
-                            record_point.insert(connector[i][0]);
-                            record_point.insert(connector[i][1]);
-                            record_point.insert(connector[i][2]);
-                            break;
+                    // 法向二分情况
+                    else {
+                        int k1, k2, k3;
+                        for (int j = 0; j < 3; j++) {
+                            if (lower_ids[i][j] == lower_ids[i][(j + 1) % 3]) {
+                                k1 = j;
+                                k2 = (j + 1) % 3;
+                                k3 = (j + 2) % 3;
+                                break;
+                            }
                         }
-                    }
-                }
-                if (!intersected) {
-                    for (auto candidate : check_candidates) {
 
-                        // 排序三个点，得到唯一表示
-                        std::sort(candidate.begin(), candidate.end());
-                        std::array<int, 3> face = {candidate[0], candidate[1], candidate[2]};
-                        std::vector<std::pair<HexaTag, std::vector<int>>> elements;
-                        if (visited_faces.find(face) == visited_faces.end()) {
-                            visited_faces[face] = number;
-                            checker_.addElement(HexaTag(number, 1, TRI_TOP),
-                                                std::vector<int>(face.begin(), face.end()));
-                            number++;
+                        if (lower_ids[i][k1] < lower_ids[i][k3]) {
+                            check_candidates.push_back(
+                                {lower_ids[i][k1], idx(connector[i][k1]), idx(connector[i][k2])});
+                            check_candidates.push_back(
+                                {lower_ids[i][k1], idx(connector[i][k1]), idx(connector[i][k3])});
+                            check_candidates.push_back(
+                                {lower_ids[i][k1], idx(connector[i][k2]), idx(connector[i][k3])});
                         } else {
-                            checker_.removeElement(HexaTag(visited_faces[face], 1, TRI_TOP));
+                            check_candidates.push_back(
+                                {lower_ids[i][k3], lower_ids[i][k1], idx(connector[i][k1])});
+                            check_candidates.push_back(
+                                {lower_ids[i][k3], lower_ids[i][k1], idx(connector[i][k2])});
+                            check_candidates.push_back(
+                                {lower_ids[i][k3], idx(connector[i][k3]), idx(connector[i][k1])});
+                            check_candidates.push_back(
+                                {lower_ids[i][k3], idx(connector[i][k3]), idx(connector[i][k2])});
+                            check_candidates.push_back(
+                                {lower_ids[i][k1], idx(connector[i][k2]), idx(connector[i][k1])});
+                        }
+                    }
+
+                    for (auto candidate : check_candidates) {
+                        // 排序三个点，得到唯一表示
+                        std::array<int, 3> face = {candidate[0], candidate[1], candidate[2]};
+                        std::sort(candidate.begin(), candidate.end());
+                        // 如果没检测过，才做检测
+                        if (visited_faces.find(face) == visited_faces.end()) {
+                            if (checker_.checkIntersect(candidate)) {
+                                intersected = true;
+                                record_point.insert(connector[i][0]);
+                                record_point.insert(connector[i][1]);
+                                record_point.insert(connector[i][2]);
+                                break;
+                            }
+                        }
+                    }
+                    if (!intersected) {
+                        for (auto candidate : check_candidates) {
+
+                            // 排序三个点，得到唯一表示
+                            std::sort(candidate.begin(), candidate.end());
+                            std::array<int, 3> face = {candidate[0], candidate[1], candidate[2]};
+                            std::vector<std::pair<HexaTag, std::vector<int>>> elements;
+                            if (visited_faces.find(face) == visited_faces.end()) {
+                                visited_faces[face] = number;
+                                checker_.addElement(HexaTag(number, 1, TRI_TOP),
+                                                    std::vector<int>(face.begin(), face.end()));
+                                number++;
+                            } else {
+                                checker_.removeElement(HexaTag(visited_faces[face], 1, TRI_TOP));
+                            }
                         }
                     }
                 }
-            }
-        } while (!record_point.empty());
-        
+            } while (!record_point.empty());
         }
-
+    }
     for (int j = 1; j <= number_of_layer; j++) {
         for (int i = 0; i < coordinate.size(); i++) {
 
@@ -1319,34 +1328,33 @@ void MNormalMesh::BuildTopo(int faceCount)
     std::map<std::array<int, 2>, pos> complex_edges_pair;
     std::map<std::array<int, 2>, int> global_far_node_map; // store global point idx for each virtual edge
 
-    for (auto i = node_array.begin(); i != node_array.end(); i++)
-    {
-        auto& local_mesh = i->getFinalMesh();
+    for (auto i = node_array.begin(); i != node_array.end(); i++) {
+        auto &local_mesh = i->getFinalMesh();
 
-        if (local_mesh.getExtraPointCount())
-        {
-            for (int k1 = 0; k1 < local_mesh.boundary_edges_.size(); k1++)
-            {
+        if (local_mesh.getExtraPointCount()) {
+            for (int k1 = 0; k1 < local_mesh.boundary_edges_.size(); k1++) {
                 int k = local_mesh.boundary_edges_[k1][0];
 
                 if (local_mesh.valid.find(k) == local_mesh.valid.end() ||
-                    !local_mesh.virtual_point_lists_[k].isFarNode()) // far point
+                    !local_mesh.virtual_point_lists_[k].isFarNode()) { // far point
                     continue;
+                }
 
                 int index = local_mesh.virtual_point_lists_[k].getGlobalIndex();
 
-                if (node_array[index].getFinalMesh().getExtraPointCount())
-                {
-                    complex_edges_pair[{i->node_id_, index}] = pos();
-                    // TODO: further edge processing
-                }
-                else
-                {
-                    global_far_node_map[{i->node_id_, index}] = index; // just record
+                // --- 统一顺序，小节点在前，大节点在后 ---
+                int u = std::min(i->node_id_, index);
+                int v = std::max(i->node_id_, index);
+
+                if (node_array[index].getFinalMesh().getExtraPointCount()) {
+                    complex_edges_pair[{u, v}] = pos();  // 复杂边
+                } else {
+                    global_far_node_map[{u, v}] = index; // 普通边
                 }
             }
         }
     }
+
 
     // ==============================
     // Step 3: 枚举所有可能连接模式
@@ -1383,13 +1391,12 @@ void MNormalMesh::BuildTopo(int faceCount)
     for (auto edge : complex_edges_pair) {
         int s = edge.first[0];
         int e = edge.first[1];
-        if (s > e) {
-            continue;
-        }
-
         auto &meshs = node_array[s].getFinalMesh();
         auto &meshe = node_array[e].getFinalMesh();
 
+        if (s == 18555) {
+            std::cout << "xy";
+        }
         // --- Collect left active triangles ---
         std::vector<std::pair<int, int>> active_triangles_left;
         for (int i = 0; i < meshs.triangle_lists_.size(); i++) {
@@ -1436,32 +1443,108 @@ void MNormalMesh::BuildTopo(int faceCount)
         }
 
         if (active_triangles_left.size() == 0 || active_triangles_right.size() == 0) {
-            if (!active_triangles_left.empty()) {
+            struct BLVectorHash {
+                std::size_t operator()(const BLVector &v) const
+                {
+                    auto h1 = std::hash<double>{}(v.x);
+                    auto h2 = std::hash<double>{}(v.y);
+                    auto h3 = std::hash<double>{}(v.z);
+
+                    std::size_t seed = h1;
+                    seed ^= h2 + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+                    seed ^= h3 + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+                    return seed;
+                }
+            };
+            auto collectRepeated = [&](VirtualSphereMesh &mesh) {
+                std::unordered_map<BLVector, std::unordered_set<int>, BLVectorHash> coord2global;
+
+                for (const auto &tri : mesh.triangle_lists_) {
+                    for (int v : tri.point_index_) {
+                        int globalIdx = mesh.virtual_point_lists_[v].getGlobalIndex();
+                        const BLVector &point = coordinate[globalIdx];
+
+                        coord2global[point].insert(globalIdx);
+                    }
+                }
+
+                std::unordered_set<int> repeated_set;
+                for (const auto &[point, ids] : coord2global) {
+                    if (ids.size() > 1) {
+                        repeated_set.insert(ids.begin(), ids.end());
+                    }
+                }
+
+                return std::vector<int>(repeated_set.begin(), repeated_set.end());
+            };
+
+            std::vector<int> spoints = collectRepeated(meshs);
+            std::vector<int> epoints = collectRepeated(meshe);
+
+            std::vector<std::pair<int, int>> results;
+            for (const auto &arr : connector) {
+                int foundS = -1;
+                int foundE = -1;
+
+                // 查找 s 中的任意一个值
+                for (int x : arr) {
+                    if (std::find(spoints.begin(), spoints.end(), x) != spoints.end()) {
+                        foundS = x;
+                        break;
+                    }
+                }
+
+                // 查找 e 中的任意一个值
+                for (int x : arr) {
+                    if (std::find(epoints.begin(), epoints.end(), x) != epoints.end()) {
+                        foundE = x;
+                        break;
+                    }
+                }
+
+                if (foundS != -1 && foundE != -1) {
+                    results.emplace_back(foundS, foundE);
+                }
+            }
+
+
+            if (active_triangles_right.empty()) {
                 for (auto &tri_info : active_triangles_left) {
                     std::array<int, 3> new_tri;
                     auto &tri = meshs.triangle_lists_[tri_info.first];
                     for (int j = 0; j < 3; j++) {
-                        new_tri[j] =
-                            meshs.virtual_point_lists_[tri.point_index_[j]].getGlobalIndex();
+                        if (meshs.virtual_point_lists_[tri.point_index_[j]].getGlobalIndex() == e) {
+                            new_tri[j] = results[0].second;
+                        } else {
+                            new_tri[j] =
+                                meshs.virtual_point_lists_[tri.point_index_[j]].getGlobalIndex();
+                        }
                     }
                     tri.added_flag = true;
                     connector.push_back(new_tri);
                     attribute.push_back(new_attribute);
                 }
-            } else if (!active_triangles_right.empty()) {
+            } 
+            else if (active_triangles_left.empty()) {
+
                 for (auto &tri_info : active_triangles_right) {
                     std::array<int, 3> new_tri;
                     auto &tri = meshe.triangle_lists_[tri_info.first];
                     for (int j = 0; j < 3; j++) {
-                        new_tri[j] =
-                            meshe.virtual_point_lists_[tri.point_index_[j]].getGlobalIndex();
+                        if (meshe.virtual_point_lists_[tri.point_index_[j]].getGlobalIndex() == s) {
+                            new_tri[j] = results[0].first;
+                        } else {
+                            new_tri[j] =
+                                meshe.virtual_point_lists_[tri.point_index_[j]].getGlobalIndex();
+                        }
                     }
                     tri.added_flag = true;
                     connector.push_back(new_tri);
                     attribute.push_back(new_attribute);
                 }
             }
-        } else {
+        } 
+        else {
 
             // --- Determine combination ---
             auto combination =
@@ -1653,9 +1736,17 @@ void MNormalMesh::BuildTopo(int faceCount)
                     continue;
 
                 std::array<int, 3> new_tri;
-                for (int j = 0; j < 3; j++)
-                    new_tri[j] = local_mesh.virtual_point_lists_[k.point_index_[j]].getGlobalIndex();
+            for (int j = 0; j < 3; j++)
+            {
+                new_tri[j] =
+                    local_mesh.virtual_point_lists_[k.point_index_[j]].getGlobalIndex();
 
+                // ===== 调试断点条件 =====
+                if (new_tri[j] == 1786 || new_tri[j] == 1789)
+                {
+                    volatile int debug_break = 1; // ← 在这一行打断点
+                }
+            }
                 connector.push_back(new_tri);
                 attribute.push_back(new_attribute);
             }

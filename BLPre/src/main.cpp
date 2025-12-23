@@ -1000,4 +1000,113 @@ bool isnear(int pidx, int eidx, double *pt, int npt, int *elm)
 	return false;
 }
 
+void multiply(blpreConfig blcf,
+              std::string &f,
+              std::vector<std::array<double, 3>> &points,
+              ControlVolume &cv1,
+              ControlVolume &cv2)
+{
+    vector<int> symm = blcf.symm;
+    vector<int> wall = blcf.wall;
+    vector<int> box = blcf.box;
+    vector<int> match = blcf.match;
+    vector<int> per_face;
+    vector<int> adjacent_face = blcf.adjacent;
+    bool fast_intersection = blcf.fast_intersection;
+    bool exist_prism = blcf.preMultiple;
+    for (auto i : blcf.per) {
+        per_face.push_back(i);
+        symm.push_back(i);
+    }
+    int faceCount = symm.size() + wall.size() + box.size() + match.size() + adjacent_face.size();
+    int n = blcf.n;
+    double len = blcf.len;
+    double Ro = blcf.Ro;
+    int argc = 1;
+    bool use_multiple_normals = blcf.use_multiple_normals;
+    char *argv[10];
+    string mfile = "";
+    if (use_multiple_normals) {
+        // --- Step 1: split points by faceID ---
+        std::vector<std::array<double, 3>> points_multiply, points_nonwall;
+        std::string f_multiply, f_nonwall;
+
+        splite_by_faceID(points, points_multiply, points_nonwall, f, f_multiply, f_nonwall, wall);
+
+        spdlog::info("finish splite.");
+
+        // for fallback
+        bool multiplySuccess = true;
+
+        // --- Step 2: map point → length ---
+        std::map<std::array<double, 3>, double> point_to_length;
+        if (!blcf.length_vec.empty()) {
+            for (int i = 0; i < points.size(); i++) {
+                point_to_length[points[i]] = blcf.length_vec[i];
+            }
+        }
+
+        // --- Step 3: prism pre-layer processing ---
+        if (exist_prism) {
+            ChamferBehavior behavior;
+            MNormalMesh chamfer;
+
+            chamfer.number_of_layer = 1;
+            chamfer.step_of_length = blcf.multiple_steplength;
+            chamfer.point_to_length = point_to_length;
+            chamfer.fast_intersection = fast_intersection;
+
+            chamfer.SetBehavior(behavior);
+            chamfer.ReadPlsBuf(f_multiply, points_multiply);
+
+            chamfer.CalculateMultiNormal();
+            chamfer.BuildTopo(faceCount);
+
+            spdlog::info("Handling output mesh!");
+
+            chamfer.pre_WriteVol(cv2.v, cv2.f, cv2.lower_point_num, cv2.add_point_num);
+
+            if (chamfer.multiplySuccess) {
+                chamfer.WriteMesh(f_multiply, points_multiply, blcf.len);
+                spdlog::info("PreJob Finished.");
+            } else {
+                multiplySuccess = chamfer.multiplySuccess;
+            }
+        }
+
+        // --- Step 4: actual multilayer extrusion ---
+        if (blcf.multiple_numlayer > 0 && multiplySuccess) {
+            ChamferBehavior behavior;
+            MNormalMesh chamfer;
+
+            chamfer.number_of_layer = blcf.multiple_numlayer;
+            chamfer.step_of_length = blcf.multiple_steplength;
+            chamfer.point_to_length = point_to_length;
+            chamfer.fast_intersection = fast_intersection;
+            chamfer.exist_prism = exist_prism;
+
+            chamfer.SetBehavior(behavior);
+            chamfer.ReadPlsBuf(f_multiply, points_multiply);
+
+            spdlog::info("Done!");
+
+            chamfer.CalculateMultiNormal();
+            chamfer.BuildTopo(faceCount);
+
+            spdlog::info("Handling output mesh!");
+            chamfer.WriteVol(cv1.v, cv1.f, cv1.lower_point_num, cv1.add_point_num);
+
+            if (chamfer.multiplySuccess) {
+                chamfer.WriteMesh(f_multiply, points_multiply, blcf.len);
+            }
+        } else {
+            spdlog::info("Skipping Chamfer processing because number_of_layer is 0");
+        }
+
+        // --- Step 5: merge back into original mesh ---
+        combine_by_faceID(points, points_multiply, points_nonwall, f, f_multiply, f_nonwall);
+
+        spdlog::info("Job Finished.");
+    }
+}
 }
