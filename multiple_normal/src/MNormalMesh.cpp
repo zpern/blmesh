@@ -345,11 +345,14 @@ void MNormalMesh::pre_WriteVol(std::vector<std::array<double, 3>> &v,std::vector
                 }
                 iter_count++;
             } else {
-                 for (auto i : record_point) {
-                        length[i] *= 0;
-                    }
-                    record_point.clear();
-                    break;
+                 //for (auto i : record_point) {
+                 //       length[i] *= 0;
+                 //   }
+                 //   record_point.clear();
+                    //break;
+                spdlog::info("Temporarily revert to using a single normal.");
+                multiplySuccess = false;
+                return;
             }
             record_point.clear();
 
@@ -739,14 +742,14 @@ void MNormalMesh::WriteVol(std::vector<std::array<double, 3>> &v,std::vector<std
                     record_point.clear();
                     iter_count++;
                 } else {
-                    for (auto i : record_point) {
-                        length[i] *= 0;
-                    }
-                    record_point.clear();
-                    break;
-                    // spdlog::info("Temporarily revert to using a single normal.");
-                    // multiplySuccess = false;
-                    // return;
+                    //for (auto i : record_point) {
+                    //    length[i] *= 0;
+                    //}
+                    //record_point.clear();
+                    //break;
+                     spdlog::info("Temporarily revert to using a single normal.");
+                     multiplySuccess = false;
+                     return;
                 }
 
                 std::vector<BLVector> grown_coordinate;
