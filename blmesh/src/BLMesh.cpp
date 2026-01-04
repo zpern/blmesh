@@ -3151,6 +3151,7 @@ void BLMesh::GenerateBLMesh()
 
 			blNod = blFrtNods[i];
 			iNod = blNod->GetNodIdx();
+
 #ifdef _GEOM_NORMAL
 
 			BLNode *blNods[MAX_FRONT_NODES], *neigNods[2]; // , * blNodNew;
@@ -3522,6 +3523,8 @@ void BLMesh::GenerateBLMesh()
 #ifdef USE_OPENMP
 #pragma omp parallel for
 #endif // USE_OPENMP
+
+
 		for (int i = 0; i < nFrtNods; i++)
 		{
 
@@ -3622,7 +3625,11 @@ void BLMesh::GenerateBLMesh()
 			// 				normal = blNod->GetNormal();
 			// 			else
 			normal = blNod->GetHeight();
+			iNod = blNod->GetNodIdx();
 
+            if (iNod == 36597) {
+                std::cout << "xyhs";
+			}
 			if (iLayer == 0 && !blNod->GetStopFlag())
 			{
 				min_height_first_layer = std::min(min_height_first_layer, normal.magnitude());
@@ -4892,16 +4899,14 @@ void BLMesh::PreCheckPrismValid(BLFront *blFront)
 		
 	}
 #endif
-
-
-	up_front_normal = up_front_normal * (blFront->m_pBLNods[0]->GetHeightLength()+blFront->GetFrontSize()*0.1);
+	up_front_normal = up_front_normal * (blFront->m_pBLNods[0]->GetHeightLength()/*+blFront->GetFrontSize()*0.1*/);
 	BLVector startpos(0,0,0);
 	for (int i = 0; i < 3; i++)
 		for (int j = 0; j < 3; j++)
 			startpos[j] += m_pNodes[conn[i]].coord[j];
 	startpos = startpos / 3;
 
-	if (m_ocTree->chckIntersectWithLine(startpos+ up_front_normal*0.25, startpos + up_front_normal) < 0.95) {
+	if (m_ocTree->chckIntersectWithLine(startpos+ up_front_normal*0.25, startpos + up_front_normal) < 1) {
 		blFront->is_prism_valid = 0;
 #ifdef _DEBUG
 		cout << "=====================================" << endl;
