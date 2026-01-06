@@ -48,11 +48,15 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 # 设置stack commit size.    (stack reserve size? How)
-if(MSVC)
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:200000000")
-elseif(MINGW)
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--stack,200000000")
+# 只在 Windows 上设置栈大小；Linux/Unix 不要碰
+if(WIN32)
+  if(MSVC)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:200000000")
+  elseif(MINGW)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--stack,200000000")
+  endif()
 endif()
+
 
 IF (CMAKE_SYSTEM_NAME MATCHES "Windows")
 add_definitions(

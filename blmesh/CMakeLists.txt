@@ -116,6 +116,9 @@ ${SOURCEFILE}
 src/main.cpp
 )
 if(WIN32)
+  target_link_libraries(blmesh PRIVATE psapi)
+endif()
+if(WIN32)
 target_link_libraries(
 blmesh
 
