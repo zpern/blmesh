@@ -38,8 +38,9 @@ public:
 	~MeshInfo(void);
 	void RemoveBarePoint(int nPt, int nElm, int *Elm);
 	void Initialize(double* point_array,int nPt, int nElm, int *Elm);
-	void CalPntElm();
 
+    void CheckDuplicateFacesOrThrow();
+	void CalPntElm();
 	void CalElmNeig();
 	bool IsElmEdge(int eidx, int idx1, int idx2, int *pidx);
 	void GetBdryPt(int *npt, int **pt);

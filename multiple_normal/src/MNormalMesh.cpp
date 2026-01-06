@@ -23,7 +23,7 @@ void MNormalMesh::SetBehavior(ChamferBehavior& behavior)
 {
 	behavior_ = behavior;
 }
-
+#pragma optimize("",off);
 void MNormalMesh::ReadPlsBuf(std::string f,
                              std::vector<std::array<double, 3>>& points) {
         std::istringstream fin(f);
@@ -66,10 +66,8 @@ void MNormalMesh::ReadPlsBuf(std::string f,
 
 
           for (int k = 0; k < 3; k++) connector[i][k]--;  // start from 0
-          for (int k = 0; k < 3; k++)
-            graph[connector[i][k]].push_back(connector[i]);
-          for (int k = 0; k < 3; k++)
-            node_array[connector[i][k]].neighbour_front_index_.push_back(i);
+          for (int k = 0; k < 3; k++) graph[connector[i][k]].push_back(connector[i]);
+          for (int k = 0; k < 3; k++) node_array[connector[i][k]].neighbour_front_index_.push_back(i);
         }
 
         for (int i = 0; i < number_of_point; i++) {
@@ -92,6 +90,8 @@ void MNormalMesh::ReadPlsBuf(std::string f,
              for (const auto &j : graph[i]) {
                  count_map[j[0]]++;
              }
+
+             // 寻找只出现一次的 j[0]
              for (const auto& j : graph[i]) {
                  if (count_map.find(j[1]) != count_map.end()) {
                      count_map[j[1]]++;
@@ -126,7 +126,7 @@ void MNormalMesh::ReadPlsBuf(std::string f,
         CalculateNodeNormal();
 
 }
-
+#pragma optimize("",on);
 void MNormalMesh::ReadPls(std::string filename)
 {
 

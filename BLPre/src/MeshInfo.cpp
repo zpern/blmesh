@@ -3,6 +3,7 @@
  #include <vector>
 #include <iostream>
 #include <stdexcept>
+#include <sstream>
 
 MeshInfo::~MeshInfo(void)
 {
@@ -83,10 +84,44 @@ void MeshInfo::Initialize(double* point_array,int nPt, int nElm, int *Elem)
 		m_pElm[i].igeom = Elem[(nconn+1)*i + nconn];
 	}
 	RemoveBarePoint(nPt,nElm,Elem);
+	CheckDuplicateFacesOrThrow();
 	CalPntElm();
 	CalElmNeig();
 }
+void MeshInfo::CheckDuplicateFacesOrThrow()
+{
+    std::map<std::array<int,3>, int> seen; // key -> first elem index
 
+    for (int i = 0; i < m_nElm; ++i) {
+        // 只针对三角形面：conn[0..2]
+        int a = m_pElm[i].conn[0];
+        int b = m_pElm[i].conn[1];
+        int c = m_pElm[i].conn[2];
+
+        // 可选：退化三角形也报错
+        if (a == b || b == c || a == c) {
+            throw std::logic_error("degenerate triangle at elem " + std::to_string(i));
+        }
+
+        std::array<int,3> key{a,b,c};
+        std::sort(key.begin(), key.end());  // 与顺序无关：{1,2,3} 和 {1,3,2} 会变成同一个 key
+
+        auto it = seen.find(key);
+        if (it != seen.end()) {
+            int j = it->second;
+            // 更详细也可以 spdlog 输出 i/j 的原始顺序、igeom 等
+            throw std::logic_error(
+                "overlapped faces: elem " + std::to_string(j) +
+                " and elem " + std::to_string(i) +
+                " share same vertices (" +
+                std::to_string(key[0]) + "," +
+                std::to_string(key[1]) + "," +
+                std::to_string(key[2]) + ")"
+            );
+        }
+        seen.emplace(key, i);
+    }
+}
 void MeshInfo::CalPntElm()
 {
 	int i, j, start, *idx, *pelem;
@@ -207,7 +242,65 @@ void MeshInfo::CalElmNeig()
 			}
 		}
 	}
+	if (dim == DIM3)
+{
+    auto edge_key = [](uint32_t a, uint32_t b) -> uint64_t {
+        if (a > b) std::swap(a, b);           // 无向边：排序
+        return (uint64_t(a) << 32) | uint64_t(b);
+    };
 
+    // 每条边 -> 关联的(单元id, 该边在单元中的局部边号k)
+    std::unordered_map<uint64_t, std::vector<std::pair<int,int>>> edge2inc;
+    edge2inc.reserve(static_cast<size_t>(nElm) * 3);
+
+    for (int ei = 0; ei < nElm; ++ei)
+    {
+        for (int k = 0; k < 3; ++k)
+        {
+            // 与你原逻辑保持一致：k 对应“对边”，边端点是 (k+1)%3 与 (k+2)%3
+            uint32_t a = static_cast<uint32_t>(m_pElm[ei].conn[(k + 1) % 3]);
+            uint32_t b = static_cast<uint32_t>(m_pElm[ei].conn[(k + 2) % 3]);
+            edge2inc[edge_key(a, b)].push_back({ei, k});
+        }
+    }
+
+    for (const auto& kv : edge2inc)
+    {
+        const uint64_t key = kv.first;
+        const auto& inc = kv.second;
+
+        if (inc.size() >= 3)
+        {
+            uint32_t p0 = static_cast<uint32_t>(key >> 32);
+            uint32_t p1 = static_cast<uint32_t>(key & 0xffffffffu);
+
+            std::ostringstream oss;
+            oss << "[";
+            for (size_t t = 0; t < inc.size(); ++t)
+            {
+                int eid = inc[t].first;
+                oss << eid;
+                if (t + 1 < inc.size()) oss << ",";
+            }
+            oss << "]";
+
+            printf("error: non-manifold edge (%u, %u), incident elms = %s\n",
+                   p0, p1, oss.str().c_str());
+            spdlog::info("non-manifold edge ({}, {}), incident elms = {}\n",
+                         p0, p1, oss.str());
+
+            // 额外打印每个关联三角形，便于定位
+            for (auto [eid, lk] : inc)
+            {
+                spdlog::info("  elm {} (igeom={}) conn=({}, {}, {}) localEdgeK={}\n",
+                    eid, m_pElm[eid].igeom,
+                    m_pElm[eid].conn[0], m_pElm[eid].conn[1], m_pElm[eid].conn[2], lk);
+            }
+
+            throw std::logic_error("non-manifold edge!");
+        }
+    }
+}
 	int ineig;
 	for (i=0; i<nElm; i++)
 	{

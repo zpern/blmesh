@@ -999,7 +999,7 @@ bool isnear(int pidx, int eidx, double *pt, int npt, int *elm)
 
 	return false;
 }
-
+#pragma optimize("",off);
 void multiply(blpreConfig blcf,
               std::string &f,
               std::vector<std::array<double, 3>> &points,
@@ -1427,6 +1427,7 @@ void multiply(blpreConfig blcf,
 		delete[]pSymFidx;
 		pSymFidx = nullptr;
 	}
+
     if (use_multiple_normals) {
         // --- Step 1: split points by faceID ---
         std::vector<std::array<double, 3>> points_multiply, points_nonwall;
@@ -1511,3 +1512,4 @@ void multiply(blpreConfig blcf,
     }
 }
 }
+#pragma optimize("",on);
