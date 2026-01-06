@@ -115,9 +115,9 @@ add_executable(blmesh
 ${SOURCEFILE}
 src/main.cpp
 )
-if(WIN32)
-  target_link_libraries(blmesh PRIVATE psapi)
-endif()
+
+
+
 if(WIN32)
 target_link_libraries(
 blmesh
@@ -136,7 +136,7 @@ libpostprocess
 tetgen
 2dremesh
 triangle
-
+psapi
 -Wl,--end-group
 )
 else()
