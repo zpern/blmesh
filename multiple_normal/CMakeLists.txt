@@ -83,12 +83,7 @@ src/main.cpp
 )
 target_link_libraries(MeshChamfer PUBLIC libgeom)
 
-if(MSVC)
-# MSVC 编译器使用 /STACK
-set_target_properties(MeshChamfer PROPERTIES LINK_FLAGS "/STACK:200000000")
-elseif(MINGW)
-# MinGW 使用 -Wl,--stack
-set_target_properties(MeshChamfer PROPERTIES LINK_FLAGS "-Wl,--stack,200000000")
-else()
-# 其他编译器
-endif()
+target_link_options(MeshChamfer PRIVATE
+  $<$<CXX_COMPILER_ID:MSVC>:/STACK:200000000>
+  $<$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>:-Wl,--stack,200000000>
+)
