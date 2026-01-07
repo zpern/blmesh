@@ -108,12 +108,3 @@ DESTINATION  "${CMAKE_BINARY_DIR}/include")
 #  "${PROJECT_SOURCE_DIR}/DTIso3D.h.in"
 #  "${PROJECT_BINARY_DIR}/DTIso3D.h"
 #  )
-if(MSVC)
-# MSVC 编译器使用 /STACK
-set_target_properties(DTIso3D PROPERTIES LINK_FLAGS "/STACK:200000000")
-elseif(MINGW)
-# MinGW 使用 -Wl,--stack
-set_target_properties(DTIso3D PROPERTIES LINK_FLAGS "-Wl,--stack,200000000")
-else()
-# 其他编译器
-endif()
