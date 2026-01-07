@@ -79,9 +79,9 @@ add_definitions(
 ENDIF ()
 
 # 设置stack commit size.    (stack reserve size? How)
-IF (WIN32)  
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:200000000")
-ENDIF()
+# IF (WIN32)  
+# set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:200000000")
+# ENDIF()
 
 # 设置头文件路径
 include_directories (
@@ -99,6 +99,15 @@ link_directories(${CMAKE_BINARY_DIR}/lib)
 # 设置生成可执行程序
 add_executable(dtiso3d ${DTISO3D_SRC})
 
+if(MSVC)
+# MSVC 编译器使用 /STACK
+set_target_properties(dtiso3d PROPERTIES LINK_FLAGS "/STACK:200000000")
+elseif(MINGW)
+# MinGW 使用 -Wl,--stack
+set_target_properties(dtiso3d PROPERTIES LINK_FLAGS "-Wl,--stack,200000000")
+else()
+# 其他编译器
+endif()
 # 设置链接的库
 target_link_libraries(dtiso3d PUBLIC libspr)
 target_link_libraries(dtiso3d PUBLIC tetgen)
