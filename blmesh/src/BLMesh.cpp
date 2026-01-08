@@ -6301,13 +6301,16 @@ void BLMesh::UpdateSymmetry()
 			int idx1 = nei[i]->GetNodIdx();
 			int idx2 = nei[(i + 1) % 3]->GetNodIdx();
 			int idx3 = nei[(i + 2) % 3]->GetNodIdx();
+						const auto& isymfc1 = m_pNodes[idx1].isymfc;
+			const auto& isymfc2 = m_pNodes[idx2].isymfc;
 
-			// 获取 isymfc 的两个节点的 set
-			auto& isymfc1 = m_pNodes[idx1].isymfc;
-			auto& isymfc2 = m_pNodes[idx2].isymfc;
 
-            std::sort(isymfc1.begin(), isymfc1.end());
-            std::sort(isymfc2.begin(), isymfc2.end());
+			//// 获取 isymfc 的两个节点的 set
+			//auto& isymfc1 = m_pNodes[idx1].isymfc;
+			//auto& isymfc2 = m_pNodes[idx2].isymfc;
+
+   //         std::sort(isymfc1.begin(), isymfc1.end());
+   //         std::sort(isymfc2.begin(), isymfc2.end());
 
 			// 使用 set_intersection 检查是否有公共单元
             std::set<int> intersection;
