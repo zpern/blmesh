@@ -3153,7 +3153,9 @@ void BLMesh::GenerateBLMesh()
 			iNod = blNod->GetNodIdx();
 
 #ifdef _GEOM_NORMAL
-
+			if (iNod == 101) {
+				std::cout<<"xy";
+			}
 			BLNode *blNods[MAX_FRONT_NODES], *neigNods[2]; // , * blNodNew;
 			normn = blNod->GetNormal(m_pNodes, NORMALTYPE);
 
@@ -4659,6 +4661,7 @@ void BLMesh::Propagate()
 		for (i = 0; i < 3; i++)
 		{
 			int iidn = blNods[i]->GetNodIdx();
+
 			if (blNods[i]->GetStopFlag()||!blNods[i]->GetUpperNode())
 			{
 				bCreateFront = false;
@@ -4827,8 +4830,10 @@ void BLMesh::PreCheckPrismValid(BLFront *blFront)
 	blFront->is_prism_valid = 1;
 	for (int i = 0; i < nNods; i++) {
 		blNod = blNods[i];
+
 		if (up_front_normal * blNods[i]->GetNormal() < 1e-6)
-		{
+		{				
+
 			blFront->is_prism_valid = 0;
 #ifdef _DEBUG
 			cout << "prism normal invalid skness! value = " << up_front_normal * blNods[i]->GetNormal() << endl;;
@@ -4853,6 +4858,7 @@ void BLMesh::PreCheckPrismValid(BLFront *blFront)
 	for (i = 0; i < nNods; i++)
 	{
 		blNod = blNods[i];
+
 		if (blNod->GetNormal() * blFront->GetNormal() < throushold || blNod->GetNormal() * up_front_normal < throushold)
 		{
 

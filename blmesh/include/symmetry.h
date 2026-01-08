@@ -53,7 +53,7 @@ namespace TiGER {
 		*/
 
         void adjustNormal(const Eigen::RowVector3d& point, Eigen::RowVector3d& normal, bool boundary = false) {
-            Eigen::RowVector3d endpoint = point + normal;
+            Eigen::RowVector3d endpoint = point + normal*reference_length;
             Eigen::RowVector3d nep;
             if (boundary) {
                 nep= projectToLoop(V_, L_, endpoint);
