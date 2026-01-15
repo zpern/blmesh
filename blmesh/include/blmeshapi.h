@@ -8,6 +8,7 @@
 #include <vector>
 #include <functional>
 #include <array>
+#include <tuple>
 #include <map>
 #include <set>
 #include "BLMesh_define.h"
@@ -54,19 +55,20 @@
 
 
 
-#ifdef APIFUNC
 
+
+#ifdef APIFUNC 
 VM blmesh(std::tuple<std::string, double*, int*, int*, std::vector<double>> sfile,
 	blpreConfig blconfig,
-	bool genoutmesh, 
-	bool genboundarymesh, 
+	bool genoutmesh,
+	bool genboundarymesh,
 	bool havepyramid,
 	double isostop,
-	bool outputIO, 
+	bool outputIO,
 	std::function<double(std::array<double, 3>)> sizefunction,
 	double expan_beta,
 	int number_opt,
-	std::array<double, 12> per_matrix= std::array<double, 12>());
+	std::array<double, 12> per_matrix = std::array<double, 12>());
 #endif
 
 #endif

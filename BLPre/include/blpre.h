@@ -20,6 +20,7 @@ struct blpreConfig {
 	vector<int> per;
 	vector<int> adjacent;
 	double max_equal_skewnwass;
+	double max_centroid_skewness;
 	bool use_multiple_normals;
 	int multiple_numlayer;
     double multiple_steplength;
