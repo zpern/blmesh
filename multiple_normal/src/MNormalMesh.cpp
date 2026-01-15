@@ -299,6 +299,7 @@ void MNormalMesh::pre_WriteVol(std::vector<std::array<double, 3>> &v,std::vector
         std::set<int> record_point;
         int iter_count = 0;
         const int Max_iter = 30;
+        bool zero_step_retry_done = false;
         do {
             IntersecChecker checker_;
             BoundingBox box({std::numeric_limits<double>::max(),
@@ -340,21 +341,30 @@ void MNormalMesh::pre_WriteVol(std::vector<std::array<double, 3>> &v,std::vector
 
             // side and top
             if (iter_count < Max_iter) {
+                // 常规回退：相交点步长缩小
                 for (auto i : record_point) {
                     length[i] *= 0.8;
                 }
                 iter_count++;
+                record_point.clear();
+                // continue;  // 让外层重新跑一遍检测（如果你是 while/for 结构）
             } else {
-                 //for (auto i : record_point) {
-                 //       length[i] *= 0;
-                 //   }
-                 //   record_point.clear();
-                    //break;
-                spdlog::info("Temporarily revert to using a single normal.");
-                multiplySuccess = false;
-                return;
+                // 已经到最大次数：先做一次“步长置0重试”
+                if (!zero_step_retry_done) {
+                    for (auto i : record_point) {
+                        length[i] = 0.0;
+                    }
+                    zero_step_retry_done = true;
+                    record_point.clear();
+                    // continue;  // 重新跑一遍相交检测（只允许这一次）
+                } 
+                //else {
+                //    // 置0重试后仍相交：退出
+                //    spdlog::info("Temporarily revert to using a single normal.");
+                //    multiplySuccess = false;
+                //    return;
+                //}
             }
-            record_point.clear();
 
             std::vector<BLVector> grown_coordinate;
             grown_coordinate.resize(length.size());
@@ -644,7 +654,7 @@ void MNormalMesh::pre_WriteVol(std::vector<std::array<double, 3>> &v,std::vector
     }
     return;
     }
-
+#pragma optimize("",off);
 void MNormalMesh::WriteVol(std::vector<std::array<double, 3>> &v,std::vector<std::vector<int>> &f,int &lower_num,int &add_point_num)
 {
     std::map<std::array<double, 3>, int> coord_to_id;
@@ -695,6 +705,7 @@ void MNormalMesh::WriteVol(std::vector<std::array<double, 3>> &v,std::vector<std
             std::set<int> record_point;
             int iter_count = 0;      // 加循环计数
             const int MAX_ITER = 30; // 最大迭代次数
+            bool zero_step_retry_done = false;
             do {
                 IntersecChecker checker_;
                 BoundingBox box({std::numeric_limits<double>::max(),
@@ -736,20 +747,29 @@ void MNormalMesh::WriteVol(std::vector<std::array<double, 3>> &v,std::vector<std
 
                 // side and top
                 if (iter_count < MAX_ITER) {
+                    // 常规回退：相交点步长缩小
                     for (auto i : record_point) {
                         length[i] *= 0.8;
                     }
-                    record_point.clear();
                     iter_count++;
+                    record_point.clear();
+                    // continue;  // 让外层重新跑一遍检测（如果你是 while/for 结构）
                 } else {
-                    //for (auto i : record_point) {
-                    //    length[i] *= 0;
+                    // 已经到最大次数：先做一次“步长置0重试”
+                    if (!zero_step_retry_done) {
+                        for (auto i : record_point) {
+                            length[i] *= 0.0;
+                        }
+                        zero_step_retry_done = true;
+                        record_point.clear();
+                        break;
+                    } 
+                    //else {
+                    //    // 置0重试后仍相交：退出
+                    //    spdlog::info("Temporarily revert to using a single normal.");
+                    //    multiplySuccess = false;
+                    //    return;
                     //}
-                    //record_point.clear();
-                    //break;
-                     spdlog::info("Temporarily revert to using a single normal.");
-                     multiplySuccess = false;
-                     return;
                 }
 
                 std::vector<BLVector> grown_coordinate;
@@ -1062,7 +1082,7 @@ void MNormalMesh::WriteVol(std::vector<std::array<double, 3>> &v,std::vector<std
 
     return;
     }
-
+    #pragma optimize("",on);
 void MNormalMesh::WriteMesh(std::string& f, std::vector<std::array<double, 3>>& points, double len)
 {
 
