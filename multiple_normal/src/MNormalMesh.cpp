@@ -298,7 +298,7 @@ void MNormalMesh::pre_WriteVol(std::vector<std::array<double, 3>> &v,std::vector
     if(fast_intersection) {
         std::set<int> record_point;
         int iter_count = 0;
-        const int Max_iter = 30;
+        const int Max_iter = 20;
         bool zero_step_retry_done = false;
         do {
             IntersecChecker checker_;
@@ -704,7 +704,7 @@ void MNormalMesh::WriteVol(std::vector<std::array<double, 3>> &v,std::vector<std
         if (fast_intersection) {
             std::set<int> record_point;
             int iter_count = 0;      // 加循环计数
-            const int MAX_ITER = 30; // 最大迭代次数
+            const int MAX_ITER = 20; // 最大迭代次数
             bool zero_step_retry_done = false;
             do {
                 IntersecChecker checker_;

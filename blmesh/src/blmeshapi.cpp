@@ -65,7 +65,7 @@ void main(int argc, char* argv[]) {
     cf.smooth_attempt = number_opt;
     strcpy(cf.filenam, "virtualmesh");
     cf.layer_ratio = 0;
-    cf.max_equal_skewnwass = blconfig.max_equal_skewnwass;
+    cf.max_equal_skewness = blconfig.max_equal_skewness;
     cf.max_layer_diff = blconfig.max_layer_diff;
 
 

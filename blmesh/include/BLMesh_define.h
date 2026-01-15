@@ -209,7 +209,7 @@ struct ConfigArgc {
 	int smooth_attempt;
 
 	double min_volumn_eps;
-	double max_equal_skewnwass;
+	double max_equal_skewness;
 	int max_layer_diff;
 
 	/*do not generate bdylayermesh */
@@ -258,7 +258,7 @@ static void SetDefaultConfig(ConfigArgc &cf)
 	cf.ratio1 = 1.2;
 	cf.ratio2 = 1.2;
 	cf.layer_ratio = 5;
-	cf.max_equal_skewnwass = 0.98;
+	cf.max_equal_skewness = 0.98;
 }
 
 

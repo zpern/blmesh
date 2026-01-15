@@ -165,7 +165,7 @@ public:
 	bool m_bSymm;
 	bool isSimple;  //simplenode
 	bool is_boundary_;//表征是否为前沿
-
+	int shrink_retry = 0;
 public:
 	std::array<BLFront*,3> m_arrNeigFronts;
 	short m_nNeiFront;

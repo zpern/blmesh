@@ -2977,8 +2977,8 @@ bool BLMesh::IsSymBdryDelete(int i)
 /**
  * @brief Key function in generating boundary layer mesh
  * @author yhf
- * @note Big function                                                                                                  \
- */                                                                                                                    \
+ * @note Big function                                                                                                  
+ */                                                                                                                    
 
 void BLMesh::GenerateBLMesh()
 {
@@ -5577,9 +5577,9 @@ bool BLMesh::CheckPyramidValid(double coordinates[][3])
 		equal_angle_skewness = max(equal_angle_skewness, min_skew);
 	}
 
-	if (cf.max_equal_skewnwass < 0.1)
+	if (cf.max_equal_skewness < 0.1)
 		throw(std::logic_error("maximum equal skewnwass is too small!"));
-	if (equal_angle_skewness > cf.max_equal_skewnwass) {
+	if (equal_angle_skewness > cf.max_equal_skewness) {
 #ifdef _DEBUG
 		cout << "pyramid skewnwss";
 #endif
@@ -6794,11 +6794,11 @@ bool BLMesh::CheckPrismSkewness(int nconn, int *conn)
 		double min_skew = abs(eq_angle - angle) / eq_angle;
 		equal_angle_skewness = max(equal_angle_skewness, min_skew);
 	}
-	if (cf.max_equal_skewnwass < 0.1)
-		throw(std::logic_error("maximum equal skewnwass is too small!"));
-	if (equal_angle_skewness > 1.0 - (1.00 - cf.max_equal_skewnwass) * ((m_nCurrLayer > 5 ? 5 : m_nCurrLayer) * 0.2))
+	if (cf.max_equal_skewness < 0.1)
+		throw(std::logic_error("maximum equal skewness is too small!"));
+	if (equal_angle_skewness > 1.0 - (1.00 - cf.max_equal_skewness) * ((m_nCurrLayer > 5 ? 5 : m_nCurrLayer) * 0.2))
 	{
-		//cout << equal_angle_skewness <<" "<< cf.max_equal_skewnwass << endl;
+		//cout << equal_angle_skewness <<" "<< cf.max_equal_skewness << endl;
 		return false;
 	}
 	return true;

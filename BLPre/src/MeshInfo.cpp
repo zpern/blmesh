@@ -84,7 +84,7 @@ void MeshInfo::Initialize(double* point_array,int nPt, int nElm, int *Elem)
 		m_pElm[i].igeom = Elem[(nconn+1)*i + nconn];
 	}
 	RemoveBarePoint(nPt,nElm,Elem);
-	//CheckDuplicateFacesOrThrow();
+	CheckDuplicateFacesOrThrow();
 	CalPntElm();
 	CalElmNeig();
 }

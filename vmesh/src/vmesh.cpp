@@ -494,7 +494,7 @@ namespace TiGER {
 		double		dLen,			/* 边界层第一层厚度 **/
 		std::vector<double> length_vec, /* 边界层第一层厚度数组 **/
 		double		dRto,			/* 边界层厚度增长因子 **/
-		double		max_skewnwass,  /* 各向异性停止**/
+		double		max_skewness,  /* 各向异性停止**/
 		double		bisostop,       /* 各向同性停止**/
 		/* ------------------------- 输出参数 -------------------------**/
 		double** ppdMNC,		/* 体网格节点坐标 **/
@@ -575,7 +575,7 @@ namespace TiGER {
 			ftest << "nLN: " << nLN << endl;
 			ftest << "dLen: " << dLen << endl;
 			ftest << "dRto: " << dRto << endl;
-			ftest << "max_skewnwass: " << max_skewnwass << endl;
+			ftest << "max_skewness: " << max_skewness << endl;
 			ftest << "bisostop: " << bisostop << endl;
 			ftest << "boundary_info: " << endl;
 			for (auto i : pnFT) {
@@ -583,7 +583,6 @@ namespace TiGER {
 			}
 			ftest << "b_use_multiple_normals: " << b_use_multiple_normals << endl;
 			ftest << nelm << " " << npt << " " << endl;
-			std::vector<std::array<double, 3>> points;
 			for (int i = 0; i < npt; i++) {
 				ftest << i + 1 << " " << pdSNC[3 * i + 0] << " " << pdSNC[3 * i + 1] << " " << pdSNC[3 * i + 2] << endl;
 			}
@@ -609,7 +608,7 @@ namespace TiGER {
 		blconfig.use_multiple_normals = b_use_multiple_normals;
         blconfig.multiple_numlayer = 1;
         blconfig.multiple_steplength = dLen;
-		blconfig.max_equal_skewnwass = max_skewnwass;
+		blconfig.max_equal_skewness = max_skewness;
 		blconfig.max_layer_diff = max_layer_diff;
 		ControlVolume cv1;
 		ControlVolume cv2;
@@ -776,7 +775,7 @@ namespace TiGER {
 		double		dRto,			/* 边界层厚度增长因子 **/
         int multiple_numlayer,          /* 多法向层数 **/
         double multiple_steplength,        /* 多法向步长 **/
-		double		max_skewnwass,  /* 各向异性停止**/
+		double		max_skewness,  /* 各向异性停止**/
 		double		bisostop,       /* 各向同性停止**/
 		/* ------------------------- 输出参数 -------------------------**/
 		double** ppdMNC,		/* 体网格节点坐标 **/
@@ -855,7 +854,7 @@ namespace TiGER {
 			ftest << "nLN: " << nLN << endl;
 			ftest << "dLen: " << dLen << endl;
 			ftest << "dRto: " << dRto << endl;
-			ftest << "max_skewnwass: " << max_skewnwass << endl;
+			ftest << "max_skewness: " << max_skewness << endl;
 			ftest << "bisostop: " << bisostop << endl;
 			ftest << "boundary_info: " << endl;
 			for (auto i : pnFT) {
@@ -863,7 +862,6 @@ namespace TiGER {
 			}
 			ftest << "b_use_multiple_normals: " << b_use_multiple_normals << endl;
 			ftest << nelm << " " << npt << " " << endl;
-			std::vector<std::array<double, 3>> points;
 			for (int i = 0; i < npt; i++) {
 				ftest << i + 1 << " " << pdSNC[3 * i + 0] << " " << pdSNC[3 * i + 1] << " " << pdSNC[3 * i + 2] << endl;
 			}
@@ -889,7 +887,7 @@ namespace TiGER {
 		blconfig.use_multiple_normals = b_use_multiple_normals;
         blconfig.multiple_numlayer = multiple_numlayer;
         blconfig.multiple_steplength = multiple_steplength;
-		blconfig.max_equal_skewnwass = max_skewnwass;
+		blconfig.max_equal_skewness = max_skewness;
 		blconfig.max_layer_diff = max_layer_diff;
         blconfig.length_vec = length_vec;
         blconfig.fast_intersection = fast_intersection;
