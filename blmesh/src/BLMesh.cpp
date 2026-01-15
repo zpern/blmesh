@@ -5645,7 +5645,7 @@ bool BLMesh::CheckPyramidValid(double coordinates[][3])
 		}
 
 		// 记录最小值
-		if (cosine_val < min_ortho_quality) {
+		if (cosine_val < min_ortho_quality&&f==4) {
 			min_ortho_quality = cosine_val;
 		}
 	}
@@ -5662,7 +5662,7 @@ bool BLMesh::CheckPyramidValid(double coordinates[][3])
 #ifdef _DEBUG
 		// cout << "pyramid orthogonal skewness failed: " << ortho_skewness << endl;
 #endif
-		//return false;
+		return false;
 	}
 
 	return true;
