@@ -1,52 +1,53 @@
 #pragma once
 #ifndef _BLPRE_H
 #define _BLPRE_H
-#include<sstream>
-#include <string>
-#include <vector>
 #include <array>
 #include <map>
+#include <sstream>
+#include <string>
+#include <vector>
 using namespace std;
 struct blpreConfig {
-	int n;
-	double len;
-	double Ro;
-	std::vector<double> len_vec;
-	std::vector<int> layer_vec;
-	vector<int> symm;
+    int n;
+    double len;
+    double Ro;
+    std::vector<double> len_vec;
+    std::vector<int> layer_vec;
+    vector<int> symm;
     vector<int> wall;
-	vector<int> box;
-	vector<int> match;
-	vector<int> per;
-	vector<int> adjacent;
-	double max_equal_skewness;
-	bool use_multiple_normals;
-	int multiple_numlayer;
+    vector<int> box;
+    vector<int> match;
+    vector<int> per;
+    vector<int> adjacent;
+    double max_equal_skewness;
+    double max_centroid_skewness;
+    bool use_multiple_normals;
+    int multiple_numlayer;
     double multiple_steplength;
     std::vector<double> length_vec;
-	int max_layer_diff;
+    int max_layer_diff;
     bool fast_intersection = true;
     bool preMultiple = false;
 };
-struct ControlVolume{
-	std::vector<std::array<double, 3>> v;
-	std::vector<std::vector<int>> f;
-    std::vector<std::array<int,3>> s;
-	int lower_point_num;
-	int add_point_num;
+struct ControlVolume {
+    std::vector<std::array<double, 3>> v;
+    std::vector<std::vector<int>> f;
+    std::vector<std::array<int, 3>> s;
+    int lower_point_num;
+    int add_point_num;
 };
 namespace PRE {
-	static ControlVolume empty;
-	std::tuple<std::string, double *, int *, int *, std::vector<double>> blpre(
-		std::string &f,
-		blpreConfig cf,
-		std::vector<std::array<double, 3>> points = std::vector<std::array<double, 3>>(),
-		ControlVolume &cv1 = empty,
-		ControlVolume &cv2 = empty);
-	void multiply(blpreConfig cf,
-				  std::string &f,
-				  std::vector<std::array<double, 3>> &points,
-				  ControlVolume &cv1 = empty,
-				  ControlVolume &cv2 = empty);
+static ControlVolume empty;
+std::tuple<std::string, double *, int *, int *, std::vector<double>> blpre(
+    std::string &f,
+    blpreConfig cf,
+    std::vector<std::array<double, 3>> points = std::vector<std::array<double, 3>>(),
+    ControlVolume &cv1 = empty,
+    ControlVolume &cv2 = empty);
+void multiply(blpreConfig cf,
+              std::string &f,
+              std::vector<std::array<double, 3>> &points,
+              ControlVolume &cv1 = empty,
+              ControlVolume &cv2 = empty);
 } // namespace PRE
 #endif

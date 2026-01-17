@@ -4894,6 +4894,8 @@ void BLMesh::PreCheckPrismValid(BLFront *blFront)
 		cout << "=====================================" << endl;
 		if (!CheckPrismVolumn(2 * nconn, conn))
 			cout << "volume  id=";
+		if (!CheckPrismSkewness(2 * nconn, conn))
+			cout << "skewness  id=";
 
 		cout << blNod->GetDecentID() << endl;
 		;
@@ -5542,22 +5544,30 @@ void BLMesh::PostChckIntersect(BLFront* blFront)
 #endif
 bool BLMesh::CheckPyramidValid(double coordinates[][3])
 {
-	int i, idx;
-	double fprismqual = FLT_MAX, ftmp, Jackbin, mjkb1, mjkb2, mjkb3;
-	BLVector gprism[5] = {coordinates[0], coordinates[1], coordinates[2], coordinates[3], coordinates[4]};
+	int i;
 	double equal_angle_skewness = 0;
+	// 初始化节点向量
+	BLVector gprism[5] = { coordinates[0], coordinates[1], coordinates[2], coordinates[3], coordinates[4] };
 
+	// ---------------------------------------------------------
+	// 逻辑 1: Equal Angle Skewness (保留原逻辑)
+	// ---------------------------------------------------------
 	auto TriNormal = [gprism](int x, int y, int z)
-	{ return BLVector::crossProduct(gprism[z] - gprism[y], gprism[x] - gprism[y]).normalized(); };
+		{ return BLVector::crossProduct(gprism[z] - gprism[y], gprism[x] - gprism[y]).normalized(); };
+
+	// 计算底面法线 (注意：此法线指向金字塔内部/上方)
 	BLVector upper_normal = (TriNormal(1, 2, 3) + TriNormal(0, 1, 3)).normalized();
-	//cout << lower_normal * upper_normal;
+
+	// 计算4个侧面的法线 (指向外部)
 	BLVector side_normal[4];
 	for (int i = 0; i < 4; i++)
 	{
 		side_normal[i] = TriNormal(i, (i + 1) % 4, 4).normalized();
 	}
-	double eq_angle = 90; //不知道取多少
-	for (int i = 0; i < 3; i++)
+
+	// 检查侧面之间的二面角
+	double eq_angle = 90;
+	for (int i = 0; i < 4; i++) // 修正：原代码为i<3，改为i<4以覆盖所有棱
 	{
 		double angle = acos(side_normal[i] * side_normal[(i + 1) % 4]) * 180.0 / PI;
 		double max_skew = (angle - eq_angle) / (180 - eq_angle);
@@ -5565,24 +5575,101 @@ bool BLMesh::CheckPyramidValid(double coordinates[][3])
 		equal_angle_skewness = max(equal_angle_skewness, max_skew);
 		equal_angle_skewness = max(equal_angle_skewness, min_skew);
 	}
-	eq_angle = 54.74; //正金字塔
-	for (int i = 0; i < 3; i++)
+
+	// 检查侧面与底面的二面角
+	eq_angle = 54.74; // 正金字塔理想角度
+	for (int i = 0; i < 4; i++) // 修正：原代码为i<3，改为i<4
 	{
+		// side_normal 向外，upper_normal 向内，夹角应为锐角
 		double angle = acos(side_normal[i] * upper_normal) * 180.0 / PI;
 		double min_skew = (eq_angle - angle) / eq_angle;
 		equal_angle_skewness = max(equal_angle_skewness, min_skew);
 	}
 
+<<<<<<< HEAD
 	if (cf.max_equal_skewness < 0.1)
 		throw(std::logic_error("maximum equal skewnwass is too small!"));
 	if (equal_angle_skewness > cf.max_equal_skewness) {
+=======
+	// 判定 1
+	if (cf.max_equal_skewnwass < 0.1)
+		throw(std::logic_error("maximum equal skewnwass is too small!"));
+
+	if (equal_angle_skewness > cf.max_equal_skewnwass) {
+>>>>>>> 095b68cb4a9676d787feaac99945bcffd14c5617
 #ifdef _DEBUG
-		cout << "pyramid skewnwss";
+		// cout << "pyramid equal angle skewness failed: " << equal_angle_skewness << endl;
 #endif
 		return false;
 	}
+
+	// ---------------------------------------------------------
+	// 逻辑 2: Orthogonal Skewness (新增逻辑，归一化到 0-1)
+	// ---------------------------------------------------------
+
+	// 1. 计算体心 (Cell Centroid)
+	BLVector cell_centroid(0, 0, 0);
+	for (int k = 0; k < 5; k++) cell_centroid = cell_centroid + gprism[k];
+	cell_centroid = cell_centroid / 5.0;
+
+	double min_ortho_quality = 1.0; // 记录最差面的正交质量
+
+	// 2. 遍历5个面计算正交性
+	// 面索引定义：0-3为侧面，4为底面
+	for (int f = 0; f < 5; f++) {
+		BLVector face_centroid(0, 0, 0);
+		BLVector face_normal(0, 0, 0);
+
+		if (f < 4) {
+			// --- 侧面 (三角形) ---
+			// 节点: i, (i+1)%4, 4
+			face_centroid = (gprism[f] + gprism[(f + 1) % 4] + gprism[4]) / 3.0;
+			// 复用逻辑1计算的侧面法线 (已归一化且向外)
+			face_normal = -side_normal[f];
+		}
+		else {
+			// --- 底面 (四边形) ---
+			// 节点: 0, 1, 2, 3
+			face_centroid = (gprism[0] + gprism[1] + gprism[2] + gprism[3]) / 4.0;
+			// 复用逻辑1计算的 upper_normal
+			// upper_normal 指向内部，正交性计算需要指向外部，故取反
+			face_normal = upper_normal * 1.0;
+		}
+
+		// 计算 体心->面心 向量
+		BLVector c2f = face_centroid - cell_centroid;
+		double length = c2f.length();
+
+		// 计算正交质量 (Cosine)
+		double cosine_val = 0.0;
+		if (length > 1e-15) {
+			cosine_val = (-c2f * face_normal) / length;
+		}
+
+		// 记录最小值
+		if (cosine_val < min_ortho_quality&&f==4) {
+			min_ortho_quality = cosine_val;
+		}
+	}
+
+	// 3. 转换方向 (0最好, 1最差)
+	// 如果 min_ortho_quality < 0 (翻转)，则 skewness = 1.0
+	double ortho_skewness = (min_ortho_quality < 0) ? 1.0 : (1.0 - min_ortho_quality);
+
+	// 判定 2
+	if (cf.max_centroid_skewness < 0.1) // 假设同样的最小阈值检查
+		throw(std::logic_error("maximum centroid skewness is too small!"));
+
+	if (ortho_skewness > cf.max_centroid_skewness) {
+#ifdef _DEBUG
+		// cout << "pyramid orthogonal skewness failed: " << ortho_skewness << endl;
+#endif
+		return false;
+	}
+
 	return true;
 }
+
 double BLMesh::CheckPyramidVolumn(double coordinates[][3])
 {
 	double volumn1 = 0, volumn2 = 0;
@@ -6745,28 +6832,40 @@ bool BLMesh::CheckPrismValidity(int nconn, int *conn, int *pidx)
 	return true;
 }
 
-bool BLMesh::CheckPrismSkewness(int nconn, int *conn)
+bool BLMesh::CheckPrismSkewness(int nconn, int* conn)
 {
-	int i, idx;
-	double fprismqual = FLT_MAX, ftmp, Jackbin, mjkb1, mjkb2, mjkb3;
-	BLVector gprism[6];
+	int i;
 	double equal_angle_skewness = 0;
+	BLVector gprism[6];
 
+	// 初始化节点坐标
 	for (i = 0; i < nconn; i++)
 	{
 		gprism[i].x = m_pNodes[conn[i]].coord[0];
 		gprism[i].y = m_pNodes[conn[i]].coord[1];
 		gprism[i].z = m_pNodes[conn[i]].coord[2];
 	}
+
+	// ---------------------------------------------------------
+	// 逻辑 1: Equal Angle Skewness (保留原逻辑)
+	// ---------------------------------------------------------
+
 	auto TriNormal = [gprism](int x, int y, int z)
-	{ return BLVector::crossProduct(gprism[z] - gprism[y], gprism[x] - gprism[y]).normalized(); };
+		{ return BLVector::crossProduct(gprism[z] - gprism[y], gprism[x] - gprism[y]).normalized(); };
+
+	// lower_normal (Face 0-1-2): 若0-1-2为逆时针，TriNormal指向下方(Z-)，即底面外侧
 	BLVector lower_normal = TriNormal(0, 1, 2);
+	// upper_normal (Face 3-4-5): 若3-4-5为逆时针，TriNormal指向下方(Z-)，即顶面内侧
 	BLVector upper_normal = TriNormal(3, 4, 5);
+
 	BLVector side_normal[3];
 	for (int i = 0; i < 3; i++)
 	{
+		// side_normal 计算逻辑通常指向外侧
 		side_normal[i] = (TriNormal(i, i + 3, (i + 1) % 3) + TriNormal((i + 1) % 3, i + 3, (i + 1) % 3 + 3)).normalized();
 	}
+
+	// 计算 Equal Angle Skewness
 	double eq_angle = 60;
 	for (int i = 0; i < 3; i++)
 	{
@@ -6776,6 +6875,7 @@ bool BLMesh::CheckPrismSkewness(int nconn, int *conn)
 		equal_angle_skewness = max(equal_angle_skewness, max_skew);
 		equal_angle_skewness = max(equal_angle_skewness, min_skew);
 	}
+
 	eq_angle = 90;
 	for (int i = 0; i < 3; i++)
 	{
@@ -6786,17 +6886,93 @@ bool BLMesh::CheckPrismSkewness(int nconn, int *conn)
 	for (int i = 0; i < 3; i++)
 	{
 		double angle = acos(side_normal[i] * lower_normal) * 180.0 / PI;
-		//cout << angle << endl;
 		double min_skew = abs(eq_angle - angle) / eq_angle;
 		equal_angle_skewness = max(equal_angle_skewness, min_skew);
 	}
+<<<<<<< HEAD
 	if (cf.max_equal_skewness < 0.1)
 		throw(std::logic_error("maximum equal skewness is too small!"));
 	if (equal_angle_skewness > 1.0 - (1.00 - cf.max_equal_skewness) * ((m_nCurrLayer > 5 ? 5 : m_nCurrLayer) * 0.2))
 	{
 		//cout << equal_angle_skewness <<" "<< cf.max_equal_skewness << endl;
+=======
+
+	// 判定 1 (带动态阈值)
+	if (cf.max_equal_skewnwass < 0.1)
+		throw(std::logic_error("maximum equal skewnwass is too small!"));
+
+	// 原逻辑：根据层数放宽阈值
+	double current_threshold = 1.0 - (1.00 - cf.max_equal_skewnwass) * ((m_nCurrLayer > 5 ? 5 : m_nCurrLayer) * 0.2);
+
+	if (equal_angle_skewness > current_threshold)
+	{
+>>>>>>> 095b68cb4a9676d787feaac99945bcffd14c5617
 		return false;
 	}
+
+	// ---------------------------------------------------------
+	// 逻辑 2: Orthogonal Skewness (新增逻辑，归一化到 0-1)
+	// ---------------------------------------------------------
+
+	// 1. 计算体心
+	BLVector cell_centroid(0, 0, 0);
+	for (int k = 0; k < 6; k++) cell_centroid = cell_centroid + gprism[k];
+	cell_centroid = cell_centroid / 6.0;
+
+	double min_ortho_quality = 1.0; // 1.0 为最好，寻找最差面
+
+	// 2. 遍历所有面 (2个三角形 + 3个四边形)
+
+	// --- 底面 (0-1-2) ---
+	{
+		BLVector face_centroid = (gprism[0] + gprism[1] + gprism[2]) / 3.0;
+		BLVector c2f = face_centroid - cell_centroid;
+		double len = c2f.length();
+		if (len > 1e-15) {
+			// lower_normal 指向外侧，直接使用
+			min_ortho_quality = min(min_ortho_quality, -(c2f * lower_normal) / len);
+		}
+	}
+
+	// --- 顶面 (3-4-5) ---
+	{
+		BLVector face_centroid = (gprism[3] + gprism[4] + gprism[5]) / 3.0;
+		BLVector c2f = face_centroid - cell_centroid;
+		double len = c2f.length();
+		if (len > 1e-15) {
+			// upper_normal 指向内侧，需取反 (-upper_normal) 以指向外侧
+			min_ortho_quality = min(min_ortho_quality, (c2f * (upper_normal * 1.0)) / len);
+		}
+	}
+
+	// --- 侧面 ---
+	for (int i = 0; i < 3; i++)
+	{
+		// 侧面节点顺序对应: i, (i+1)%3, (i+1)%3+3, i+3
+		BLVector face_centroid = (gprism[i] + gprism[(i + 1) % 3] + gprism[(i + 1) % 3 + 3] + gprism[i + 3]) / 4.0;
+		BLVector c2f = face_centroid - cell_centroid;
+		double len = c2f.length();
+		if (len > 1e-15) {
+			// side_normal 指向外侧，直接使用
+			min_ortho_quality = min(min_ortho_quality, -(c2f * side_normal[i]) / len);
+		}
+	}
+
+	// 3. 归一化 (0最好, 1最差)
+	// 如果 min_ortho_quality < 0 (发生翻转)，则 skewness 设为 1.0
+	double ortho_skewness = (min_ortho_quality < 0) ? 1.0 : (1.0 - min_ortho_quality);
+
+	// 判定 2 (使用 max_centroid_skewness)
+	if (cf.max_centroid_skewness < 0.001)
+		throw(std::logic_error("maximum centroid skewness is too small!"));
+
+	if (ortho_skewness > cf.max_centroid_skewness) {
+#ifdef _DEBUG
+		// cout << "prism orthogonal skewness failed: " << ortho_skewness << endl;
+#endif
+		return false;
+	}
+
 	return true;
 }
 
