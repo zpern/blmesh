@@ -169,7 +169,7 @@ namespace TiGER {
 
             return closest_point;
         }
-        
+#pragma optimize("",off);
         void judgyType(const Eigen::MatrixXd& V_) {
             if (V_.rows() == 0)
                 return;
@@ -197,6 +197,7 @@ namespace TiGER {
             }
 
         }
+#pragma optimize("",on);
 	};
 }
 #endif //!_SYMMETRY_H_

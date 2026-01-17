@@ -6,7 +6,7 @@ class DistanceCalculator {
 public:
 	DistanceCalculator();
 	~DistanceCalculator();
-	void ReadInput(INPUTFORMAT input);
+	void ReadInput(INPUTFORMAT input,ConfigArgc cf);
 	std::vector<double> getHeightProjection();
 protected:
 	void PreGenerate();

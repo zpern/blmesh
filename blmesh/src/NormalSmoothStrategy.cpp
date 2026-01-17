@@ -66,9 +66,6 @@ void NormalSmoothStrategy::SmoothNormal()
 			SmoothNormalOnce(tmp[i], i);
 		}
 		for (i = 0; i < size; i++) {
-								if (i == 1049) {
-            std::cout << "xy";
-		}
 			if (isnan(myvec[i].x) ||(myvec[i].x == -2))
 				continue;
 

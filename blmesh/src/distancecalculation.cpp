@@ -10,14 +10,29 @@ DistanceCalculator::~DistanceCalculator()
 {
 	isexist = false;
 }
+struct PoolGuard {
+    bool prevFront, prevNode;
+    PoolGuard(bool enable_pool) {
+        prevFront = BLFront::PoolEnabled();
+        prevNode  = BLNode::PoolEnabled();
+        BLFront::SetPoolEnabled(enable_pool);
+        BLNode::SetPoolEnabled(enable_pool);
+    }
+    ~PoolGuard() {
+        BLFront::SetPoolEnabled(prevFront);
+        BLNode::SetPoolEnabled(prevNode);
+    }
+};
 
-void DistanceCalculator::ReadInput(INPUTFORMAT input)
+void DistanceCalculator::ReadInput(INPUTFORMAT input,ConfigArgc cf)
 {
 	if (!isexist) {
+		PoolGuard guard(false); 
 		isexist = true;
+        cf.layer_num = 1;
+        blm_->cf = cf;
 		blm_->InitBLMesh();
-		blm_->ReadBoundary(input,true);
-
+        blm_->SetBoundary(input,false);
 		PreGenerate();
 		std::cout.setf(ios::left, ios::adjustfield);
 		std::cout.fill(' ');

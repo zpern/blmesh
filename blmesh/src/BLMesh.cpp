@@ -213,6 +213,7 @@ double BLMesh::GetAvergeLayer()
   *  @see    ReadBoundary(string filename)
 
   */
+#pragma optimize("",off);
 int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
 
 
@@ -627,10 +628,10 @@ int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
 	}
 
 
-	if (clear) {
+	if (false) {
 		//do step length modification
 		DistanceCalculator dc;
-		dc.ReadInput(file);
+		dc.ReadInput(file,cf);
 		auto projection = dc.getHeightProjection();
 
 
@@ -645,7 +646,8 @@ int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
 							continue;
 						auto node = ((BLNode*)m_pNodes[i].pointer);
 						if (node && !node->iso_stop) {
-							node->SetFixedHightRatio(((projection[i] - full_length) / full_length)*0.85);
+
+							node->SetFixedHightRatio(((projection[i] - full_length) / full_length)*0.6);
 							//	cout << projection[i] / full_length << endl;
 						}
 					}
@@ -926,6 +928,7 @@ int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
 	}
 	return 0;
 }
+#pragma optimize("",on);
 int BLMesh::ReadBoundary(const INPUTFORMAT file, bool clear)
 {
 
@@ -2979,7 +2982,7 @@ bool BLMesh::IsSymBdryDelete(int i)
  * @author yhf
  * @note Big function                                                                                                  
  */                                                                                                                    
-
+#pragma optimize("",off);
 void BLMesh::GenerateBLMesh()
 {
 	int iLayer = 0, i, nNods, iNod, iNodNew, cnt = 0, nFrtNods;
@@ -3153,9 +3156,6 @@ void BLMesh::GenerateBLMesh()
 			iNod = blNod->GetNodIdx();
 
 #ifdef _GEOM_NORMAL
-			if (iNod == 101) {
-				std::cout<<"xy";
-			}
 			BLNode *blNods[MAX_FRONT_NODES], *neigNods[2]; // , * blNodNew;
 			normn = blNod->GetNormal(m_pNodes, NORMALTYPE);
 
@@ -3183,7 +3183,6 @@ void BLMesh::GenerateBLMesh()
 			if (blNod->GetBSys()) {
 				auto ans = blNod->GetHeight();
 				int decent_id = blNod->GetDecentID();
-
 				int nodeid = iNod;
 				Eigen::RowVector3d start_point(m_pNodes[nodeid].coord[0],
 					m_pNodes[nodeid].coord[1], m_pNodes[nodeid].coord[2]);
@@ -3628,10 +3627,6 @@ void BLMesh::GenerateBLMesh()
 			// 			else
 			normal = blNod->GetHeight();
 			iNod = blNod->GetNodIdx();
-
-            if (iNod == 36597) {
-                std::cout << "xyhs";
-			}
 			if (iLayer == 0 && !blNod->GetStopFlag())
 			{
 				min_height_first_layer = std::min(min_height_first_layer, normal.magnitude());
@@ -3911,7 +3906,7 @@ void BLMesh::GenerateBLMesh()
 
 	//free memory (due to fix)
 }
-
+#pragma optimize("",on);
 int BLMesh::ElmBdryPtCnt(int eidx)
 {
 	int i, j, dim = DIM3, pidx[DIM3], cnt;
@@ -4425,6 +4420,7 @@ void printprism(MBLNode *node, BLFront *blFront)
 
 	fclose(fout);
 }
+
 void BLMesh::CheckInsertSideSuface(BLFront *blFront)
 {
 	BLFront *upper_front = blFront->GetUpperFront();
@@ -7008,7 +7004,7 @@ void BLMesh::SmoothHeightRatio(BLNode *blNod, MBLNode *pNodes)
 	{
 		length += ((BLVector(pNodes[i->GetNodIdx()].coord[0], pNodes[i->GetNodIdx()].coord[1], pNodes[i->GetNodIdx()].coord[2]) + i->GetHeight()) - COORD) * blNod->GetNormal();
 	}
-	double suppose_height = blNod->GetHeightLength() / (1 + blNod->GetHightRatio()) / (1 + blNod->GetFixedHightRatio());
+	double suppose_height = blNod->GetHeightLength() / (1 + blNod->GetHightRatio()) / (1 - blNod->GetFixedHightRatio());
 	double min_dos = 1.0;
 
 	for (auto i : node_array)
