@@ -494,12 +494,8 @@ namespace TiGER {
 		double		dLen,			/* 边界层第一层厚度 **/
 		std::vector<double> length_vec, /* 边界层第一层厚度数组 **/
 		double		dRto,			/* 边界层厚度增长因子 **/
-<<<<<<< HEAD
 		double		max_skewness,  /* 各向异性停止**/
-=======
-		double		max_skewnwass,  /* 各向异性停止**/
 		double      max_centroid_skewness, 
->>>>>>> 095b68cb4a9676d787feaac99945bcffd14c5617
 		double		bisostop,       /* 各向同性停止**/
 		/* ------------------------- 输出参数 -------------------------**/
 		double** ppdMNC,		/* 体网格节点坐标 **/
@@ -613,12 +609,8 @@ namespace TiGER {
 		blconfig.use_multiple_normals = b_use_multiple_normals;
         blconfig.multiple_numlayer = 1;
         blconfig.multiple_steplength = dLen;
-<<<<<<< HEAD
 		blconfig.max_equal_skewness = max_skewness;
-=======
-		blconfig.max_equal_skewnwass = max_skewnwass;
 		blconfig.max_centroid_skewness = max_centroid_skewness;
->>>>>>> 095b68cb4a9676d787feaac99945bcffd14c5617
 		blconfig.max_layer_diff = max_layer_diff;
 		ControlVolume cv1;
 		ControlVolume cv2;

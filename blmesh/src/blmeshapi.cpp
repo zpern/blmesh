@@ -63,14 +63,9 @@ void main(int argc, char* argv[]) {
     cf.ratio2 = blconfig.Ro;
     cf.adjacentfc = blconfig.adjacent;
     cf.smooth_attempt = number_opt;
-    strcpy(cf.filenam, "virtualmesh");
-    cf.layer_ratio = 0;
-<<<<<<< HEAD
+    strcpy(cf.filename, "virtualmesh");
     cf.max_equal_skewness = blconfig.max_equal_skewness;
-=======
-    cf.max_equal_skewnwass = blconfig.max_equal_skewnwass;
     cf.max_centroid_skewness = blconfig.max_centroid_skewness;
->>>>>>> 095b68cb4a9676d787feaac99945bcffd14c5617
     cf.max_layer_diff = blconfig.max_layer_diff;
 
 
@@ -95,7 +90,7 @@ void main(int argc, char* argv[]) {
 
     PrintConfig(&cf);
     memset(finconfig, 0, sizeof(finconfig));
-    strcpy(finconfig, cf.filenam);
+    strcpy(finconfig, cf.filename);
     strcat(finconfig, "_o");
     argv[1] = finconfig;
 
@@ -105,7 +100,7 @@ void main(int argc, char* argv[]) {
     memset(bdryfile, 0, sizeof(bdryfile));
     strcpy(bdryfile, argv[1]);
     memset(bdryfileo, 0, sizeof(bdryfileo));
-    strcpy(bdryfileo, cf.filenam);
+    strcpy(bdryfileo, cf.filename);
 
 #ifdef _2D_BLMESH
     strcat(bdryfile, ".fr2");
@@ -148,7 +143,7 @@ void main(int argc, char* argv[]) {
 #ifdef _2D_BLMESH
     BLMesh* blmesh = new BLMesh(16, 0);
 #else
-    BLMesh* blmesh = new BLMesh(10, 0);
+    BLMblmeshesh* blmesh = new BLMesh(10, 0);
 #endif
 #endif
 

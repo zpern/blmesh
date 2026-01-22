@@ -187,7 +187,7 @@ enum PotentialType {
 
 struct ConfigArgc {
     ConfigArgc() {}
-    char filenam[1024]; // the project name
+    char filename[1024]; // the project name
     int layer_num;
     std::vector<int> layer_num_vec;
     int surface_normal;
@@ -225,13 +225,13 @@ struct ConfigArgc {
 };
 static int PrintConfig(const struct ConfigArgc *cf)
 {
-    char filenam[256]; // the project name
+    char filename[256]; // the project name
     int layer_num;
     double step_len;
     double ratio;
     std::vector<int> boxfc;
     spdlog::info("**************input parameters******************\n");
-    spdlog::info("file name:          {}", cf->filenam);
+    spdlog::info("file name:          {}", cf->filename);
     spdlog::info("total layer number: {}", cf->layer_num);
     spdlog::info("initial step length:{}", cf->step_len);
     spdlog::info("growth rate:        {}", cf->ratio2);
@@ -242,7 +242,7 @@ static int PrintConfig(const struct ConfigArgc *cf)
 }
 static void SetDefaultConfig(ConfigArgc &cf)
 {
-    strcpy(cf.filenam, "virtualmesh");
+    strcpy(cf.filename, "virtualmesh");
     cf.layer_num = 10;
     cf.step_len = 0.1;
     cf.ratio = 1.25;
@@ -251,11 +251,8 @@ static void SetDefaultConfig(ConfigArgc &cf)
     cf.ratio1 = 1.2;
     cf.ratio2 = 1.2;
     cf.layer_ratio = 5;
-<<<<<<< HEAD
     cf.max_equal_skewness = 0.98;
-    == == == = cf.max_equal_skewnwass = 0.98;
     cf.max_centroid_skewness = 0.98;
->>>>>>> 095b68cb4a9676d787feaac99945bcffd14c5617
 }
 
 static int GetConfigName(int argc, char **argv)
@@ -298,7 +295,7 @@ static int parsecommand(int argc, char **argv, struct ConfigArgc &cf)
 
         if (!strcmp(word, "filename")) {
             sscanf(line, "%s %s", word, str);
-            strcpy(cf.filenam, str);
+            strcpy(cf.filename, str);
         }
         if (!strcmp(word, "layer_num")) {
             sscanf(line, "%s %d", word, &value);

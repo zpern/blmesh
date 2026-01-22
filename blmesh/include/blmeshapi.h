@@ -33,7 +33,7 @@
 //#define _DEBUG //on -  print debug infomation to cmd windows default - off
 //#define USE_TETGEN
 //#define USE_TRIANGLE
-
+//#define ORTHO
 //#ifdef NDEBUG
 //#define DEBUG
 //#endif

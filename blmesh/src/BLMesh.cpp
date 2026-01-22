@@ -51,6 +51,7 @@
 #include "../common/singleton_terminate.h"
 #include <igl/per_vertex_normals.h>
 #include <igl/volume.h>
+#include <Eigen/Dense>
 //#define _FAST_MULTIPOLE
 
 
@@ -213,7 +214,7 @@ double BLMesh::GetAvergeLayer()
   *  @see    ReadBoundary(string filename)
 
   */
-#pragma optimize("",off);
+
 int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
 
 
@@ -344,18 +345,8 @@ int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
 		m_pNodes[i].bfarfield = false;
 		m_pNodes[i].bwall = false;
 		m_pNodes[i].reserved = -1;
-
-#ifdef _CHECK_INTERSECTION
-		//intersection
-
-		// end of intersection data
-#endif
 	}
 
-#ifdef _CHECK_INTERSECTION
-
-	// end of intersection
-#endif
 	double ave_front_size = 0;
 	int front_count = 0;
 	int cnt = 0;
@@ -382,8 +373,8 @@ int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
 		m_pElems[i].conn[0] = ele[4 * i + 0];
 		m_pElems[i].conn[1] = ele[4 * i + 1];
 		m_pElems[i].conn[2] = ele[4 * i + 2];
-
 		m_pElems[i].topo = BLEntityTopology::TRIANGLE;
+
 
 		m_pElems[i].igom = ele[4 * i + 3];
 
@@ -583,6 +574,7 @@ int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
 		}
 	}
 
+	//perform one-to-one pairing among the periodic boundary points;
 	std::vector<std::pair<int, int>> perpairs;
 	for (int i = 0; i < per_coords.size(); i++) {
 		Eigen::Vector3d np=cf.rotate_matrix*(per_coords[i]);
@@ -928,7 +920,7 @@ int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
 	}
 	return 0;
 }
-#pragma optimize("",on);
+
 int BLMesh::ReadBoundary(const INPUTFORMAT file, bool clear)
 {
 
@@ -2982,7 +2974,7 @@ bool BLMesh::IsSymBdryDelete(int i)
  * @author yhf
  * @note Big function                                                                                                  
  */                                                                                                                    
-#pragma optimize("",off);
+
 void BLMesh::GenerateBLMesh()
 {
 	int iLayer = 0, i, nNods, iNod, iNodNew, cnt = 0, nFrtNods;
@@ -3906,7 +3898,7 @@ void BLMesh::GenerateBLMesh()
 
 	//free memory (due to fix)
 }
-#pragma optimize("",on);
+
 int BLMesh::ElmBdryPtCnt(int eidx)
 {
 	int i, j, dim = DIM3, pidx[DIM3], cnt;
@@ -4694,7 +4686,38 @@ void BLMesh::Propagate()
 	{
 		prePropagate(vec_create_fronts[i]);
 	}
+// ===== Orthogonality (ANSYS dual-cos) check after prePropagate =====
+    for (int i = 0; i < size; ++i) {
+        BLFront *f = vec_create_fronts[i];
 
+        // 只检查真的生成了 upperFront 的（否则已经被删/停了）
+        if (!f || !f->GetUpperFront()) {
+            continue;
+        }
+
+        double orth_min = 1.0;
+        if (!CheckPrismOrth(f, &orth_min, /*include_top_face=*/false)) {
+#ifdef _DEBUG
+            std::cout << "[OrthFail] front=" << f << " orth_min=" << orth_min
+                      << " layer=" << m_nCurrLayer << std::endl;
+#endif
+            // 跟 CheckInsertSideSuface 一样的回滚路径
+            BLNode *blNods[DIM3];
+            int nNods = 0;
+            f->GetNodes(&nNods, blNods);
+
+            scheck.clear();
+            for (int k = 0; k < DIM3; ++k) {
+                RmvUperNeigFronts(blNods[k]);
+                StopPropagateNode(blNods[k]);
+            }
+            for (auto kk : scheck) {
+                inser_queue.push_back(kk);
+            }
+        }
+    }
+
+    
 	inser_queue = deque<BLFront *>();
 
 	m_ocTree->pOctreeAgent->mset.clear();
@@ -5017,7 +5040,169 @@ void BLMesh::prePropagate(BLFront *blFront)
 		m_pElems[k].pointer = blFront;
 	}
 }
+bool BLMesh::CheckPrismOrth(
+    BLFront* blFront,
+    double* out_minOrth /*=nullptr*/,
+    bool include_top_face /*=false*/
+)
+{
+    if (!blFront) return false;
+    if (!blFront->GetUpperFront()) {
+        // 没生成棱柱就不需要检查（你外面也会 skip）
+        if (out_minOrth) *out_minOrth = 1.0;
+        return true;
+    }
 
+    // 确保 conn 已经填好（你 PreCheckPrismValid 里也会调用，但这里再调用一次更稳）
+    getConnection(blFront);
+    int* conn = blFront->conn.data();
+
+    auto vpos = [&](int nid)->BLVector {
+        if (nid < 0) {
+            double nanv = std::numeric_limits<double>::quiet_NaN();
+            return BLVector(nanv, nanv, nanv);
+        }
+        return BLVector(m_pNodes[nid].coord[0], m_pNodes[nid].coord[1], m_pNodes[nid].coord[2]);
+    };
+
+    auto isNan = [&](const BLVector& v)->bool {
+        return std::isnan(v.x) || std::isnan(v.y) || std::isnan(v.z);
+    };
+
+    // 点：底(0,1,2) 顶(3,4,5)
+    BLVector p0 = vpos(conn[0]), p1 = vpos(conn[1]), p2 = vpos(conn[2]);
+    BLVector q0 = vpos(conn[3]), q1 = vpos(conn[4]), q2 = vpos(conn[5]);
+    if (isNan(p0)||isNan(p1)||isNan(p2)||isNan(q0)||isNan(q1)||isNan(q2)) return false;
+
+    // prism centroid
+    BLVector C = (p0+p1+p2+q0+q1+q2) / 6.0;
+
+    auto triCentroid = [&](const BLVector& a,const BLVector& b,const BLVector& c)->BLVector {
+        return (a+b+c)/3.0;
+    };
+    auto triAreaNormal = [&](const BLVector& a,const BLVector& b,const BLVector& c)->BLVector {
+        return (b-a) ^ (c-a);
+    };
+    auto quadCentroid = [&](const BLVector& a,const BLVector& b,const BLVector& c,const BLVector& d)->BLVector {
+        return (a+b+c+d)/4.0;
+    };
+    auto quadAreaNormal = [&](const BLVector& a,const BLVector& b,const BLVector& c,const BLVector& d)->BLVector {
+        return ((b-a) ^ (c-a)) + ((c-a) ^ (d-a));
+    };
+
+    auto safeCos = [&](const BLVector& A, const BLVector& d)->double {
+        double AA2 = A.magnitude2();
+        double dd2 = d.magnitude2();
+        if (AA2 <= 1e-30 || dd2 <= 1e-30) return 0.0;
+        double v = std::fabs(A * d) / (std::sqrt(AA2) * std::sqrt(dd2));
+        if (v < 0.0) v = 0.0;
+        if (v > 1.0) v = 1.0;
+        return v;
+    };
+
+    // 由某个 front 的 conn 直接算它对应棱柱中心
+    auto prismCentroidFromConn = [&](BLFront* f, BLVector& Cc)->bool {
+        if (!f || !f->GetUpperFront()) return false;
+        getConnection(f);
+        int* c = f->conn.data();
+        BLVector a0=vpos(c[0]), a1=vpos(c[1]), a2=vpos(c[2]);
+        BLVector b0=vpos(c[3]), b1=vpos(c[4]), b2=vpos(c[5]);
+        if (isNan(a0)||isNan(a1)||isNan(a2)||isNan(b0)||isNan(b1)||isNan(b2)) return false;
+        Cc = (a0+a1+a2+b0+b1+b2)/6.0;
+        return true;
+    };
+
+    // 内部面 dual-cos：min( cos(A·(Cnb-C)), cos(A·(F-C)) )
+    auto orthFaceDual = [&](const BLVector& A, const BLVector& Fc, const BLVector* Cnb)->double {
+        double cos_cf = safeCos(A, Fc - C);
+        if (!Cnb) return cos_cf;
+        double cos_cc = safeCos(A, (*Cnb) - C);
+        return std::min(cos_cc, cos_cf);
+    };
+
+    // 找共享边(ida,idb)的邻 front（在 3 个邻居里找；可能非流形则取最差）
+    auto worstOrthAcrossEdge = [&](int ida, int idb, const BLVector& Af, const BLVector& Fc)->double {
+        int neigs=0;
+        BLFront* neigFrts[DIM3] = {nullptr,nullptr,nullptr};
+        blFront->GetNeigbourFronts(&neigs, neigFrts);
+
+        double best = 1.0;
+        bool hasInternal = false;
+
+        for (int i=0;i<neigs;i++) {
+            BLFront* nb = neigFrts[i];
+            if (!nb || !nb->GetUpperFront()) continue;
+
+            // 判断 nb 是否包含 ida 和 idb
+            int nn=0;
+            BLNode* ns[3]={nullptr,nullptr,nullptr};
+            nb->GetNodes(&nn, ns);
+            if (nn!=3) continue;
+            int a=ns[0]->GetNodIdx(), b=ns[1]->GetNodIdx(), c=ns[2]->GetNodIdx();
+            bool hasA = (a==ida)||(b==ida)||(c==ida);
+            bool hasB = (a==idb)||(b==idb)||(c==idb);
+            if (!hasA || !hasB) continue;
+
+            BLVector Cnb;
+            if (!prismCentroidFromConn(nb, Cnb)) continue;
+
+            best = std::min(best, orthFaceDual(Af, Fc, &Cnb));
+            hasInternal = true;
+        }
+
+        if (!hasInternal) {
+            best = orthFaceDual(Af, Fc, nullptr); // boundary
+        }
+        return best;
+    };
+
+    double minOrth = 1.0;
+
+    // ===== 1) 底面（三角）=====
+    {
+        BLVector Fc = triCentroid(p0,p1,p2);
+        BLVector Af = triAreaNormal(p0,p1,p2);
+
+        BLFront* lower = blFront->GetLowerFront();
+        BLVector Cnb;
+        if (lower && prismCentroidFromConn(lower, Cnb)) {
+            minOrth = std::min(minOrth, orthFaceDual(Af, Fc, &Cnb));
+        } else {
+            minOrth = std::min(minOrth, orthFaceDual(Af, Fc, nullptr));
+        }
+    }
+
+    // ===== 2) 三个侧面（四边形）=====
+    // 侧面按 wedge 标准连法： (0,1,4,3) (1,2,5,4) (2,0,3,5)
+    {
+        // face (0,1,4,3) 共享边(0,1)
+        BLVector Fc = quadCentroid(p0,p1,q1,q0);
+        BLVector Af = quadAreaNormal(p0,p1,q1,q0);
+        minOrth = std::min(minOrth, worstOrthAcrossEdge(conn[0], conn[1], Af, Fc));
+    }
+    {
+        // face (1,2,5,4) 共享边(1,2)
+        BLVector Fc = quadCentroid(p1,p2,q2,q1);
+        BLVector Af = quadAreaNormal(p1,p2,q2,q1);
+        minOrth = std::min(minOrth, worstOrthAcrossEdge(conn[1], conn[2], Af, Fc));
+    }
+    {
+        // face (2,0,3,5) 共享边(2,0)
+        BLVector Fc = quadCentroid(p2,p0,q0,q2);
+        BLVector Af = quadAreaNormal(p2,p0,q0,q2);
+        minOrth = std::min(minOrth, worstOrthAcrossEdge(conn[2], conn[0], Af, Fc));
+    }
+
+    // ===== 3) 顶面（三角）可选（通常先不算/按边界近似）=====
+    if (include_top_face) {
+        BLVector Fc = triCentroid(q0,q1,q2);
+        BLVector Af = triAreaNormal(q0,q1,q2);
+        minOrth = std::min(minOrth, orthFaceDual(Af, Fc, nullptr));
+    }
+
+    if (out_minOrth) *out_minOrth = minOrth;
+    return (minOrth >= cf.max_centroid_skewness);
+}
 BLVector BLMesh::TransNorm(BLVector norm, double *angl)
 {
 	BLVector normx(1.0, 0.0, 0.0), vtmp;
@@ -5544,128 +5729,101 @@ void BLMesh::PostChckIntersect(BLFront* blFront)
 #endif
 bool BLMesh::CheckPyramidValid(double coordinates[][3])
 {
-	int i;
-	double equal_angle_skewness = 0;
-	// 初始化节点向量
-	BLVector gprism[5] = { coordinates[0], coordinates[1], coordinates[2], coordinates[3], coordinates[4] };
+	using Eigen::Vector3d;
+	static constexpr const double pi = 3.14159265358979323846;
+	Vector3d a(coordinates[0][0], coordinates[0][1], coordinates[0][2]);
+    Vector3d b(coordinates[1][0], coordinates[1][1], coordinates[1][2]);
+    Vector3d c(coordinates[2][0], coordinates[2][1], coordinates[2][2]);
+    Vector3d d(coordinates[3][0], coordinates[3][1], coordinates[3][2]);
+    Vector3d e(coordinates[4][0], coordinates[4][1], coordinates[4][2]);
 
-	// ---------------------------------------------------------
-	// 逻辑 1: Equal Angle Skewness (保留原逻辑)
-	// ---------------------------------------------------------
-	auto TriNormal = [gprism](int x, int y, int z)
-		{ return BLVector::crossProduct(gprism[z] - gprism[y], gprism[x] - gprism[y]).normalized(); };
+    // 向量夹角（弧度）
+    auto angleBetween = [](const Vector3d &u, const Vector3d &v) -> double {
+        double nu = u.norm();
+        double nv = v.norm();
+        if (nu <= std::numeric_limits<double>::epsilon() ||
+            nv <= std::numeric_limits<double>::epsilon()) {
+            return 0.0; // 退化角，当 0 处理
+        }
+        double c = u.dot(v) / (nu * nv);
+        c = std::max(std::min(c, 1.0), -1.0);
+        return std::acos(c);
+    };
 
-	// 计算底面法线 (注意：此法线指向金字塔内部/上方)
-	BLVector upper_normal = (TriNormal(1, 2, 3) + TriNormal(0, 1, 3)).normalized();
+    // 给一组角度 + 理想角，算等角偏斜（单位：弧度）
+    auto equiangleSkewFromAngles = [](const std::vector<double> &angles,
+                                      double idealAngle) -> double {
+        if (angles.empty()) {
+            return 0.0;
+        }
 
-	// 计算4个侧面的法线 (指向外部)
-	BLVector side_normal[4];
-	for (int i = 0; i < 4; i++)
-	{
-		side_normal[i] = TriNormal(i, (i + 1) % 4, 4).normalized();
-	}
+        double theta_min = angles[0];
+        double theta_max = angles[0];
+        for (size_t i = 1; i < angles.size(); ++i) {
+            if (angles[i] < theta_min) {
+                theta_min = angles[i];
+            }
+            if (angles[i] > theta_max) {
+                theta_max = angles[i];
+            }
+        }
+        double s1 = (theta_max - idealAngle) / (pi - idealAngle);
+        double s2 = (idealAngle - theta_min) / idealAngle;
 
-	// 检查侧面之间的二面角
-	double eq_angle = 90;
-	for (int i = 0; i < 4; i++) // 修正：原代码为i<3，改为i<4以覆盖所有棱
-	{
-		double angle = acos(side_normal[i] * side_normal[(i + 1) % 4]) * 180.0 / PI;
-		double max_skew = (angle - eq_angle) / (180 - eq_angle);
-		double min_skew = (eq_angle - angle) / eq_angle;
-		equal_angle_skewness = max(equal_angle_skewness, max_skew);
-		equal_angle_skewness = max(equal_angle_skewness, min_skew);
-	}
+        double skew = s1 > s2 ? s1 : s2;
+        if (skew < 0.0) {
+            skew = 0.0;
+        }
+        if (skew > 1.0) {
+            skew = 1.0;
+        }
+        return skew;
+    };
 
-	// 检查侧面与底面的二面角
-	eq_angle = 54.74; // 正金字塔理想角度
-	for (int i = 0; i < 4; i++) // 修正：原代码为i<3，改为i<4
-	{
-		// side_normal 向外，upper_normal 向内，夹角应为锐角
-		double angle = acos(side_normal[i] * upper_normal) * 180.0 / PI;
-		double min_skew = (eq_angle - angle) / eq_angle;
-		equal_angle_skewness = max(equal_angle_skewness, min_skew);
-	}
+    // 底面四边形 a-b-c-d 的等角偏斜
+    std::vector<double> quadAngles;
+    quadAngles.reserve(4);
+    // 顶点 a：角(b-a, d-a)
+    quadAngles.push_back(angleBetween(b - a, d - a));
+    // 顶点 b：角(c-b, a-b)
+    quadAngles.push_back(angleBetween(c - b, a - b));
+    // 顶点 c：角(d-c, b-c)
+    quadAngles.push_back(angleBetween(d - c, b - c));
+    // 顶点 d：角(a-d, c-d)
+    quadAngles.push_back(angleBetween(a - d, c - d));
 
-<<<<<<< HEAD
-	if (cf.max_equal_skewness < 0.1)
-		throw(std::logic_error("maximum equal skewnwass is too small!"));
-	if (equal_angle_skewness > cf.max_equal_skewness) {
-=======
-	// 判定 1
-	if (cf.max_equal_skewnwass < 0.1)
-		throw(std::logic_error("maximum equal skewnwass is too small!"));
+    double quadIdeal = pi / 2.0; // 90°
+    double baseSkew = equiangleSkewFromAngles(quadAngles, quadIdeal);
 
-	if (equal_angle_skewness > cf.max_equal_skewnwass) {
->>>>>>> 095b68cb4a9676d787feaac99945bcffd14c5617
+    // 四个侧面三角形的等角偏斜
+    auto triangleSkew = [&](const Vector3d &p0, const Vector3d &p1, const Vector3d &p2) -> double {
+        std::vector<double> angs;
+        angs.reserve(3);
+
+        angs.push_back(angleBetween(p1 - p0, p2 - p0));   // at p0
+        angs.push_back(angleBetween(p0 - p1, p2 - p1));   // at p1
+        angs.push_back(angleBetween(p0 - p2, p1 - p2));   // at p2
+
+        double triIdeal = pi/ 3.0; // 60°
+        return equiangleSkewFromAngles(angs, triIdeal);
+    };
+
+    double tri1 = triangleSkew(a, b, e); // 面 (0,1,4)
+    double tri2 = triangleSkew(b, c, e); // 面 (1,2,4)
+    double tri3 = triangleSkew(c, d, e); // 面 (2,3,4)
+    double tri4 = triangleSkew(d, a, e); // 面 (3,0,4)
+
+    double equal_angle_skewness = std::max({baseSkew, tri1, tri2, tri3, tri4});
+
+    if (cf.max_equal_skewness < 0.1) {
+        throw(std::logic_error("maximum equal skewnwass is too small!"));
+    }
+    if (equal_angle_skewness > cf.max_equal_skewness) {
 #ifdef _DEBUG
-		// cout << "pyramid equal angle skewness failed: " << equal_angle_skewness << endl;
+        // cout << "pyramid equal angle skewness failed: " << equal_angle_skewness << endl;
 #endif
-		return false;
-	}
-
-	// ---------------------------------------------------------
-	// 逻辑 2: Orthogonal Skewness (新增逻辑，归一化到 0-1)
-	// ---------------------------------------------------------
-
-	// 1. 计算体心 (Cell Centroid)
-	BLVector cell_centroid(0, 0, 0);
-	for (int k = 0; k < 5; k++) cell_centroid = cell_centroid + gprism[k];
-	cell_centroid = cell_centroid / 5.0;
-
-	double min_ortho_quality = 1.0; // 记录最差面的正交质量
-
-	// 2. 遍历5个面计算正交性
-	// 面索引定义：0-3为侧面，4为底面
-	for (int f = 0; f < 5; f++) {
-		BLVector face_centroid(0, 0, 0);
-		BLVector face_normal(0, 0, 0);
-
-		if (f < 4) {
-			// --- 侧面 (三角形) ---
-			// 节点: i, (i+1)%4, 4
-			face_centroid = (gprism[f] + gprism[(f + 1) % 4] + gprism[4]) / 3.0;
-			// 复用逻辑1计算的侧面法线 (已归一化且向外)
-			face_normal = -side_normal[f];
-		}
-		else {
-			// --- 底面 (四边形) ---
-			// 节点: 0, 1, 2, 3
-			face_centroid = (gprism[0] + gprism[1] + gprism[2] + gprism[3]) / 4.0;
-			// 复用逻辑1计算的 upper_normal
-			// upper_normal 指向内部，正交性计算需要指向外部，故取反
-			face_normal = upper_normal * 1.0;
-		}
-
-		// 计算 体心->面心 向量
-		BLVector c2f = face_centroid - cell_centroid;
-		double length = c2f.length();
-
-		// 计算正交质量 (Cosine)
-		double cosine_val = 0.0;
-		if (length > 1e-15) {
-			cosine_val = (-c2f * face_normal) / length;
-		}
-
-		// 记录最小值
-		if (cosine_val < min_ortho_quality&&f==4) {
-			min_ortho_quality = cosine_val;
-		}
-	}
-
-	// 3. 转换方向 (0最好, 1最差)
-	// 如果 min_ortho_quality < 0 (翻转)，则 skewness = 1.0
-	double ortho_skewness = (min_ortho_quality < 0) ? 1.0 : (1.0 - min_ortho_quality);
-
-	// 判定 2
-	if (cf.max_centroid_skewness < 0.1) // 假设同样的最小阈值检查
-		throw(std::logic_error("maximum centroid skewness is too small!"));
-
-	if (ortho_skewness > cf.max_centroid_skewness) {
-#ifdef _DEBUG
-		// cout << "pyramid orthogonal skewness failed: " << ortho_skewness << endl;
-#endif
-		return false;
-	}
+        return false;
+    }
 
 	return true;
 }
@@ -6834,80 +6992,120 @@ bool BLMesh::CheckPrismValidity(int nconn, int *conn, int *pidx)
 
 bool BLMesh::CheckPrismSkewness(int nconn, int* conn)
 {
-	int i;
-	double equal_angle_skewness = 0;
+	using Eigen::Vector3d;
+	static constexpr const double pi = 3.14159265358979323846;
+	Vector3d a(m_pNodes[conn[0]].coord[0], m_pNodes[conn[0]].coord[1], m_pNodes[conn[0]].coord[2]);
+    Vector3d b(m_pNodes[conn[1]].coord[0], m_pNodes[conn[1]].coord[1], m_pNodes[conn[1]].coord[2]);
+    Vector3d c(m_pNodes[conn[2]].coord[0], m_pNodes[conn[2]].coord[1], m_pNodes[conn[2]].coord[2]);
+    Vector3d d(m_pNodes[conn[3]].coord[0], m_pNodes[conn[3]].coord[1], m_pNodes[conn[3]].coord[2]);
+    Vector3d e(m_pNodes[conn[4]].coord[0], m_pNodes[conn[4]].coord[1], m_pNodes[conn[4]].coord[2]);
+	Vector3d f(m_pNodes[conn[5]].coord[0], m_pNodes[conn[5]].coord[1], m_pNodes[conn[5]].coord[2]);
+
+	// 向量夹角（弧度）
+    auto angleBetween = [](const Vector3d &u, const Vector3d &v) -> double {
+        double nu = u.norm();
+        double nv = v.norm();
+        if (nu <= std::numeric_limits<double>::epsilon() ||
+            nv <= std::numeric_limits<double>::epsilon()) {
+            return 0.0;
+        }
+        double c = u.dot(v) / (nu * nv);
+        if (c > 1.0) {
+            c = 1.0;
+        }
+        if (c < -1.0) {
+            c = -1.0;
+        }
+        return std::acos(c);
+    };
+
+    // 给一组角度 + 理想角（弧度），算等角偏斜
+    auto equiangleSkewFromAngles = [](const std::vector<double> &angles,
+                                      double idealAngle) -> double {
+        if (angles.empty()) {
+            return 0.0;
+        }
+
+        double theta_min = angles[0];
+        double theta_max = angles[0];
+        for (size_t i = 1; i < angles.size(); ++i) {
+            theta_min = std::min(theta_min, angles[i]);
+            theta_max = std::max(theta_max, angles[i]);
+        }
+
+        double s1 = (theta_max - idealAngle) / (pi - idealAngle);
+        double s2 = (idealAngle - theta_min) / idealAngle;
+
+        double skew = std::max(s1, s2);
+        skew = std::max(std::min(skew, 1.0), 0.0);
+        return skew;
+    };
+
+    // 三角形等角偏斜
+    auto triangleSkew = [&](const Vector3d &p0, const Vector3d &p1, const Vector3d &p2) -> double {
+        std::vector<double> angs;
+        angs.reserve(3);
+
+        angs.push_back(angleBetween(p1 - p0, p2 - p0)); // at p0
+        angs.push_back(angleBetween(p0 - p1, p2 - p1)); // at p1
+        angs.push_back(angleBetween(p0 - p2, p1 - p2)); // at p2
+
+        double ideal = pi / 3.0;  // 60°
+        return equiangleSkewFromAngles(angs, ideal);
+    };
+
+    // 四边形等角偏斜：按环绕顺序 (p0,p1,p2,p3)
+    auto quadSkew = [&](const Vector3d &p0,
+                        const Vector3d &p1,
+                        const Vector3d &p2,
+                        const Vector3d &p3) -> double {
+        std::vector<double> angs;
+        angs.reserve(4);
+
+        // 顶点 p0：角(p1-p0, p3-p0)
+        angs.push_back(angleBetween(p1 - p0, p3 - p0));
+        // 顶点 p1：角(p2-p1, p0-p1)
+        angs.push_back(angleBetween(p2 - p1, p0 - p1));
+        // 顶点 p2：角(p3-p2, p1-p2)
+        angs.push_back(angleBetween(p3 - p2, p1 - p2));
+        // 顶点 p3：角(p0-p3, p2-p3)
+        angs.push_back(angleBetween(p0 - p3, p2 - p3));
+
+        double ideal = pi / 2.0; // 90°
+        return equiangleSkewFromAngles(angs, ideal);
+    };
+
+    // 底三角: (a,b,c)
+    // 顶三角: (d,e,f)
+    // 侧四边形: (a,b,e,d), (b,c,f,e), (c,a,d,f)
+    double s_tri0 = triangleSkew(a, b, c);
+    double s_tri1 = triangleSkew(d, e, f);
+    double s_q0 = quadSkew(a, b, e, d);
+    double s_q1 = quadSkew(b, c, f, e);
+    double s_q2 = quadSkew(c, a, d, f);
+
+    double equal_angle_skewness = std::max({s_tri0, s_tri1, s_q0, s_q1, s_q2});
+
+	// 判定 1 (带动态阈值)
+    if (cf.max_equal_skewness < 0.1) {
+        throw(std::logic_error("maximum equal skewnwass is too small!"));
+    }
+
+    // 原逻辑：根据层数放宽阈值
+    //cf.max_equal_skewness = 1.0 - (1.00 - cf.max_equal_skewness) * ((m_nCurrLayer > 5 ? 5 : m_nCurrLayer) * 0.2);
+
+    if (equal_angle_skewness > cf.max_equal_skewness) {
+        return false;
+    }
+#ifdef  ORTHO
 	BLVector gprism[6];
 
 	// 初始化节点坐标
-	for (i = 0; i < nconn; i++)
+	for (int i = 0; i < nconn; i++)
 	{
 		gprism[i].x = m_pNodes[conn[i]].coord[0];
 		gprism[i].y = m_pNodes[conn[i]].coord[1];
 		gprism[i].z = m_pNodes[conn[i]].coord[2];
-	}
-
-	// ---------------------------------------------------------
-	// 逻辑 1: Equal Angle Skewness (保留原逻辑)
-	// ---------------------------------------------------------
-
-	auto TriNormal = [gprism](int x, int y, int z)
-		{ return BLVector::crossProduct(gprism[z] - gprism[y], gprism[x] - gprism[y]).normalized(); };
-
-	// lower_normal (Face 0-1-2): 若0-1-2为逆时针，TriNormal指向下方(Z-)，即底面外侧
-	BLVector lower_normal = TriNormal(0, 1, 2);
-	// upper_normal (Face 3-4-5): 若3-4-5为逆时针，TriNormal指向下方(Z-)，即顶面内侧
-	BLVector upper_normal = TriNormal(3, 4, 5);
-
-	BLVector side_normal[3];
-	for (int i = 0; i < 3; i++)
-	{
-		// side_normal 计算逻辑通常指向外侧
-		side_normal[i] = (TriNormal(i, i + 3, (i + 1) % 3) + TriNormal((i + 1) % 3, i + 3, (i + 1) % 3 + 3)).normalized();
-	}
-
-	// 计算 Equal Angle Skewness
-	double eq_angle = 60;
-	for (int i = 0; i < 3; i++)
-	{
-		double angle = acos(side_normal[i] * side_normal[(i + 1) % 3]) * 180.0 / PI;
-		double max_skew = (angle - eq_angle) / (180 - eq_angle);
-		double min_skew = (eq_angle - angle) / eq_angle;
-		equal_angle_skewness = max(equal_angle_skewness, max_skew);
-		equal_angle_skewness = max(equal_angle_skewness, min_skew);
-	}
-
-	eq_angle = 90;
-	for (int i = 0; i < 3; i++)
-	{
-		double angle = acos(side_normal[i] * upper_normal) * 180.0 / PI;
-		double min_skew = abs(eq_angle - angle) / eq_angle;
-		equal_angle_skewness = max(equal_angle_skewness, min_skew);
-	}
-	for (int i = 0; i < 3; i++)
-	{
-		double angle = acos(side_normal[i] * lower_normal) * 180.0 / PI;
-		double min_skew = abs(eq_angle - angle) / eq_angle;
-		equal_angle_skewness = max(equal_angle_skewness, min_skew);
-	}
-<<<<<<< HEAD
-	if (cf.max_equal_skewness < 0.1)
-		throw(std::logic_error("maximum equal skewness is too small!"));
-	if (equal_angle_skewness > 1.0 - (1.00 - cf.max_equal_skewness) * ((m_nCurrLayer > 5 ? 5 : m_nCurrLayer) * 0.2))
-	{
-		//cout << equal_angle_skewness <<" "<< cf.max_equal_skewness << endl;
-=======
-
-	// 判定 1 (带动态阈值)
-	if (cf.max_equal_skewnwass < 0.1)
-		throw(std::logic_error("maximum equal skewnwass is too small!"));
-
-	// 原逻辑：根据层数放宽阈值
-	double current_threshold = 1.0 - (1.00 - cf.max_equal_skewnwass) * ((m_nCurrLayer > 5 ? 5 : m_nCurrLayer) * 0.2);
-
-	if (equal_angle_skewness > current_threshold)
-	{
->>>>>>> 095b68cb4a9676d787feaac99945bcffd14c5617
-		return false;
 	}
 
 	// ---------------------------------------------------------
@@ -6972,9 +7170,11 @@ bool BLMesh::CheckPrismSkewness(int nconn, int* conn)
 #endif
 		return false;
 	}
+#endif 
 
 	return true;
 }
+
 
 bool BLMesh::CheckIntersection(BLFront *blFront, bool *used_by_neigh_front, int *tridx)
 {

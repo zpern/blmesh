@@ -67,16 +67,16 @@ int main(int argc, char* argv[]) {
 	string bdryfile;
 	string finconfig, bdry_file, volumn_mesh_file_vtk;
 	parsecommand(argc, argv, cf);
-	finconfig = std::string(cf.filenam) + "_o";
+	finconfig = std::string(cf.filename) + "_o";
 	bdryfile = finconfig + ".pls";
-	bdry_file = string(cf.filenam) + ".bdry";
-	volumn_mesh_file_vtk = string(cf.filenam) + ".vtk";
+	bdry_file = string(cf.filename) + ".bdry";
+	volumn_mesh_file_vtk = string(cf.filename) + ".vtk";
 	std::shared_ptr<BLMesh> blmesh(new BLMesh(cf.layer_num, 0, cf.isotropic_stop));
 	if (argc == 3) {
 		blmesh->max_depth_ = stoi(string(argv[1]));
 		blmesh->max_obj_ = stoi(string(argv[2]));
 	}
-	ifstream inputfile(string(cf.filenam + string(".pls")));
+	ifstream inputfile(string(cf.filename + string(".pls")));
 	stringstream ss;
 	ss << inputfile.rdbuf();
 	bool use_multi_normal = false;

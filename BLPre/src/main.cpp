@@ -784,7 +784,7 @@ namespace PRE {
 		}
 		else
 		{
-			symaxis[fcnt] = 0;
+			symaxis[fcnt] = 3;
 			symcoord[fcnt] = xcoord;
 		}
 

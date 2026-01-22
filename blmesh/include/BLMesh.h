@@ -277,7 +277,10 @@ public:
 
 	bool CheckPrismValidity(int nconn, int* conn, int* idx = NULL);
 	inline bool CheckPrismSkewness(int nconn, int* conn);
-
+    inline bool BLMesh::CheckPrismOrth(BLFront *baseFront,
+                                                             double *out_minOrth /*=nullptr*/,
+                                                             bool include_top_face /*=false*/
+    );
 	/*
 	* @brife 求交算法
 	*/
@@ -392,17 +395,18 @@ public:
 	bool closeToPoint(int node_index,BLVector coord);
 #endif
 public:
-	vector<int> boundary_to_delete_;
+    vector<int> boundary_to_delete_;
 
-	double transfer_time;
-	ConfigArgc cf;
-		double check_prism_time;
-		double check_prism_quality_time;
-		double generate_pyramid_time;
-		double smooth_time;
-		double insert_time;
+    double transfer_time;
+    ConfigArgc cf;
+    double check_prism_time;
+    double check_prism_quality_time;
+    double generate_pyramid_time;
+    double smooth_time;
+    double insert_time;
 
-		double expan_ratio;
+    double expan_ratio;
+
 private:
 
 	static std::function<double(std::array<double, 3>)> sizefuntion;
