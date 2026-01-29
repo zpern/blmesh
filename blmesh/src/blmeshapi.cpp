@@ -157,7 +157,7 @@ void main(int argc, char* argv[]) {
 #endif
 
 #ifdef APIFUNC
-    blmesh->SetBoundary(sfile,true);
+    blmesh->SetBoundary(sfile);
 #else
     blmesh->ReadBoundary(bdryfile, 1);
 #endif

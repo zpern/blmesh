@@ -255,10 +255,10 @@ public:
 
 
 	//void PostChckIntersect(BLFront* blFront);
-
-	bool CheckPyramidValid(double coordinates[][3]);
-
 	double CheckPyramidVolumn(double coordinates[][3]);
+	bool CheckPyramidSkewness(double coordinates[][3]);
+    bool CheckPyramidOrth(double coordinates[][3], double neighcenter[3]);
+
 
 	bool ChckIntersectforTransit(BLFront* blFront);
 	void CreatePyramid(BLFront* blFront);

@@ -620,7 +620,7 @@ int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
 	}
 
 
-	if (false) {
+	if (clear) {
 		//do step length modification
 		DistanceCalculator dc;
 		dc.ReadInput(file,cf);
@@ -3016,7 +3016,7 @@ void BLMesh::GenerateBLMesh()
 		setblNods.reserve(num_nodes_lower_layer);
 		ave_front_size = 0;
 		int nfront = 0;
-
+		
 #ifdef _DEBUG
 		int num_front = 0;
 		m_blFrontList->RestoreFront();
@@ -3773,6 +3773,7 @@ void BLMesh::GenerateBLMesh()
 		m_blFrontList->RestoreFront();
 		m_blFrontListAll[iLayer] = m_blFrontList;
 		m_blFrontList = m_blNxtFList;
+						int a = m_blFrontList->Count();
 
 #if 0
 		if (m_blType == BLMType::blm3d)
@@ -4835,7 +4836,7 @@ void BLMesh::PreCheckPrismValid(BLFront *blFront)
 	BLVector e2 = BLVector(m_pNodes[conn[4]].coord[0] - m_pNodes[conn[3]].coord[0], m_pNodes[conn[4]].coord[1] - m_pNodes[conn[3]].coord[1], m_pNodes[conn[4]].coord[2] - m_pNodes[conn[3]].coord[2]).normalized();
 	BLVector e3 = (e1 - e2).normalized();
 
-	BLVector up_front_normal = -1 * e1 ^ e2;
+	BLVector up_front_normal =  -1 * e1 ^ e2;
 
 #ifdef CHECK_SKEWNWSS
 	double throushold = sin((0.002 * (m_nCurrLayer + 1)) * PI / 180);
@@ -4849,16 +4850,15 @@ void BLMesh::PreCheckPrismValid(BLFront *blFront)
 	blFront->is_prism_valid = 1;
 	for (int i = 0; i < nNods; i++) {
 		blNod = blNods[i];
-
 		if (up_front_normal * blNods[i]->GetNormal() < 1e-6)
 		{				
 
 			blFront->is_prism_valid = 0;
+			
 #ifdef _DEBUG
 			cout << "prism normal invalid skness! value = " << up_front_normal * blNods[i]->GetNormal() << endl;;
 			cout << up_front_normal << "     " << blNods[i]->GetNormal() << std::endl;
 			cout << "id= " << blNod->GetDecentID() << endl;
-
 #endif
 			return;
 		}
@@ -4886,7 +4886,7 @@ void BLMesh::PreCheckPrismValid(BLFront *blFront)
 			cout << "=====================================" << endl;
 	
 			cout << "id= " << blNod->GetDecentID() << endl;
-			;
+		
 #endif
 			
 			return;
@@ -4933,17 +4933,12 @@ void BLMesh::PreCheckPrismValid(BLFront *blFront)
 			startpos[j] += m_pNodes[conn[i]].coord[j];
 	startpos = startpos / 3;
 
-	if (m_ocTree->chckIntersectWithLine(startpos+ up_front_normal*0.25, startpos + up_front_normal) < 1) {
+	if (m_ocTree->chckIntersectWithLine(startpos+ up_front_normal*0.25, startpos + up_front_normal * 1.25) < 1) {
 		blFront->is_prism_valid = 0;
 #ifdef _DEBUG
 		cout << "=====================================" << endl;
-		cout << m_ocTree->chckIntersectWithLine(startpos + up_front_normal * 0.25, startpos + up_front_normal ) << endl;
+		cout << m_ocTree->chckIntersectWithLine(startpos + up_front_normal * 0.25, startpos + up_front_normal * 1.2) << endl;
 		cout << "stop by edge_check " << endl;
-
-		cout << "=====================================" << endl;
-		cout << "stop by edge_check " << endl;
-	
-
 		cout << " id= " << blNod->GetDecentID() << endl;
 		;
 #endif
@@ -5727,7 +5722,83 @@ void BLMesh::PostChckIntersect(BLFront* blFront)
 	}
 }
 #endif
-bool BLMesh::CheckPyramidValid(double coordinates[][3])
+double BLMesh::CheckPyramidVolumn(double coordinates[][3])
+{
+	double volumn1 = 0, volumn2 = 0;
+	BLVector side1, side2, side3;
+
+	/* Update: New calculation (average two ways of division of bottom face) */
+
+	// divide the pyramid into 2 tets (0124 + 0234) and calculate each
+	// volume of the 0124 tet
+	side1.set(coordinates[1][0] - coordinates[0][0],
+			  coordinates[1][1] - coordinates[0][1],
+			  coordinates[1][2] - coordinates[0][2]);
+
+	side2.set(coordinates[2][0] - coordinates[0][0],
+			  coordinates[2][1] - coordinates[0][1],
+			  coordinates[2][2] - coordinates[0][2]);
+
+	side3.set(coordinates[4][0] - coordinates[0][0],
+			  coordinates[4][1] - coordinates[0][1],
+			  coordinates[4][2] - coordinates[0][2]);
+
+	volumn1 = (side3 * (side1 ^ side2)) / 6.0;
+
+	// volume of the 0234 tet
+	side1.set(coordinates[2][0] - coordinates[0][0],
+			  coordinates[2][1] - coordinates[0][1],
+			  coordinates[2][2] - coordinates[0][2]);
+
+	side2.set(coordinates[3][0] - coordinates[0][0],
+			  coordinates[3][1] - coordinates[0][1],
+			  coordinates[3][2] - coordinates[0][2]);
+
+	side3.set(coordinates[4][0] - coordinates[0][0],
+			  coordinates[4][1] - coordinates[0][1],
+			  coordinates[4][2] - coordinates[0][2]);
+
+	volumn1 += (side3 * (side1 ^ side2)) / 6.0;
+
+	// divide the pyramid into 2 tets (0134 + 1234) and calculate each
+	// volume of the 0134 tet
+	side1.set(coordinates[1][0] - coordinates[0][0],
+			  coordinates[1][1] - coordinates[0][1],
+			  coordinates[1][2] - coordinates[0][2]);
+
+	side2.set(coordinates[3][0] - coordinates[0][0],
+			  coordinates[3][1] - coordinates[0][1],
+			  coordinates[3][2] - coordinates[0][2]);
+
+	side3.set(coordinates[4][0] - coordinates[0][0],
+			  coordinates[4][1] - coordinates[0][1],
+			  coordinates[4][2] - coordinates[0][2]);
+
+	volumn2 = (side3 * (side1 ^ side2)) / 6.0;
+
+	// volume of the 1234 tet
+	side1.set(coordinates[2][0] - coordinates[1][0],
+			  coordinates[2][1] - coordinates[1][1],
+			  coordinates[2][2] - coordinates[1][2]);
+
+	side2.set(coordinates[3][0] - coordinates[1][0],
+			  coordinates[3][1] - coordinates[1][1],
+			  coordinates[3][2] - coordinates[1][2]);
+
+	side3.set(coordinates[4][0] - coordinates[1][0],
+			  coordinates[4][1] - coordinates[1][1],
+			  coordinates[4][2] - coordinates[1][2]);
+
+	volumn2 += (side3 * (side1 ^ side2)) / 6.0;
+
+	if (volumn1 < volumn2)
+	{
+		return volumn1 / 2;
+	}
+
+	return volumn2 / 2;
+}
+bool BLMesh::CheckPyramidSkewness(double coordinates[][3])
 {
 	using Eigen::Vector3d;
 	static constexpr const double pi = 3.14159265358979323846;
@@ -5820,89 +5891,85 @@ bool BLMesh::CheckPyramidValid(double coordinates[][3])
     }
     if (equal_angle_skewness > cf.max_equal_skewness) {
 #ifdef _DEBUG
-        // cout << "pyramid equal angle skewness failed: " << equal_angle_skewness << endl;
+         cout << "pyramid equal angle skewness failed: " << equal_angle_skewness << endl;
 #endif
         return false;
     }
 
 	return true;
 }
-
-double BLMesh::CheckPyramidVolumn(double coordinates[][3])
+bool BLMesh::CheckPyramidOrth(double coordinates[][3], double neighcenter[3])
 {
-	double volumn1 = 0, volumn2 = 0;
-	BLVector side1, side2, side3;
+    using Eigen::Vector3d;
 
-	/* Update: New calculation (average two ways of division of bottom face) */
+    const Vector3d p0(coordinates[0][0], coordinates[0][1], coordinates[0][2]);
+    const Vector3d p1(coordinates[1][0], coordinates[1][1], coordinates[1][2]);
+    const Vector3d p2(coordinates[2][0], coordinates[2][1], coordinates[2][2]);
+    const Vector3d p3(coordinates[3][0], coordinates[3][1], coordinates[3][2]);
+    const Vector3d p4(coordinates[4][0], coordinates[4][1], coordinates[4][2]);
 
-	// divide the pyramid into 2 tets (0124 + 0234) and calculate each
-	// volume of the 0124 tet
-	side1.set(coordinates[1][0] - coordinates[0][0],
-			  coordinates[1][1] - coordinates[0][1],
-			  coordinates[1][2] - coordinates[0][2]);
+    const Vector3d Cnei(neighcenter[0], neighcenter[1], neighcenter[2]);
 
-	side2.set(coordinates[2][0] - coordinates[0][0],
-			  coordinates[2][1] - coordinates[0][1],
-			  coordinates[2][2] - coordinates[0][2]);
+    auto safeNormalize = [](const Vector3d& v) -> Vector3d {
+        double n = v.norm();
+        if (n <= std::numeric_limits<double>::epsilon()) return Vector3d::Zero();
+        return v / n;
+    };
 
-	side3.set(coordinates[4][0] - coordinates[0][0],
-			  coordinates[4][1] - coordinates[0][1],
-			  coordinates[4][2] - coordinates[0][2]);
+    // cell centroid（简单平均足够用于正交性）
+    const Vector3d C = (p0 + p1 + p2 + p3 + p4) / 5.0;
 
-	volumn1 = (side3 * (side1 ^ side2)) / 6.0;
+    // shared face: base quad (0,1,2,3)
+    const Vector3d F = (p0 + p1 + p2 + p3) / 4.0;
 
-	// volume of the 0234 tet
-	side1.set(coordinates[2][0] - coordinates[0][0],
-			  coordinates[2][1] - coordinates[0][1],
-			  coordinates[2][2] - coordinates[0][2]);
+    // base normal（用两个三角的法向相加，较稳）
+    Vector3d n = (p1 - p0).cross(p2 - p0) + (p2 - p0).cross(p3 - p0);
+    Vector3d n_u = safeNormalize(n);
+    if (n_u.isZero(0)) {
+#ifdef _DEBUG
+        std::cout << "pyramid orth failed: base normal degenerate\n";
+#endif
+        return false;
+    }
 
-	side2.set(coordinates[3][0] - coordinates[0][0],
-			  coordinates[3][1] - coordinates[0][1],
-			  coordinates[3][2] - coordinates[0][2]);
+    Vector3d dCC_u = safeNormalize(Cnei - C); // centroid -> neighbor centroid
+    if (dCC_u.isZero(0)) {
+#ifdef _DEBUG
+        std::cout << "pyramid orth failed: neighbor center coincides with cell center\n";
+#endif
+        return false;
+    }
 
-	side3.set(coordinates[4][0] - coordinates[0][0],
-			  coordinates[4][1] - coordinates[0][1],
-			  coordinates[4][2] - coordinates[0][2]);
+    Vector3d dCF_u = safeNormalize(F - C);    // centroid -> face centroid
+    if (dCF_u.isZero(0)) {
+#ifdef _DEBUG
+        std::cout << "pyramid orth failed: face centroid coincides with cell center\n";
+#endif
+        return false;
+    }
 
-	volumn1 += (side3 * (side1 ^ side2)) / 6.0;
+    double cos_cc = std::abs(n_u.dot(dCC_u));
+    double cos_cf = std::abs(n_u.dot(dCF_u));
 
-	// divide the pyramid into 2 tets (0134 + 1234) and calculate each
-	// volume of the 0134 tet
-	side1.set(coordinates[1][0] - coordinates[0][0],
-			  coordinates[1][1] - coordinates[0][1],
-			  coordinates[1][2] - coordinates[0][2]);
+    // orthogonality for this shared face
+    double orth = std::min(cos_cc, cos_cf);
 
-	side2.set(coordinates[3][0] - coordinates[0][0],
-			  coordinates[3][1] - coordinates[0][1],
-			  coordinates[3][2] - coordinates[0][2]);
+    // 可选：数值夹紧
+    orth = std::max(0.0, std::min(1.0, orth));
 
-	side3.set(coordinates[4][0] - coordinates[0][0],
-			  coordinates[4][1] - coordinates[0][1],
-			  coordinates[4][2] - coordinates[0][2]);
+    // 阈值检查（你自己把名字对上）
+    if (cf.max_centroid_skewness < 1e-6) {
+        throw std::logic_error("min_pyramid_orth is too small / not set!");
+    }
 
-	volumn2 = (side3 * (side1 ^ side2)) / 6.0;
+    if (orth < cf.max_centroid_skewness) {
+#ifdef _DEBUG
+        std::cout << "pyramid orth failed: orth=" << orth << "\n";
+#endif
+        return false;
+    }
 
-	// volume of the 1234 tet
-	side1.set(coordinates[2][0] - coordinates[1][0],
-			  coordinates[2][1] - coordinates[1][1],
-			  coordinates[2][2] - coordinates[1][2]);
-
-	side2.set(coordinates[3][0] - coordinates[1][0],
-			  coordinates[3][1] - coordinates[1][1],
-			  coordinates[3][2] - coordinates[1][2]);
-
-	side3.set(coordinates[4][0] - coordinates[1][0],
-			  coordinates[4][1] - coordinates[1][1],
-			  coordinates[4][2] - coordinates[1][2]);
-
-	volumn2 += (side3 * (side1 ^ side2)) / 6.0;
-
-	if (volumn1 < volumn2)
-	{
-		return volumn1 / 2;
-	}
-
-	return volumn2 / 2;
+    return true;
 }
 bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 {
@@ -5920,7 +5987,7 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 	blLowerFrt = blFront->GetLowerFront(); //下一层的front
 	if (blLowerFrt != nullptr)
 	{
-		int idx1, idx2, idx = 0;
+		int idx1, idx2,idx3,idx = 0;
 
 		auto &blFrnts = (blLowerFrt)->m_arrNeigFronts;
 		blLowerFrt->GetNodes(&nlNods, blLoNods);
@@ -5936,7 +6003,7 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 			used[inei] = true;
 			idx1 = blNods[(inei + 1) % DIM3]->GetLowerNode()->GetNodIdx();
 			idx2 = blNods[(inei + 2) % DIM3]->GetLowerNode()->GetNodIdx();
-
+			idx3 = blNods[(inei + 2) % DIM3]->GetLowerNode()->GetNodIdx();
 			neig_front->GetNodes(&nnods, blnds);
 
 			for (int j = 0; j < nnods; j++)
@@ -5961,9 +6028,12 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 				conn[2] = blNods[(inei + 1) % DIM3]->GetNodIdx();
 				conn[3] = idx2;
 				conn[4] = idx;
+				conn[5] = idx3;
+				conn[6] = blNods[(inei + 3) % DIM3]->GetNodIdx();
 #ifdef CHECK_VOLUMN
 				//volumn
 				double coordp[5][3];
+                double neighCenter[3] = {0};
 				for (int k = 0; k < 3; k++)
 				{
 					coordp[0][k] = m_pNodes[conn[0]].coord[k];
@@ -5972,6 +6042,16 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 					coordp[3][k] = m_pNodes[conn[3]].coord[k];
 					coordp[4][k] = m_pNodes[conn[4]].coord[k];
 				}
+				for (int k = 0; k < 3; k++) {
+                    neighCenter[k] +=  m_pNodes[conn[0]].coord[k];
+					neighCenter[k] +=  m_pNodes[conn[1]].coord[k];
+					neighCenter[k] +=  m_pNodes[conn[2]].coord[k];
+					neighCenter[k] +=  m_pNodes[conn[3]].coord[k];
+					neighCenter[k] +=  m_pNodes[conn[5]].coord[k];
+					neighCenter[k] +=  m_pNodes[conn[6]].coord[k];
+                    neighCenter[k] /= 6;
+				}
+
 				double volumn = CheckPyramidVolumn(coordp);
 				if (volumn < 1e-25)
 				{
@@ -5980,8 +6060,12 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 					cout << "pyramid volumn=" << volumn << endl;
 #endif // DEBUG
 				}
-				if (!CheckPyramidValid(coordp))
+
+				if (!CheckPyramidSkewness(coordp))
 					ret = true;
+                if (!CheckPyramidOrth(coordp,neighCenter)) {
+                    ret = true;
+                }
 #endif
 
 				int cons[3], ii;
@@ -6004,6 +6088,7 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 				m_ocTree->insertPreProcess(tridx);
 			}
 		}
+
 		if (cf.max_layer_diff!= 1)
 		{
 			for (i = 0; i < 3; i++)
@@ -6023,7 +6108,7 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 						used[inei] = true;
 						idx1 = blNods[(inei + 1) % DIM3]->GetLowerNode()->GetNodIdx();
 						idx2 = blNods[(inei + 2) % DIM3]->GetLowerNode()->GetNodIdx();
-
+						idx3 = blNods[(inei + 2) % DIM3]->GetLowerNode()->GetNodIdx();
 						idx = blLowerFrt->ps.node_idx[inei];
 						int layer = blLowerFrt->ps.exposed_layer[inei];
 						int sum = 0;
@@ -6036,9 +6121,12 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 							conn[2] = blNods[(inei + 1) % DIM3]->GetNodIdx();
 							conn[3] = idx2;
 							conn[4] = idx;
+                            conn[5] = idx3;
+                            conn[6] = blNods[(inei + 3) % DIM3]->GetNodIdx();
 #ifdef CHECK_VOLUMN
 							//volumn
 							double coordp[5][3];
+							double neighCenter[3] = {0};
 							for (int k = 0; k < 3; k++)
 							{
 								coordp[0][k] = m_pNodes[conn[0]].coord[k];
@@ -6047,7 +6135,17 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 								coordp[3][k] = m_pNodes[conn[3]].coord[k];
 								coordp[4][k] = m_pNodes[conn[4]].coord[k];
 							}
+                            for (int k = 0; k < 3; k++) {
+                                neighCenter[k] += m_pNodes[conn[0]].coord[k];
+                                neighCenter[k] += m_pNodes[conn[1]].coord[k];
+                                neighCenter[k] += m_pNodes[conn[2]].coord[k];
+                                neighCenter[k] += m_pNodes[conn[3]].coord[k];
+                                neighCenter[k] += m_pNodes[conn[5]].coord[k];
+                                neighCenter[k] += m_pNodes[conn[6]].coord[k];
+                                neighCenter[k] /= 6;
+                            }
 							double volumn = CheckPyramidVolumn(coordp);
+
 							if (volumn < 1e-25)
 							{
 								ret = true;
@@ -6055,8 +6153,11 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 								cout << "pyramid volumn=" << volumn << endl;
 #endif // DEBUG
 							}
-							if (!CheckPyramidValid(coordp))
+							if (!CheckPyramidSkewness(coordp))
 								ret = true;
+                            if (!CheckPyramidOrth(coordp, neighCenter)) {
+                                ret = true;
+                            }
 #endif
 							//通过两个策略控制 1. 最大层差 2.层差和横向的比值
 							int k = 1;
@@ -6600,6 +6701,7 @@ void BLMesh::CreateTransitionElements()
 #ifdef _CHECK_INTERSECTION
 	//check intersection
 	m_blFrontList->RestoreFront();
+    int a = m_blFrontList->Count();
 	queue<BLFront *> createPyramid_queue;
 	while (m_blFrontList->HasNextFront())
 	{
@@ -6763,6 +6865,7 @@ void BLMesh::CreateTransitionElements()
 
 	m_blFrontList->RestoreFront();
 }
+
 bool BLMesh::CheckIsotroStop(BLNode *blNod)
 {
 	//TODO：需要完善

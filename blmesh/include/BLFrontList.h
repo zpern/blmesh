@@ -33,6 +33,15 @@ public:
 
 	void DeleteFront(BLFront* blFront);
 
+	int Count() const
+    {
+        int c = 0;
+        for (BLFront *p = m_fHead; p != nullptr; p = p->m_pNxtFront) {
+            ++c;
+        }
+        return c;
+    }
+
 private:
 	BLFront* m_fHead;
 	BLFront* m_fCurr;
