@@ -344,7 +344,7 @@ class BinaryTree {
                                 barycentric_coordinates, reference_box_len,
                                 hint_id);
   }
-
+  #pragma optimize("",off);
   /// return hint id
   size_t queryNearestTriangle(
       const BoxVector& xyz, size_t& simplex_id, double& distance,
@@ -398,7 +398,7 @@ class BinaryTree {
     }
     return simplex_id;
   }
-
+  #pragma optimize("",on);
   void test() {
     for (auto i : tree_node_array_) {
       if (i.isLeafNode()) {

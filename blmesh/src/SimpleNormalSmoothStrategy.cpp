@@ -78,7 +78,7 @@ void SimpleNormalSmoothStrategy::SmoothNormalOnce(BLNode *blNod, int iq)
 
 		int idx=blNodes[i]->GetNodIdx();
 		BLVector coord1(pNodes[idx].coord[0],pNodes[idx].coord[1],pNodes[idx].coord[2]);
-		double length = length_ave/lengths[i];
+		double length = lengths[i]/length_ave;
 		double angle=(coord1 - centor).normalized()*blNodes[i]->GetNormal();
 
 		double x = pow(length, 2 + 2 * angle) / (sp * sp);

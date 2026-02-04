@@ -60,7 +60,7 @@
 #define OLD
 //for test(need to be deleted later)
 int printflag;
-
+int tempcalculate =0;
 //a callback function of threads
 unsigned bccal(void *para)
 {
@@ -3173,7 +3173,18 @@ void BLMesh::GenerateBLMesh()
 			if (cf.iscompresslen) {
                 blNod->respect_height = blNod->recommend_height;
 			}
-
+            int a = blNod->GetDecentID();
+            const double eps = 0.1;
+            const double target = 3000.57;
+			
+            if (std::abs(m_pNodes[a].coord[0] - target) <= eps &&
+                std::abs(m_pNodes[a].coord[1] - 56.7135) <= eps &&
+                std::abs(m_pNodes[a].coord[2] - 365.083) <= eps) {
+				tempcalculate++;
+				if (tempcalculate == 18) {
+					std::cout<<"xyhs";
+				}
+            }
 			if (blNod->GetBSys()) {
 				auto ans = blNod->GetHeight();
 				int decent_id = blNod->GetDecentID();
@@ -3182,9 +3193,6 @@ void BLMesh::GenerateBLMesh()
 					m_pNodes[nodeid].coord[1], m_pNodes[nodeid].coord[2]);
 				Eigen::RowVector3d normal(ans[0], ans[1], ans[2]);
 				std::vector<int> faceid = m_pNodes[nodeid].isymfc;
-				if (faceid[0] == 349) {
-                    std::cout << "xyhs";
-				}
 				if(faceid.size()==1)
 					faceid2sp[faceid[0]].adjustNormal(start_point,normal);
 				else{
