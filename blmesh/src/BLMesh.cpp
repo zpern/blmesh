@@ -57,6 +57,7 @@
 
 #define _GEOM_NORMAL
 #define _VECTOR_FIELD
+#define OLD
 //for test(need to be deleted later)
 int printflag;
 
@@ -215,7 +216,7 @@ double BLMesh::GetAvergeLayer()
 
   */
 
-int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
+int BLMesh::SetBoundary(INPUTFORMAT file) {
 
 
 	//	spdlog::info("boufilename=%s", filename);
@@ -620,7 +621,7 @@ int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
 	}
 
 
-	if (clear) {
+	if (cf.iscompresslen) {
 		//do step length modification
 		DistanceCalculator dc;
 		dc.ReadInput(file,cf);
@@ -629,21 +630,18 @@ int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
 
 		if (!projection.empty())
 			for (int i = 0; i < npt; i++) {
-				if (point_manifold_size[i]) {
-					point_size[i] /= point_manifold_size[i];
 
-					double full_length = (cf.step_len - point_size[i] * cf.ratio) / (1 - cf.ratio);
-					if (projection[i] > 0 && projection[i] < full_length*0.6) {
-						if (m_pNodes[i].bsysm > 0 || m_pNodes[i].bfarfield)
-							continue;
-						auto node = ((BLNode*)m_pNodes[i].pointer);
-						if (node && !node->iso_stop) {
+                double full_length = (cf.step_len - cf.step_len * pow(cf.ratio, cf.layer_num - 1)) / (1 - cf.ratio);
+                if (projection[i] >= 0 && projection[i] < full_length * 0.6) {
+                    if (m_pNodes[i].bsysm > 0 || m_pNodes[i].bfarfield) {
+                        continue;
+                    }
+                    auto node = ((BLNode *)m_pNodes[i].pointer);
+                    if (node && !node->iso_stop) {
 
-							node->SetFixedHightRatio(((projection[i] - full_length) / full_length)*0.6);
-							//	cout << projection[i] / full_length << endl;
-						}
-					}
-				}
+                        node->recommend_height = (-0.4 * (projection[i]-1)*(projection[i]-1)+1)*cf.step_len;
+                    }
+                }
 			}
 	}
 
@@ -901,7 +899,7 @@ int BLMesh::SetBoundary(INPUTFORMAT file,bool clear) {
 		}
 	}
 
-	if (!clear) {
+	if (true) {
 
 		if (get<3>(file)) {
 			delete[]get<3>(file);
@@ -3172,6 +3170,10 @@ void BLMesh::GenerateBLMesh()
 				blNod->respect_height = cf.step_len; 
 			}
 
+			if (cf.iscompresslen) {
+                blNod->respect_height = blNod->recommend_height;
+			}
+
 			if (blNod->GetBSys()) {
 				auto ans = blNod->GetHeight();
 				int decent_id = blNod->GetDecentID();
@@ -3180,6 +3182,9 @@ void BLMesh::GenerateBLMesh()
 					m_pNodes[nodeid].coord[1], m_pNodes[nodeid].coord[2]);
 				Eigen::RowVector3d normal(ans[0], ans[1], ans[2]);
 				std::vector<int> faceid = m_pNodes[nodeid].isymfc;
+				if (faceid[0] == 349) {
+                    std::cout << "xyhs";
+				}
 				if(faceid.size()==1)
 					faceid2sp[faceid[0]].adjustNormal(start_point,normal);
 				else{
@@ -3250,7 +3255,7 @@ void BLMesh::GenerateBLMesh()
 			blNodNew->SetBeitaVisu(0.8);
 			blNodNew->beitaVisu = blNod->beitaVisu;
 			blNodNew->m_h0 = blNod->m_h0 * 0.95 + cf.step_len * 0.05;
-			blNodNew->respect_height = blNod->respect_height * 0.95 + cf.step_len * 0.05;
+			blNodNew->respect_height = blNod->respect_height;
 			blNodNew->respect_layer = blNod->respect_layer;
 			//blNodNew
 			//
@@ -4687,36 +4692,6 @@ void BLMesh::Propagate()
 	{
 		prePropagate(vec_create_fronts[i]);
 	}
-// ===== Orthogonality (ANSYS dual-cos) check after prePropagate =====
-    for (int i = 0; i < size; ++i) {
-        BLFront *f = vec_create_fronts[i];
-
-        // 只检查真的生成了 upperFront 的（否则已经被删/停了）
-        if (!f || !f->GetUpperFront()) {
-            continue;
-        }
-
-        double orth_min = 1.0;
-        if (!CheckPrismOrth(f, &orth_min, /*include_top_face=*/false)) {
-#ifdef _DEBUG
-            std::cout << "[OrthFail] front=" << f << " orth_min=" << orth_min
-                      << " layer=" << m_nCurrLayer << std::endl;
-#endif
-            // 跟 CheckInsertSideSuface 一样的回滚路径
-            BLNode *blNods[DIM3];
-            int nNods = 0;
-            f->GetNodes(&nNods, blNods);
-
-            scheck.clear();
-            for (int k = 0; k < DIM3; ++k) {
-                RmvUperNeigFronts(blNods[k]);
-                StopPropagateNode(blNods[k]);
-            }
-            for (auto kk : scheck) {
-                inser_queue.push_back(kk);
-            }
-        }
-    }
 
     
 	inser_queue = deque<BLFront *>();
@@ -4848,99 +4823,79 @@ void BLMesh::PreCheckPrismValid(BLFront *blFront)
 		throushold = sin((0.02 + 0.03 * (m_nCurrLayer - 10)) * PI / 180);
 	}
 	blFront->is_prism_valid = 1;
+
+	//上层法向与节点法向反向
 	for (int i = 0; i < nNods; i++) {
 		blNod = blNods[i];
 		if (up_front_normal * blNods[i]->GetNormal() < 1e-6)
 		{				
-
 			blFront->is_prism_valid = 0;
-			
 #ifdef _DEBUG
-			cout << "prism normal invalid skness! value = " << up_front_normal * blNods[i]->GetNormal() << endl;;
-			cout << up_front_normal << "     " << blNods[i]->GetNormal() << std::endl;
+			cout << "upper face normal opposite" << endl;;
 			cout << "id= " << blNod->GetDecentID() << endl;
 #endif
 			return;
 		}
 	}
+	
+	//上层面几何退化
 	if (up_front_normal.magnitude2() < throushold * throushold || (e2 ^ e3).magnitude2() < throushold * throushold || (e3 ^ e1).magnitude2() < throushold * throushold)
 	{
 
 		blFront->is_prism_valid = 0;
 #ifdef _DEBUG
-		cout << "prism upper normal invalid  skness ";
+		cout << "upper face degenerate"<< endl;
+		cout << "id= " << blNod->GetDecentID() << endl;
 #endif
 		return;
 	}
 
+	//节点法向与上下两层面法向夹角过大
 	up_front_normal.normalize();
 	for (i = 0; i < nNods; i++)
 	{
 		blNod = blNods[i];
-
 		if (blNod->GetNormal() * blFront->GetNormal() < throushold || blNod->GetNormal() * up_front_normal < throushold)
 		{
-
 			blFront->is_prism_valid = 0;
 #ifdef _DEBUG
-			cout << "=====================================" << endl;
-	
+			cout << "node normal deviates form face normal" << endl;
 			cout << "id= " << blNod->GetDecentID() << endl;
-		
 #endif
-			
 			return;
 		}
 	}
-#ifdef CHECK_EVERY_VOLUMN
-	if (!CheckPrismEveryVolumn(2 * nconn, conn)) {
+
+
+
+	if (!CheckPrismVolumn(2 * nconn, conn)|| !CheckPrismSkewness(2 * nconn, conn) || !CheckPrismOrth(blFront,false)){
 		blFront->is_prism_valid = 0;
 #ifdef _DEBUG
-		cout << "=====================================" << endl;
-		if (!CheckPrismVolumn(2 * nconn, conn))
-			cout << "volume  id=";
-
-		cout << blNod->GetDecentID() << endl;
-		;
-#endif
-		
-	}
-#endif
-
-#ifdef CHECK_VOLUMN
-	if (!CheckPrismVolumn(2 * nconn, conn)
-	|| !CheckPrismSkewness(2 * nconn, conn)) {
-
-
-		blFront->is_prism_valid = 0;
-#ifdef _DEBUG
-		cout << "=====================================" << endl;
-		if (!CheckPrismVolumn(2 * nconn, conn))
+        if (!CheckPrismVolumn(2 * nconn, conn)) 
 			cout << "volume  id=";
 		if (!CheckPrismSkewness(2 * nconn, conn))
 			cout << "skewness  id=";
+        if (!CheckPrismOrth(blFront, false)) 
+			cout << "orth  id=";
 
 		cout << blNod->GetDecentID() << endl;
-		;
+
 #endif
-		
 	}
-#endif
-	up_front_normal = up_front_normal * (blFront->m_pBLNods[0]->GetHeightLength()/*+blFront->GetFrontSize()*0.1*/);
+
+	//前沿探测留空
+	up_front_normal = up_front_normal * (blFront->m_pBLNods[0]->GetHeightLength());
 	BLVector startpos(0,0,0);
 	for (int i = 0; i < 3; i++)
 		for (int j = 0; j < 3; j++)
-			startpos[j] += m_pNodes[conn[i]].coord[j];
+			startpos[j] += m_pNodes[conn[i + 3]].coord[j];
 	startpos = startpos / 3;
 
-	if (m_ocTree->chckIntersectWithLine(startpos+ up_front_normal*0.25, startpos + up_front_normal * 1.25) < 1) {
+	if (m_ocTree->chckIntersectWithLine(startpos+ up_front_normal * 0.01, startpos + up_front_normal * 0.3) < 1) {
 		blFront->is_prism_valid = 0;
 #ifdef _DEBUG
-		cout << "=====================================" << endl;
-		cout << m_ocTree->chckIntersectWithLine(startpos + up_front_normal * 0.25, startpos + up_front_normal * 1.2) << endl;
 		cout << "stop by edge_check " << endl;
 		cout << " id= " << blNod->GetDecentID() << endl;
-		;
 #endif
 	}
 
@@ -5037,16 +4992,10 @@ void BLMesh::prePropagate(BLFront *blFront)
 }
 bool BLMesh::CheckPrismOrth(
     BLFront* blFront,
-    double* out_minOrth /*=nullptr*/,
     bool include_top_face /*=false*/
 )
 {
     if (!blFront) return false;
-    if (!blFront->GetUpperFront()) {
-        // 没生成棱柱就不需要检查（你外面也会 skip）
-        if (out_minOrth) *out_minOrth = 1.0;
-        return true;
-    }
 
     // 确保 conn 已经填好（你 PreCheckPrismValid 里也会调用，但这里再调用一次更稳）
     getConnection(blFront);
@@ -5195,8 +5144,7 @@ bool BLMesh::CheckPrismOrth(
         minOrth = std::min(minOrth, orthFaceDual(Af, Fc, nullptr));
     }
 
-    if (out_minOrth) *out_minOrth = minOrth;
-    return (minOrth >= cf.max_centroid_skewness);
+    return (minOrth >= 1 - cf.max_orth[0]);
 }
 BLVector BLMesh::TransNorm(BLVector norm, double *angl)
 {
@@ -5886,10 +5834,10 @@ bool BLMesh::CheckPyramidSkewness(double coordinates[][3])
 
     double equal_angle_skewness = std::max({baseSkew, tri1, tri2, tri3, tri4});
 
-    if (cf.max_equal_skewness < 0.1) {
+    if (cf.max_skewness[1] < 0.1) {
         throw(std::logic_error("maximum equal skewnwass is too small!"));
     }
-    if (equal_angle_skewness > cf.max_equal_skewness) {
+    if (equal_angle_skewness > cf.max_skewness[1]) {
 #ifdef _DEBUG
          cout << "pyramid equal angle skewness failed: " << equal_angle_skewness << endl;
 #endif
@@ -5958,13 +5906,13 @@ bool BLMesh::CheckPyramidOrth(double coordinates[][3], double neighcenter[3])
     orth = std::max(0.0, std::min(1.0, orth));
 
     // 阈值检查（你自己把名字对上）
-    if (cf.max_centroid_skewness < 1e-6) {
+    if (cf.max_orth[1] < 1e-6) {
         throw std::logic_error("min_pyramid_orth is too small / not set!");
     }
 
-    if (orth < cf.max_centroid_skewness) {
+    if ( orth < 1 - cf.max_orth[1]) {
 #ifdef _DEBUG
-        std::cout << "pyramid orth failed: orth=" << orth << "\n";
+        std::cout << "pyramid orth failed: orth=" << 1 - orth << "\n";
 #endif
         return false;
     }
@@ -6153,11 +6101,11 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 								cout << "pyramid volumn=" << volumn << endl;
 #endif // DEBUG
 							}
-							if (!CheckPyramidSkewness(coordp))
-								ret = true;
-                            if (!CheckPyramidOrth(coordp, neighCenter)) {
-                                ret = true;
-                            }
+							//if (!CheckPyramidSkewness(coordp))
+							//	ret = true;
+                            //if (!CheckPyramidOrth(coordp, neighCenter)) {
+                            //    ret = true;
+                            //}
 #endif
 							//通过两个策略控制 1. 最大层差 2.层差和横向的比值
 							int k = 1;
@@ -7190,14 +7138,14 @@ bool BLMesh::CheckPrismSkewness(int nconn, int* conn)
     double equal_angle_skewness = std::max({s_tri0, s_tri1, s_q0, s_q1, s_q2});
 
 	// 判定 1 (带动态阈值)
-    if (cf.max_equal_skewness < 0.1) {
+    if (cf.max_skewness[0] < 0.1) {
         throw(std::logic_error("maximum equal skewnwass is too small!"));
     }
 
     // 原逻辑：根据层数放宽阈值
     //cf.max_equal_skewness = 1.0 - (1.00 - cf.max_equal_skewness) * ((m_nCurrLayer > 5 ? 5 : m_nCurrLayer) * 0.2);
 
-    if (equal_angle_skewness > cf.max_equal_skewness) {
+    if (equal_angle_skewness > cf.max_skewness[0]) {
         return false;
     }
 #ifdef  ORTHO
@@ -7472,6 +7420,7 @@ void BLMesh::FixHightRatio(BLNode *blNod, MBLNode *pNodes)
 		blNod->SetFixedHightRatio(length * 0.3 / cf.step_len - 1);
 	}
 }
+#ifdef OLD
 void BLMesh::SmoothHeightRatio(BLNode *blNod, MBLNode *pNodes)
 {
 	const auto &node_array = blNod->GetNeigNods();
@@ -7502,7 +7451,7 @@ void BLMesh::SmoothHeightRatio(BLNode *blNod, MBLNode *pNodes)
 	//}
 
 
-	alength= 1.0 / (1.0 + std::exp(-0.01 * (length)))-0.5;
+	alength= 1.0 / (1.0 + std::exp(-0.01*length))-0.5;
 
 	blNod->SetHightRatio(alength);
 
@@ -7524,7 +7473,60 @@ void BLMesh::SmoothHeightRatio(BLNode *blNod, MBLNode *pNodes)
 		}
 	}
 }
+#else
+void BLMesh::SmoothHeightRatio(BLNode *blNod, MBLNode *pNodes)
+{
+	const auto &node_array = blNod->GetNeigNods();
+	if (node_array.empty())
+		return;
+	double length = 0;
+	BLVector COORD(pNodes[blNod->GetNodIdx()].coord[0], pNodes[blNod->GetNodIdx()].coord[1], pNodes[blNod->GetNodIdx()].coord[2]);
+	for (auto i : node_array)
+	{
+		length += ((BLVector(pNodes[i->GetNodIdx()].coord[0], pNodes[i->GetNodIdx()].coord[1], pNodes[i->GetNodIdx()].coord[2]) + i->GetHeight()) - COORD) * blNod->GetNormal();
+	}
+	double suppose_height = blNod->GetHeightLength() / (1 + blNod->GetHightRatio()) / (1 + blNod->GetFixedHightRatio());
+	double min_dos = 1.0;
 
+	for (auto i : node_array)
+	{
+		min_dos = min(min_dos, blNod->GetNormal() * i->GetNormal());
+	}
+	min_dos = 1 - min_dos;
+	length /= node_array.size();
+	length = (length - suppose_height) / suppose_height;
+
+	double alength = 0;
+	//if(length>0)
+	//	alength = atan(length * (1 + min_dos / 2)) * 2 / PI;
+	//else {
+	//	alength = atan(length * (1 + min_dos / 2)) * (0.5) * 2 / PI;
+	//}
+
+
+	alength= 1.0 / (1.0 + std::exp(-0.5*length))-0.5;
+
+	blNod->SetHightRatio(alength);
+
+	//smooth fixed height ratio
+
+	queue<BLNode*> q;
+	q.push(blNod);
+	while (!q.empty()) {
+
+		BLNode* n = q.front();
+		q.pop();
+		auto nei = n->GetNeigNods();
+		for (auto i : nei)
+		{
+			if (i->GetFixedHightRatio() > n->GetFixedHightRatio()+0.1) {
+				i->SetFixedHightRatio(n->GetFixedHightRatio()+0.1);
+				q.push(i);
+			}
+		}
+	}
+}
+#endif
 int BLMesh::GetOuterBoundary(int *npt, int *nlem, double **pt, int **elm, int **l_to_g,bool add_symm)
 {
 	int i, j, *nodmap = nullptr, idx;

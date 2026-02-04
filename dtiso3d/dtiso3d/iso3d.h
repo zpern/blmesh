@@ -387,7 +387,7 @@ public:
 	 *       false  otherwise
 	 */
 //	bool isDelEle(INTEGER iEle);
-	bool isDelEle(Elem *pElem)
+	bool isDelEle(oldElem *pElem)
 	{
 		return pElem->iReserved2 & 0x1;
 	}
@@ -521,7 +521,7 @@ public:
 	 *        as 1s (default values are 0s)
 	 */
 //	bool isTstEle(INTEGER iEle);
-	bool isTstEle(Elem *pElem);
+	bool isTstEle(oldElem *pElem);
 
 	/*
 	 * Set the tested flag of an element
@@ -533,9 +533,9 @@ public:
 	 *     false    otherwise
 	 */
 //	void enableEleTstFlag(INTEGER iEle);
-	void enableEleTstFlag(Elem *pElem);
+	void enableEleTstFlag(oldElem *pElem);
 //	void disableEleTstFlag(INTEGER iEle);
-	void disableEleTstFlag(Elem *pElem);
+	void disableEleTstFlag(oldElem *pElem);
 
 	/*
 	 * Flag an elment as tested & add it to the array of tested elements
@@ -546,7 +546,7 @@ public:
 	 *     elements after adding iEle              iEle is valid
 	 *      -1								       otherwise
 	 */
-	void addTstEle(INTEGER iEle, Elem *pEle);
+	void addTstEle(INTEGER iEle, oldElem *pEle);
 	/*
 	 * Clear flags of all tested elements & clear the array of tested elements
 	 * Parameters:
@@ -736,7 +736,7 @@ public:
 	/* ***************************************************
 	 * functions for edge recovery
 	 * **************************************************/
-	bool isNodInc(INTEGER iNod, Elem *pElem);
+	bool isNodInc(INTEGER iNod, oldElem *pElem);
 	int getSphereSize(INTEGER iNod, INTEGER *iHint = NULL);
 	int findSphere(INTEGER iNod, Sphere sph, int *nSph, INTEGER *iHint = NULL);  /* iHint是包含点的第一个单元，为NULL时则查询哈希表获得 */
 	int findShell(INTEGER s, INTEGER e, Shell she, int *nShe, INTEGER *iHint = NULL); /* iHint是包含边的第一个单元，为NULL时则查询哈希表获得 */
@@ -930,7 +930,7 @@ public:
 	int elemCounterIncre(int iElem)
 	{
 		int cnt;
-		Elem *pElem = &m_pElems[iElem];
+		oldElem *pElem = &m_pElems[iElem];
 		assert(!isDelEle(pElem));
 		cnt = elemCounter(iElem) + 1;
 		assert(cnt <= 6);
@@ -941,7 +941,7 @@ public:
 	int elemCounterDecre(int iElem)
 	{
 		int cnt;
-		Elem *pElem = &m_pElems[iElem];
+		oldElem *pElem = &m_pElems[iElem];
 		assert(!isDelEle(pElem));
 		cnt = elemCounter(iElem) - 1;
 		assert(cnt >= 0);
@@ -2346,7 +2346,7 @@ protected:
 	 * ****************************************************************************** */
 	/*basic data structures*/
 #ifdef _ONE_LONG_ARRAY
-	Elem *m_pElems;			/* elements array */
+	oldElem *m_pElems;			/* elements array */
 	INTEGER m_nElems;       /* the number of elements */
 	INTEGER m_nAllocElems;		/*allocated data size for elements*/
 
@@ -2411,7 +2411,7 @@ protected:
 	BGMesh m_BGMesh;
 	Source m_Source;
 
-	MBLNode *m_pCreateNodes;	/* 自动创建的内部点，临时性内存，索引从1开始 */
+	oldMBLNode *m_pCreateNodes;	/* 自动创建的内部点，临时性内存，索引从1开始 */
 	INTEGER m_nCreateNodes;	/* 自动创建的内部点数目 */
 
 #ifdef _USING_STD_LIB

@@ -19,8 +19,8 @@ struct blpreConfig {
     vector<int> match;
     vector<int> per;
     vector<int> adjacent;
-    double max_equal_skewness;
-    double max_centroid_skewness;
+    vector<double> max_skewness;
+    vector<double> max_orth;
     bool use_multiple_normals;
     int multiple_numlayer;
     double multiple_steplength;

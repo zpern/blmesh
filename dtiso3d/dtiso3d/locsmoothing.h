@@ -153,8 +153,8 @@ public:
 		int qualmeasure);
 
 public:
-	Elem *g_pLocSmoothingElems;
-	MBLNode *g_pLocSmoothingNodes;
+	oldElem *g_pLocSmoothingElems;
+	oldMBLNode *g_pLocSmoothingNodes;
 	TetraElemQual *g_pLocSmoothingQuals;
 	int g_nLocSmoothingElems;
 	int g_nLocSmoothingNodes;

@@ -129,7 +129,7 @@ public:
 	//
 
 
-	int SetBoundary(INPUTFORMAT file,bool clear=false);
+	int SetBoundary(INPUTFORMAT filee);
 	int ReadBoundary(const INPUTFORMAT file,bool clear=false);
 
 	void destroyNode();
@@ -277,10 +277,7 @@ public:
 
 	bool CheckPrismValidity(int nconn, int* conn, int* idx = NULL);
 	inline bool CheckPrismSkewness(int nconn, int* conn);
-    inline bool BLMesh::CheckPrismOrth(BLFront *baseFront,
-                                                             double *out_minOrth /*=nullptr*/,
-                                                             bool include_top_face /*=false*/
-    );
+    inline bool BLMesh::CheckPrismOrth(BLFront *baseFront,bool include_top_face);
 	/*
 	* @brife 求交算法
 	*/

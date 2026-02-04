@@ -5,12 +5,12 @@
 #include <stdlib.h>
 #include "iso3d_define.h"
 
-#define Type MBLNode
+#define Type oldMBLNode
 #define BlockedArray_Type BlockedArray_Node
 #include "blockedarray.h"
 #define LOG2_NODE_PER_BLOCK 12
 
-#define Type Elem
+#define Type oldElem
 #define BlockedArray_Type BlockedArray_Elem
 #include "blockedarray.h"
 #define LOG2_ELEM_PER_BLOCK 13

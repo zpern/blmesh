@@ -29,8 +29,8 @@ int LocSmoother::setMesh_LocSmoothing(divide *divi, REAL *quals)
 	INTEGER iIdx;
 	int nRet = 0;
 
-	g_pLocSmoothingNodes = (MBLNode*)malloc(sizeof(MBLNode)*sprimpl->num_vertices);
-	g_pLocSmoothingElems = (Elem*)malloc(sizeof(Elem)*divi->num);
+	g_pLocSmoothingNodes = (oldMBLNode*)malloc(sizeof(oldMBLNode)*sprimpl->num_vertices);
+	g_pLocSmoothingElems = (oldElem*)malloc(sizeof(oldElem)*divi->num);
 	g_pLocSmoothingQuals = (TetraElemQual*)malloc(sizeof(TetraElemQual)*divi->num);
 	if (!g_pLocSmoothingNodes || !g_pLocSmoothingElems || !g_pLocSmoothingQuals)
 	{
@@ -39,8 +39,8 @@ int LocSmoother::setMesh_LocSmoothing(divide *divi, REAL *quals)
 	}
 	g_nLocSmoothingElems = divi->num;
 	g_nLocSmoothingNodes = sprimpl->num_vertices;
-	memset(g_pLocSmoothingNodes, 0, sizeof(MBLNode)*sprimpl->num_vertices);
-	memset(g_pLocSmoothingElems, 0, sizeof(Elem)*divi->num);
+	memset(g_pLocSmoothingNodes, 0, sizeof(oldMBLNode)*sprimpl->num_vertices);
+	memset(g_pLocSmoothingElems, 0, sizeof(oldElem)*divi->num);
 	memset(g_pLocSmoothingQuals, 0, sizeof(TetraElemQual)*divi->num);
 
 	/* 将Node信息拷贝到网格中 */
@@ -55,7 +55,7 @@ int LocSmoother::setMesh_LocSmoothing(divide *divi, REAL *quals)
 		/* 不能利用中间空位 */
 		iLoc = i;//m_nElems++;
 
-		memset(&g_pLocSmoothingElems[iLoc], 0, sizeof(Elem));
+		memset(&g_pLocSmoothingElems[iLoc], 0, sizeof(oldElem));
 
 		for (j = 0; j <= DIM; j++)
 		{
@@ -141,8 +141,8 @@ int LocSmoother::setMesh_LocSmoothing(INTEGER elems[][4], int numOfElems, REAL *
 	int nodeFacesData[MAX_SPHERE_SIZE], nodeFacesHash[MAX_SPHERE_SIZE], numOfFaces = 0;
 #endif
 
-	g_pLocSmoothingNodes = (MBLNode*)malloc(sizeof(MBLNode)*sprimpl->num_vertices);
-	g_pLocSmoothingElems = (Elem*)malloc(sizeof(Elem)*numOfElems);
+	g_pLocSmoothingNodes = (oldMBLNode*)malloc(sizeof(oldMBLNode)*sprimpl->num_vertices);
+	g_pLocSmoothingElems = (oldElem*)malloc(sizeof(oldElem)*numOfElems);
 	g_pLocSmoothingQuals = (TetraElemQual*)malloc(sizeof(TetraElemQual)*numOfElems);
 	if (!g_pLocSmoothingNodes || !g_pLocSmoothingElems || !g_pLocSmoothingQuals)
 	{
@@ -151,8 +151,8 @@ int LocSmoother::setMesh_LocSmoothing(INTEGER elems[][4], int numOfElems, REAL *
 	}
 	g_nLocSmoothingElems = numOfElems;
 	g_nLocSmoothingNodes = sprimpl->num_vertices;
-	memset(g_pLocSmoothingNodes, 0, sizeof(MBLNode)*sprimpl->num_vertices);
-	memset(g_pLocSmoothingElems, 0, sizeof(Elem)*numOfElems);
+	memset(g_pLocSmoothingNodes, 0, sizeof(oldMBLNode)*sprimpl->num_vertices);
+	memset(g_pLocSmoothingElems, 0, sizeof(oldElem)*numOfElems);
 	memset(g_pLocSmoothingQuals, 0, sizeof(TetraElemQual)*numOfElems);
 
 	/* 将Node信息拷贝到网格中 */

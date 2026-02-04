@@ -153,7 +153,7 @@ void ActElemHeap::rmMinElem()
 	if(isEmpty())
 		return ;
 	//设置index
-//	if (m_actElmHeap[0].Elem == 8386)
+//	if (m_actElmHeap[0].oldElem == 8386)
 //	{
 //		spdlog::info("8386.ireserved = {}.\n", 0);
 //	}
@@ -162,7 +162,7 @@ void ActElemHeap::rmMinElem()
 	//{
 		m_actElmHeap[0] = m_actElmHeap[nHeapSize-1];
 		//更新index
-//		if (m_actElmHeap[0].Elem == 8386)
+//		if (m_actElmHeap[0].oldElem == 8386)
 //		{
 //			spdlog::info("8386.ireserved = {}; nHeapSize = {}\n", 1, nHeapSize - 1);
 //		}

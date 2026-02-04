@@ -29,10 +29,15 @@ void DistanceCalculator::ReadInput(INPUTFORMAT input,ConfigArgc cf)
 	if (!isexist) {
 		PoolGuard guard(false); 
 		isexist = true;
-        cf.layer_num = 1;
-        blm_->cf = cf;
+        
+
 		blm_->InitBLMesh();
-        blm_->SetBoundary(input,false);
+		blm_->cf = cf;
+        blm_->CalZeroNorm();
+		blm_->cf.iscompresslen = false;
+        blm_->generate_pyramid = true;
+        blm_->SetBoundary(input);
+
 		PreGenerate();
 		std::cout.setf(ios::left, ios::adjustfield);
 		std::cout.fill(' ');

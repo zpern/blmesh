@@ -494,8 +494,8 @@ namespace TiGER {
 		double		dLen,			/* 边界层第一层厚度 **/
 		std::vector<double> length_vec, /* 边界层第一层厚度数组 **/
 		double		dRto,			/* 边界层厚度增长因子 **/
-		double		max_skewness,  /* 各向异性停止**/
-		double      max_centroid_skewness, 
+		std::vector<double>		max_skewness,  /* 等面积偏斜度**/
+		std::vector<double>      max_orth, /* 最大非正交值**/
 		double		bisostop,       /* 各向同性停止**/
 		/* ------------------------- 输出参数 -------------------------**/
 		double** ppdMNC,		/* 体网格节点坐标 **/
@@ -576,7 +576,8 @@ namespace TiGER {
 			ftest << "nLN: " << nLN << endl;
 			ftest << "dLen: " << dLen << endl;
 			ftest << "dRto: " << dRto << endl;
-			ftest << "max_skewness: " << max_skewness << endl;
+			ftest << "max_prism_skewness: " << max_skewness[0] << endl;
+			ftest << "max_pyramid_skewness: " << max_skewness[1] << endl;
 			ftest << "bisostop: " << bisostop << endl;
 			ftest << "boundary_info: " << endl;
 			for (auto i : pnFT) {
@@ -609,8 +610,8 @@ namespace TiGER {
 		blconfig.use_multiple_normals = b_use_multiple_normals;
         blconfig.multiple_numlayer = 1;
         blconfig.multiple_steplength = dLen;
-		blconfig.max_equal_skewness = max_skewness;
-		blconfig.max_centroid_skewness = max_centroid_skewness;
+		blconfig.max_skewness = max_skewness;
+		blconfig.max_orth = max_orth;
 		blconfig.max_layer_diff = max_layer_diff;
 		ControlVolume cv1;
 		ControlVolume cv2;
@@ -889,7 +890,7 @@ namespace TiGER {
 		blconfig.use_multiple_normals = b_use_multiple_normals;
         blconfig.multiple_numlayer = multiple_numlayer;
         blconfig.multiple_steplength = multiple_steplength;
-		blconfig.max_equal_skewness = max_skewness;
+        blconfig.max_skewness[0] = max_skewness;
 		blconfig.max_layer_diff = max_layer_diff;
         blconfig.length_vec = length_vec;
         blconfig.fast_intersection = fast_intersection;

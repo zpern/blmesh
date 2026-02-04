@@ -120,8 +120,8 @@ int API_Gen_Boundary_ALM_Mesh(
     double dLen,                    /* 边界层第一层厚度 **/
     std::vector<double> length_vec, /* 边界层第一层厚度数组 **/
     double dRto,                    /* 边界层厚度增长因子 **/
-    double max_skewness,            /* 各向异性停止**/
-    double max_centroid_skewness,
+	std::vector<double>		max_skewness,  /* 等面积偏斜度**/
+	std::vector<double>      max_orth, /* 最大非正交值**/
     double bisostop,                /* 各向同性停止**/
     /* ------------------------- 输出参数 -------------------------**/
     double **ppdMNC, /* 体网格节点坐标 **/

@@ -64,10 +64,10 @@ void main(int argc, char* argv[]) {
     cf.adjacentfc = blconfig.adjacent;
     cf.smooth_attempt = number_opt;
     strcpy(cf.filename, "virtualmesh");
-    cf.max_equal_skewness = blconfig.max_equal_skewness;
-    cf.max_centroid_skewness = blconfig.max_centroid_skewness;
+    cf.max_skewness = blconfig.max_skewness;
+    cf.max_orth = blconfig.max_orth;
     cf.max_layer_diff = blconfig.max_layer_diff;
-
+    cf.iscompresslen = false;
 
 #ifdef _DEBUG
     cf.smooth_attempt = 0;

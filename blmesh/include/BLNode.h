@@ -454,8 +454,9 @@ public:
 	double ave_length;
 	int m_symmplane_id;
 	double m_h0;
-	double respect_height;
 	int respect_layer;
+	double respect_height;
+    double recommend_height;
 	double beitaVisu;
 	bool iso_stop;
 	bool if_need_smooth;

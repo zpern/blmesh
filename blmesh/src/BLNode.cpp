@@ -15,7 +15,6 @@ std::set<BLNode*> BLNode::my_vec = std::set<BLNode*>();
 #ifdef USE_MEMORY_POOL
 INIT(BLNode)
 #endif
-
 unsigned  fieldcal(void *para)
 {
 	FieldArg *fieldArg = (FieldArg *)para;
@@ -158,24 +157,27 @@ BLVector BLNode::GetCoord(MBLNode * pNode)
 
 vector<BLNode*>& BLNode::GetNeigNods()
 {
-	if (m_vecNeighNodes.empty()) {
-		int i, j, nSize, count = 0;
-		nSize = m_vecNeighFronts.size();
-		m_vecNeighNodes.reserve(nSize);
-		for (i = 0; i < nSize; i++)
-		{
-			for (j = 0; j < 3; j++)
-			{
-				if (m_vecNeighFronts[i]->m_pBLNods[j] == this) {
-					m_vecNeighNodes.push_back(m_vecNeighFronts[i]->m_pBLNods[(j + 1) % 3]);
-					break;
-				}
+    m_vecNeighNodes.clear();
+    const int nf = (int)m_vecNeighFronts.size();
+    m_vecNeighNodes.reserve(2 * nf);
 
-			}
-		}
-	}
+    std::unordered_set<BLNode*> seen;
+    seen.reserve(2 * nf);
 
-	return m_vecNeighNodes;
+    for (auto* fr : m_vecNeighFronts) {
+        int jhit = -1;
+        for (int j = 0; j < 3; j++) {
+            if (fr->m_pBLNods[j] == this) { jhit = j; break; }
+        }
+        if (jhit < 0) continue;
+
+        BLNode* a = fr->m_pBLNods[(jhit + 1) % 3];
+        BLNode* b = fr->m_pBLNods[(jhit + 2) % 3];
+
+        if (seen.insert(a).second) m_vecNeighNodes.push_back(a);
+        if (seen.insert(b).second) m_vecNeighNodes.push_back(b);
+    }
+    return m_vecNeighNodes;
 }
 
 
@@ -579,13 +581,14 @@ BLVector BLNode::GetNaiveNormal(MBLNode* pNodes) {
 }
 BLVector BLNode::GetNormal(MBLNode* pNodes, int type)
 {
+	using namespace std;
 	BLVector ans;
 	double max_cost = -1;
-
 	double cost;
-	constexpr double throud = 30 * PI / 180.0;
-	constexpr double throud2 = 10 * PI / 180.0;
-	constexpr double throud3 = 1 * PI / 180.0;
+    const double throud = std::cos(30.0 * PI / 180.0); // 0.866
+    const double throud2 = std::cos(10.0 * PI / 180.0); // 0.985
+    const double throud3 = std::cos(1.0 * PI / 180.0);  // 0.9998
+
 	while (true)
 	{
 		BLVector tmp;

@@ -172,7 +172,7 @@ typedef NEIG_ARR FORM_ARR;		 /* 形成节点索引 array of indices of forming p
 typedef MYPOINT FORM_PNTS[DIM+1];  /* 形成节点 array of forming points */
 
 /* 网格节点 NODE */
-typedef struct MBLNode
+typedef struct oldMBLNode
 {
 	MYPOINT pt;			/* 坐标 coords. */
 	REAL space;			/* 尺寸控制 space control */
@@ -184,7 +184,7 @@ typedef struct MBLNode
  * 网格单元(二维：三角形；三维：四面体)
  * element (triangle in 2D & tetgrid_dt in 3D) 
  */
-typedef struct Elem
+typedef struct oldElem
 {
 	MYPOINT cen;			/* 外接球球心 center of circumsphere */
 	REAL rad;			/* 外接球半径 radius of circumsphere */
@@ -569,7 +569,7 @@ typedef struct DesFacet
 /*
  * 单元iReserved域的2～3位标志单元的几何属性：
  * flagging if an element is inner or outer the domain concerned
- * (two bits(No. 2~3) after the test bit in the iReserved of an Elem object)
+ * (two bits(No. 2~3) after the test bit in the iReserved of an oldElem object)
  */
 #define UNDEF	 (0)	/* 未定义 undefined */
 #define	OUTER	 (1)	/* 区域外 outer the domain */

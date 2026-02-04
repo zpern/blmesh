@@ -407,9 +407,9 @@ int DTIso3D::readPLS(const char* fname)
 			memset(m_pNodes, 0, m_nAllocNodes * sizeof(Node));
 
 		m_nAllocElems = INIT_ALLOC_ELE_NUM(m_nSurTris);
-		m_pElems = (Elem*)malloc(m_nAllocElems * sizeof(Elem));
+		m_pElems = (oldElem*)malloc(m_nAllocElems * sizeof(oldElem));
 		if (m_pElems)
-			memset(m_pElems, 0, m_nAllocElems * sizeof(Elem));
+			memset(m_pElems, 0, m_nAllocElems * sizeof(oldElem));
 #else
 		nAllocNodes = INIT_ALLOC_NOD_NUM(m_nSurTris);
 		if (nAllocNodes < INIT_NOD_NUM + m_nSurNodes)
@@ -463,7 +463,7 @@ int DTIso3D::readPLS(const char* fname)
 #ifdef _VERBOSE
 		printf("*********Successfully allocate memory, here is the list************:\n");
 		spdlog::info("NODE: NUMBER: {}; BITS: {}\n", m_nAllocNodes, m_nAllocNodes * sizeof(Node));
-		spdlog::info("ELEMENT: NUMBER: {}; BITS: {}\n", m_nAllocElems, m_nAllocElems * sizeof(Elem));
+		spdlog::info("ELEMENT: NUMBER: {}; BITS: {}\n", m_nAllocElems, m_nAllocElems * sizeof(oldElem));
 		spdlog::info("FACET: NUMBER: {}; BITS: {}\n", m_nAllocSurTris, m_nAllocSurTris * sizeof(SurTri));
 		spdlog::info("EDGE: NUMBER: {}; BITS: {}\n", m_nAllocSurEdgs, m_nAllocSurEdgs * sizeof(SurEdg));
 		spdlog::info("DESTROYED FACET: NUMBER: {}; BITS: {}\n", m_nAllocDesFacets, m_nAllocDesFacets * sizeof(DesFacet));
@@ -472,10 +472,10 @@ int DTIso3D::readPLS(const char* fname)
 		iMemory =
 #ifdef _ONE_LONG_ARRAY
 			m_nAllocNodes * sizeof(Node) +
-			m_nAllocElems * sizeof(Elem) +
+			m_nAllocElems * sizeof(oldElem) +
 #else
-			m_pNodes.getArrayCapacity() * sizeof(MBLNode) +
-			m_pElems.getArrayCapacity() * sizeof(Elem) +
+			m_pNodes.getArrayCapacity() * sizeof(oldMBLNode) +
+			m_pElems.getArrayCapacity() * sizeof(oldElem) +
 #endif
 			m_nAllocSurTris * sizeof(SurTri) +
 			m_nAllocSurEdgs * sizeof(SurEdg) +
@@ -649,9 +649,9 @@ int DTIso3D::readSurfVTK(const char* fname)
 			memset(m_pNodes, 0, m_nAllocNodes * sizeof(Node));
 
 		m_nAllocElems = INIT_ALLOC_ELE_NUM(m_nSurTris);
-		m_pElems = (Elem*)malloc(m_nAllocElems * sizeof(Elem));
+		m_pElems = (oldElem*)malloc(m_nAllocElems * sizeof(oldElem));
 		if (m_pElems)
-			memset(m_pElems, 0, m_nAllocElems * sizeof(Elem));
+			memset(m_pElems, 0, m_nAllocElems * sizeof(oldElem));
 #else
 		nAllocNodes = INIT_ALLOC_NOD_NUM(m_nSurNodes * 2);
 		if (nAllocNodes < INIT_NOD_NUM + m_nSurNodes)
@@ -725,7 +725,7 @@ int DTIso3D::readSurfVTK(const char* fname)
 #ifdef _VERBOSE
 		printf("*********Successfully allocate memory, here is the list************:\n");
 		spdlog::info("NODE: NUMBER: {}; BITS: {}\n", m_nAllocNodes, m_nAllocNodes * sizeof(Node));
-		spdlog::info("ELEMENT: NUMBER: {}; BITS: {}\n", m_nAllocElems, m_nAllocElems * sizeof(Elem));
+		spdlog::info("ELEMENT: NUMBER: {}; BITS: {}\n", m_nAllocElems, m_nAllocElems * sizeof(oldElem));
 		spdlog::info("FACET: NUMBER: {}; BITS: {}\n", m_nAllocSurTris, m_nAllocSurTris * sizeof(SurTri));
 		spdlog::info("EDGE: NUMBER: {}; BITS: {}\n", m_nAllocSurEdgs, m_nAllocSurEdgs * sizeof(SurEdg));
 		spdlog::info("DESTROYED FACET: NUMBER: {}; BITS: {}\n", m_nAllocDesFacets, m_nAllocDesFacets * sizeof(DesFacet));
@@ -734,10 +734,10 @@ int DTIso3D::readSurfVTK(const char* fname)
 		iMemory =
 #ifdef _ONE_LONG_ARRAY
 			m_nAllocNodes * sizeof(Node) +
-			m_nAllocElems * sizeof(Elem) +
+			m_nAllocElems * sizeof(oldElem) +
 #else
-			m_pNodes.getArrayCapacity() * sizeof(MBLNode) +
-			m_pElems.getArrayCapacity() * sizeof(Elem) +
+			m_pNodes.getArrayCapacity() * sizeof(oldMBLNode) +
+			m_pElems.getArrayCapacity() * sizeof(oldElem) +
 #endif
 			m_nAllocSurTris * sizeof(SurTri) +
 			m_nAllocSurEdgs * sizeof(SurEdg) +
@@ -982,8 +982,8 @@ int DTIso3D::readPL3(const char* fname)
 	INTEGER vlmElemSize = 0, surfElemSize = 0, vlmNodeSize = 0, surfNodeSize = 0, validVlmNodeSize = 0, edgeSize = 0;
 	INTEGER iElem, iFace, iNode, iToken, i1, i2, i3, i4, lftCell, rgtCell;
 	REAL x, y, z;
-	MBLNode* pNode = nullptr;
-	Elem* pElem = nullptr;
+	oldMBLNode* pNode = nullptr;
+	oldElem* pElem = nullptr;
 	SurTri* pSTri = nullptr;
 	char chLine[1024], chDigit[1024], * pChar = nullptr, * pDigitS = nullptr, * pDigitE = nullptr;
 	int iChar = 0, m, ia, ib, ic, id, iMemory;
@@ -1021,9 +1021,9 @@ int DTIso3D::readPL3(const char* fname)
 	m_pNodes = (Node*)malloc(m_nAllocNodes * sizeof(Node));
 	if (m_pNodes)
 		memset(m_pNodes, 0, m_nAllocNodes * sizeof(Node));
-	m_pElems = (Elem*)malloc(m_nAllocElems * sizeof(Elem));
+	m_pElems = (oldElem*)malloc(m_nAllocElems * sizeof(oldElem));
 	if (m_pElems)
-		memset(m_pElems, 0, m_nAllocElems * sizeof(Elem));
+		memset(m_pElems, 0, m_nAllocElems * sizeof(oldElem));
 	if (!m_pNodes || !m_pElems)
 #else
 	m_pNodes.allocMemory(vlmNodeSize);
@@ -1518,7 +1518,7 @@ int DTIso3D::readPL3(const char* fname)
 #ifdef _VERBOSE
 	printf("*********Successfully allocate memory, here is the list************:\n");
 	spdlog::info("NODE: NUMBER: {}; BITS: {}\n", m_nAllocNodes, m_nAllocNodes * sizeof(Node));
-	spdlog::info("ELEMENT: NUMBER: {}; BITS: {}\n", m_nAllocElems, m_nAllocElems * sizeof(Elem));
+	spdlog::info("ELEMENT: NUMBER: {}; BITS: {}\n", m_nAllocElems, m_nAllocElems * sizeof(oldElem));
 	spdlog::info("FACET: NUMBER: {}; BITS: {}\n", m_nAllocSurTris, m_nAllocSurTris * sizeof(SurTri));
 	spdlog::info("EDGE: NUMBER: {}; BITS: {}\n", m_nAllocSurEdgs, m_nAllocSurEdgs * sizeof(SurEdg));
 	spdlog::info("DESTROYED FACET: NUMBER: {}; BITS: {}\n", m_nAllocDesFacets, m_nAllocDesFacets * sizeof(DesFacet));
@@ -1527,10 +1527,10 @@ int DTIso3D::readPL3(const char* fname)
 	iMemory =
 #ifdef _ONE_LONG_ARRAY
 		m_nAllocNodes * sizeof(Node) +
-		m_nAllocElems * sizeof(Elem) +
+		m_nAllocElems * sizeof(oldElem) +
 #else
-		m_pNodes.getArrayCapacity() * sizeof(MBLNode) +
-		m_pElems.getArrayCapacity() * sizeof(Elem) +
+		m_pNodes.getArrayCapacity() * sizeof(oldMBLNode) +
+		m_pElems.getArrayCapacity() * sizeof(oldElem) +
 #endif
 		m_nAllocSurTris * sizeof(SurTri) +
 		m_nAllocSurEdgs * sizeof(SurEdg) +
@@ -1574,7 +1574,7 @@ int DTIso3D::setupCellNeig()
 	InterFace faceAd;
 	const int cf[4][3] = { {1, 2, 3}, {0, 3, 2}, {0, 1, 3}, {0, 2, 1} };
 	INTEGER ndSize, clSize;
-	Elem* pElem = nullptr, * pLft = nullptr, * pRgt;
+	oldElem* pElem = nullptr, * pLft = nullptr, * pRgt;
 
 #ifdef _ONE_LONG_ARRAY
 	ndSize = m_nNodes;
@@ -1686,7 +1686,7 @@ int DTIso3D::writeTetgenELE(const char* fname, const char* comments)
 	int nElems, nNdPerE, nMark, idxE;
 	int i, j, m, k, iSim, ii, jj;
 	INTEGER elemSize;
-	Elem* pElem;
+	oldElem* pElem;
 
 #ifdef _ONE_LONG_ARRAY
 	elemSize = m_nElems;
@@ -1754,7 +1754,7 @@ int DTIso3D::readTetgenELE(const char* fname, bool withOuterBox)
 	}
 
 #ifdef _ONE_LONG_ARRAY
-	memset(m_pElems, 0, sizeof(Elem) * m_nAllocElems);
+	memset(m_pElems, 0, sizeof(oldElem) * m_nAllocElems);
 #else
 	m_pElems.clean();
 #endif
@@ -1904,12 +1904,12 @@ int DTIso3D::initialInputInfFromParameters(
 	pSource->nTriS = nsrc[2];
 
 	if (pBGMesh->nNodes > 0)
-		pBGMesh->pNodes = (MBLNode*)malloc(sizeof(MBLNode) * pBGMesh->nNodes);
+		pBGMesh->pNodes = (oldMBLNode*)malloc(sizeof(oldMBLNode) * pBGMesh->nNodes);
 	else
 		pBGMesh->pNodes = nullptr;
 
 	if (pBGMesh->nElems > 0)
-		pBGMesh->pElems = (Elem*)malloc(sizeof(Elem) * pBGMesh->nElems);
+		pBGMesh->pElems = (oldElem*)malloc(sizeof(oldElem) * pBGMesh->nElems);
 	else
 		pBGMesh->pElems = nullptr;
 
@@ -2047,9 +2047,9 @@ int DTIso3D::initialInputInfFromParameters(
 		memset(m_pNodes, 0, sizeof(Node) * m_nAllocNodes);
 
 	m_nAllocElems = INIT_ALLOC_ELE_NUM(m_nSurTris);
-	m_pElems = (Elem*)malloc(m_nAllocElems * sizeof(Elem));
+	m_pElems = (oldElem*)malloc(m_nAllocElems * sizeof(oldElem));
 	if (m_pElems)
-		memset(m_pElems, 0, sizeof(Elem) * m_nAllocElems);
+		memset(m_pElems, 0, sizeof(oldElem) * m_nAllocElems);
 #else
 	nAllocNodes = INIT_ALLOC_NOD_NUM(m_nSurTris);
 	if (nAllocNodes < INIT_NOD_NUM + m_nSurNodes)
@@ -2100,7 +2100,7 @@ int DTIso3D::initialInputInfFromParameters(
 #ifdef _VERBOSE
 	printf("*********Successfully allocate memory, here is the list************:\n");
 	spdlog::info("NODE: NUMBER: {}; BITS: {}\n", m_nAllocNodes, m_nAllocNodes * sizeof(Node));
-	spdlog::info("ELEMENT: NUMBER: {}; BITS: {}\n", m_nAllocElems, m_nAllocElems * sizeof(Elem));
+	spdlog::info("ELEMENT: NUMBER: {}; BITS: {}\n", m_nAllocElems, m_nAllocElems * sizeof(oldElem));
 	spdlog::info("FACET: NUMBER: {}; BITS: {}\n", m_nAllocSurTris, m_nAllocSurTris * sizeof(SurTri));
 	spdlog::info("EDGE: NUMBER: {}; BITS: {}\n", m_nAllocSurEdgs, m_nAllocSurEdgs * sizeof(SurEdg));
 	spdlog::info("DESTROYED FACET: NUMBER: {}; BITS: {}\n", m_nAllocDesFacets, m_nAllocDesFacets * sizeof(DesFacet));
@@ -2109,10 +2109,10 @@ int DTIso3D::initialInputInfFromParameters(
 	iMemory =
 #ifdef _ONE_LONG_ARRAY
 		m_nAllocNodes * sizeof(Node) +
-		m_nAllocElems * sizeof(Elem) +
+		m_nAllocElems * sizeof(oldElem) +
 #else
-		m_pNodes.getArrayCapacity() * sizeof(MBLNode) +
-		m_pElems.getArrayCapacity() * sizeof(Elem) +
+		m_pNodes.getArrayCapacity() * sizeof(oldMBLNode) +
+		m_pElems.getArrayCapacity() * sizeof(oldElem) +
 #endif
 		m_nAllocSurTris * sizeof(SurTri) +
 		m_nAllocSurEdgs * sizeof(SurEdg) +
@@ -2767,7 +2767,7 @@ int DTIso3D::findFirstEle(MYPOINT pnt, INTEGER* ele)
 #endif
 	INTEGER iElem = elemSize - 1; /* current element where tree search is performed */
 	INTEGER iSrch; /* for tree search */
-	Elem* pElem = nullptr, * pSrch = nullptr;
+	oldElem* pElem = nullptr, * pSrch = nullptr;
 	INTEGER iNxt = 0; /* index referring to the current index in the neighboring array */
 	INTEGER iSel = NULL_ELEM; /* index referring to the selected element for the next searching */
 	INTEGER iNeig;
@@ -2865,7 +2865,7 @@ int DTIso3D::findBaseElements(MYPOINT pnt, INTEGER bases[], int* baseSize, int m
 	INTEGER elemSize = m_pElems.getArraySize();
 #endif
 	INTEGER iSrch = elemSize - 1, iNeig;
-	Elem* pSrch, * pNeig;
+	oldElem* pSrch, * pNeig;
 	int ia, ib, ic, id, m;
 	INTEGER a, b, c, d;
 	INTEGER* pForm;
@@ -3465,7 +3465,7 @@ int DTIso3D::addBndPnt(MYPOINT pnt, INTEGER iNod)
 	};
 	INTEGER bases[MAX_SHELL_SIZE];
 	int baseSize = 0;
-	Elem* pElem, * pSrch = nullptr, * pNewElem;
+	oldElem* pElem, * pSrch = nullptr, * pNewElem;
 
 #ifdef _ERROR_CHK
 	int nErrCd = 0;
@@ -3854,7 +3854,7 @@ int DTIso3D::recoverDelEles()
 	return size;
 #endif
 	int i, iEle, size;
-	Elem* pElem;
+	oldElem* pElem;
 	size = m_vecDelEles.size();
 	for (i = 0; i < size; i++)
 	{
@@ -3889,7 +3889,7 @@ INTEGER DTIso3D::getNewEleLoc()
 {
 	int size = m_vecEmpLocs.size();
 	INTEGER nAlloc;
-	Elem* pNewElems = nullptr;
+	oldElem* pNewElems = nullptr;
 	INTEGER iNewEle = -1;
 
 	if (m_nLocInd < 0 || size <= 0)
@@ -3906,12 +3906,12 @@ INTEGER DTIso3D::getNewEleLoc()
 				nAlloc += (INTEGER)(NUM_ADD_RATIO * nAlloc);
 			} while (nAlloc <= m_nElems);
 
-			pNewElems = (Elem*)realloc(m_pElems, sizeof(Elem) * nAlloc);
+			pNewElems = (oldElem*)realloc(m_pElems, sizeof(oldElem) * nAlloc);
 			if (!pNewElems)
 			{
 				spdlog::info("cannot reallocate memory for elements:\n");
 				spdlog::info("Size={}.\n", nAlloc);
-				spdlog::info("Memory=%.1fMB\n", sizeof(Elem) * nAlloc / (1024.0 * 1024.0));
+				spdlog::info("Memory=%.1fMB\n", sizeof(oldElem) * nAlloc / (1024.0 * 1024.0));
 				throw EXCEPTIONSTRING(std::string("error exit in") + std::string(__FILE__) + std::to_string(__LINE__));;
 
 				return -1;
@@ -3926,7 +3926,7 @@ INTEGER DTIso3D::getNewEleLoc()
 			}
 #endif
 			m_pElems = pNewElems;
-			memset(&m_pElems[m_nElems], 0, sizeof(Elem) * (nAlloc - m_nElems));
+			memset(&m_pElems[m_nElems], 0, sizeof(oldElem) * (nAlloc - m_nElems));
 			m_nAllocElems = nAlloc;
 		}
 		iNewEle = m_nElems;
@@ -4099,7 +4099,7 @@ int DTIso3D::recoverEmpLocs()
 INTEGER DTIso3D::crtEle(INTEGER iLoc, INTEGER form[], MYPOINT cen, REAL rad)
 {
 	int i;
-	Elem* pElem = &m_pElems[iLoc];
+	oldElem* pElem = &m_pElems[iLoc];
 
 	for (i = 0; i <= DIM; i++)
 	{
@@ -4235,7 +4235,7 @@ bool DTIso3D::isTstEle(INTEGER iEle)
 }
 #endif
 
-bool DTIso3D::isTstEle(Elem* pElem)
+bool DTIso3D::isTstEle(oldElem* pElem)
 {
 	/*	return (m_pElems)[iEle].iReserved == 1; */
 	return pElem->iReserved & 0x1;
@@ -4265,7 +4265,7 @@ void DTIso3D::enableEleTstFlag(INTEGER iEle)
 }
 #endif
 
-void DTIso3D::enableEleTstFlag(Elem* pElem)
+void DTIso3D::enableEleTstFlag(oldElem* pElem)
 {
 	pElem->iReserved |= 0x1;
 }
@@ -4285,7 +4285,7 @@ void DTIso3D::disableEleTstFlag(INTEGER iEle)
 }
 #endif
 
-void DTIso3D::disableEleTstFlag(Elem* pElem)
+void DTIso3D::disableEleTstFlag(oldElem* pElem)
 {
 	pElem->iReserved &= ~0x1;
 }
@@ -4299,7 +4299,7 @@ void DTIso3D::disableEleTstFlag(Elem* pElem)
 *     elements after adding iEle              iEle is valid
 *      -1								       otherwise
 */
-void DTIso3D::addTstEle(INTEGER iEle, Elem* pElem)
+void DTIso3D::addTstEle(INTEGER iEle, oldElem* pElem)
 {
 #ifdef _TEST
 #ifdef _ONE_LONG_ARRAY
@@ -4818,7 +4818,7 @@ bool DTIso3D::setBackDistNode()
 {
 	std::list<DistInfo*>::iterator it;
 	INTEGER iNod, iEle;
-	Elem* pEle = nullptr;
+	oldElem* pEle = nullptr;
 	REAL tv;
 	MYPOINT pnt[4];
 	int m;
@@ -4887,8 +4887,8 @@ int DTIso3D::checkGlobalData(bool bInvHole)
 {
 	INTEGER i, j;
 	int m, l, k, n, iNeig, iNgNg;
-	Elem* pElem = nullptr, * pNeig = nullptr;
-	MBLNode* pNode = nullptr;
+	oldElem* pElem = nullptr, * pNeig = nullptr;
+	oldMBLNode* pNode = nullptr;
 	int nErr = 0;
 	Sphere sph;
 	int nSph;
@@ -4998,7 +4998,7 @@ int DTIso3D::checkNeigs(bool bFinal)
 	INTEGER iElem, iNeig;
 	int nErrCd = 0;
 	int m, l;
-	Elem* pElem = nullptr;
+	oldElem* pElem = nullptr;
 #ifdef _ONE_LONG_ARRAY
 	INTEGER elemSize = m_nElems;
 #else
@@ -5047,7 +5047,7 @@ int DTIso3D::checkNodeData()
 	INTEGER iNod, iPrt;
 	int k;
 	int nErrCd = 0;
-	Elem* pElem;
+	oldElem* pElem;
 
 #ifdef _ONE_LONG_ARRAY
 	for (iNod = 0; iNod < m_nNodes; iNod++)
@@ -5101,7 +5101,7 @@ int DTIso3D::checkOuIn(bool bInitFacet)
 	int numf = 0;
 	INTEGER iDesFac = -1;
 	DesFacet* pDF = nullptr;
-	Elem* pElem;
+	oldElem* pElem;
 #ifdef _ONE_LONG_ARRAY
 	INTEGER elemSize = m_nElems;
 #else
@@ -5268,7 +5268,7 @@ int DTIso3D::checkConfFaces()
 	Sphere sph;
 	int i, j, nSph;
 	int nErrCd = 0;
-	Elem* pElem;
+	oldElem* pElem;
 
 	abstNodFirEle();
 
@@ -5337,7 +5337,7 @@ int DTIso3D::findParents(INTEGER i1, INTEGER i2, INTEGER i3, INTEGER prts[], int
 	Shell she;
 	int nShe = 0;
 	INTEGER iEle = -1;
-	Elem* pEle;
+	oldElem* pEle;
 	int m;
 	int cnt = 0;
 
@@ -5459,7 +5459,7 @@ int DTIso3D::chkAllFacs(INTEGER iNodE)
 	Sphere sph;
 	int nSph;
 	int nFind = 0;
-	Elem* pE = nullptr;
+	oldElem* pE = nullptr;
 	INTEGER iNod, cnt = 0;
 	int iTok, i1, i2, i3;
 
@@ -5644,7 +5644,7 @@ int DTIso3D::writeOBJAftInstBP(const char* fname)
 {
 	INTEGER i, iNg1, iNg2, iNg3, iNg4, iFm1, iFm2, iFm3, iFm4;
 	FILE* fp = fopen(fname, "w");
-	Elem* pElem;
+	oldElem* pElem;
 
 #ifdef _ONE_LONG_ARRAY
 	INTEGER elemSize = m_nElems, nodeSize = m_nNodes;
@@ -5875,7 +5875,7 @@ int DTIso3D::writeOBJAftRmvOuterEles(const char* fname)
 {
 	INTEGER i, m, iTok, i1, i2, i3;
 	FILE* fp = fopen(fname, "w");
-	Elem* pEle;
+	oldElem* pEle;
 	int nOuIn;
 	INTEGER nFac = 0;
 #ifdef _ONE_LONG_ARRAY
@@ -5943,7 +5943,7 @@ int DTIso3D::writePipe(Pipe pip, int nPip, const char* fname)
 	MYPOINT nodes[3 * MAX_PIPE_SIZE];
 	int nNode = 0, i, m, n, k;
 	INTEGER iEle, iNod;
-	Elem* pE = nullptr;
+	oldElem* pE = nullptr;
 #ifdef _ONE_LONG_ARRAY
 	INTEGER elemSize = m_nElems, nodeSize = m_nNodes;
 #else
@@ -6202,7 +6202,7 @@ int DTIso3D::writePL3_Subset_Global(const char* fname, int elems[], int nElems)
 /* ***************************************************
 * functions for edge recovery
 * ************************************************* */
-bool DTIso3D::isNodInc(INTEGER iNod, Elem* pElem)
+bool DTIso3D::isNodInc(INTEGER iNod, oldElem* pElem)
 {
 	int m;
 	for (m = 0; m <= DIM; m++)
@@ -6219,7 +6219,7 @@ int DTIso3D::getSphereSize(INTEGER iNod, INTEGER* iHint)
 	static int s_SphCnt = 0;
 #endif
 	INTEGER iElem, iSrch;
-	Elem* pElem, * pSrch;
+	oldElem* pElem, * pSrch;
 	int cnt = 0, m, kIdx, kkIdx;
 	INTEGER iFir;
 
@@ -6287,7 +6287,7 @@ int DTIso3D::findSphere(INTEGER iNod, Sphere sph, int* nSph, INTEGER* iHint)
 	static int s_SphCnt = 0;
 #endif
 	INTEGER iElem, iSrch;
-	Elem* pElem, * pSrch;
+	oldElem* pElem, * pSrch;
 	int cnt = 0, m, kIdx, kkIdx;
 	INTEGER iFir;
 
@@ -6370,7 +6370,7 @@ int DTIso3D::findSphere(INTEGER iNod, Sphere sph, int* nSph, INTEGER* iHint)
 int DTIso3D::findShell(INTEGER s, INTEGER e, Shell she, int* nShe, INTEGER* iHint)
 {
 	INTEGER iElem, iSrch;
-	Elem* pElem;
+	oldElem* pElem;
 	int cnt = 0, m;
 	INTEGER iFir;
 
@@ -6425,7 +6425,7 @@ int DTIso3D::findShell(INTEGER s, INTEGER e, Shell she, int* nShe, INTEGER* iHin
 int DTIso3D::findShell(INTEGER s, INTEGER e, Shell she, int* nShe, INTEGER* iHint)
 {
 	INTEGER iElem, iSrch, * pElemF, * pElemN, * pSrchF;
-	Elem* pElem, * pSrch;
+	oldElem* pElem, * pSrch;
 	int cnt = 0, m, mm, j, kIdx, kkIdx;
 	INTEGER iFir;
 	INTEGER idx[4], iNode, iThird, iiThird;
@@ -6576,7 +6576,7 @@ bool DTIso3D::isMeshEdge(INTEGER i1, INTEGER i2)
 	c++;
 
 	INTEGER iElem, iSrch;
-	Elem* pElem, * pSrch;
+	oldElem* pElem, * pSrch;
 	int m, mm, kIdx, kkIdx;
 	INTEGER iFir;
 
@@ -6649,7 +6649,7 @@ bool DTIso3D::isMeshEdge_slow(INTEGER i1, INTEGER i2)
 bool DTIso3D::isMeshFace(INTEGER i1, INTEGER i2, INTEGER i3)
 {
 	INTEGER iElem, iSrch, * pElemF, * pElemN, * pSrchF;
-	Elem* pElem, * pSrch;
+	oldElem* pElem, * pSrch;
 	int m, mm, kIdx, kkIdx, iSame[2] = { 0, 0 };
 	INTEGER iFir;
 
@@ -6718,7 +6718,7 @@ int DTIso3D::findShellFaces(INTEGER s, INTEGER e, Shell she, int nShe, INTEGER t
 {
 	int i, k, cnt, iis, iie;
 	INTEGER iElem, iNeig;
-	Elem* pElem = nullptr;
+	oldElem* pElem = nullptr;
 
 	for (i = 0, cnt = 0; i < nShe; i++)
 	{
@@ -6756,7 +6756,7 @@ int DTIso3D::findShellFaces_InOrder(INTEGER s, INTEGER e, INTEGER iInitElem, INT
 {
 	int i, j, k, cnt, iis, iie, ii[4], ii1, ii2;
 	INTEGER iElem, iElem2, iNode, iNode2, iNeig;
-	Elem* pElem = nullptr;
+	oldElem* pElem = nullptr;
 	int ort = 0;
 
 	pElem = &m_pElems[iInitElem];
@@ -6961,7 +6961,7 @@ int DTIso3D::calcEdgTetsInt(INTEGER iEdg, PipeSrch* pSrch, PipeSrch* pAftSrch,
 	REAL d, d1, d2, density;
 	SurEdg* pSE;
 	INTEGER iEle, iSheE;
-	Elem* pEle, * pSheE;
+	oldElem* pEle, * pSheE;
 	int i, j, k, m;
 	int iFac[3], iSid[2], misid, masid, fc;
 	int ec = 0; /* this variable is useless currently, it is used in a obselete code for improvement of robustness  */
@@ -6977,14 +6977,14 @@ int DTIso3D::calcEdgTetsInt(INTEGER iEdg, PipeSrch* pSrch, PipeSrch* pAftSrch,
 	int nCurSrch = 0;
 	//REAL w[3];
 	//INTEGER iNxtEle;
-	//Elem *pNxtEle;
+	//oldElem *pNxtEle;
 	//int fcNxt, mm;
 	//MYPOINT pntNxt;
 	//int iPip;
 	//int firType, secType;
 	//Sphere sph;
 	//int nSph;
-	//Elem *pT;
+	//oldElem *pT;
 
 	pSE = &m_pSurEdgs[iEdg];
 	s = pSE->iStart;
@@ -7728,7 +7728,7 @@ int DTIso3D::getPipel(INTEGER iEle)
 INTEGER DTIso3D::findPipNeig(INTEGER iEle, int iNeig, INTEGER f1, INTEGER f2, INTEGER f3,
 	Pipe pip, int size)
 {
-	Elem* pE = &m_pElems[iEle], * pNeig, * pTet;
+	oldElem* pE = &m_pElems[iEle], * pNeig, * pTet;
 	INTEGER neig, iTet;
 	int iPip, i;
 	Pipel* pP;
@@ -7760,7 +7760,7 @@ INTEGER DTIso3D::findPipNeig(INTEGER iEle, int iNeig, INTEGER f1, INTEGER f2, IN
 int DTIso3D::findPipeSN(INTEGER iABCD, int ic, int* sn, Pipe pip, int size)
 {
 	INTEGER  iNeig;
-	Elem* pE;
+	oldElem* pE;
 	pE = &m_pElems[iABCD];
 	Pipel* pP;
 	int iPip;
@@ -7802,7 +7802,7 @@ int DTIso3D::findPipe(INTEGER iEdg, Sphere sph, int nSph, Pipe pip, int* size)
 	int nint = -1;
 	PipeSrch srch, aftSrch;
 	int nEnd = 0, m;
-	Elem* pT = nullptr;
+	oldElem* pT = nullptr;
 	int nPip = 0, type;
 	int code = 0, iPre;
 
@@ -8025,7 +8025,7 @@ int DTIso3D::findPipe_Head(INTEGER iS, INTEGER iE, Sphere sph, int nSph, INTEGER
 {
 	int i, k, m;
 	int nIntType = -1, val, nShe = 0;
-	Elem* pT = nullptr;
+	oldElem* pT = nullptr;
 	Shell she;
 	int icode[DIM + 1], iidx[DIM + 1];
 	MYPOINT ln[2], fac[3], pnt;
@@ -8100,7 +8100,7 @@ int DTIso3D::locDec(Pipe pip, int size, INTEGER stnBeg, INTEGER stnEnd)
 	int i, j, m, nRet = 0, type, size1, size2;
 	Pipel* pP = nullptr;
 	INTEGER iElem, iNeig;
-	Elem* pElem, * pNeig;
+	oldElem* pElem, * pNeig;
 	//#zyj 预先储存相邻关系
 	int pipElemNeig[MAX_PIPE_SIZE * 4];
 
@@ -8113,7 +8113,7 @@ int DTIso3D::locDec(Pipe pip, int size, INTEGER stnBeg, INTEGER stnEnd)
 	 */
 	INTEGER iMaxReq;
 	INTEGER nAlloc;
-	Elem* pNewElems = nullptr;
+	oldElem* pNewElems = nullptr;
 
 	iMaxReq = size * MAX_DEC_SIZE;
 #ifdef _ONE_LONG_ARRAY
@@ -8126,12 +8126,12 @@ int DTIso3D::locDec(Pipe pip, int size, INTEGER stnBeg, INTEGER stnEnd)
 			nAlloc += (INTEGER)(NUM_ADD_RATIO * nAlloc);
 		} while (nAlloc <= m_nElems + size * MAX_DEC_SIZE);
 
-		pNewElems = (Elem*)realloc(m_pElems, sizeof(Elem) * nAlloc);
+		pNewElems = (oldElem*)realloc(m_pElems, sizeof(oldElem) * nAlloc);
 		if (!pNewElems)
 		{
 			spdlog::info("cannot reallocate memory for elements:\n");
 			spdlog::info("Size={}.\n", nAlloc);
-			spdlog::info("Memory=%.1fMB\n", sizeof(Elem) * nAlloc / (1024.0 * 1024.0));
+			spdlog::info("Memory=%.1fMB\n", sizeof(oldElem) * nAlloc / (1024.0 * 1024.0));
 			throw EXCEPTIONSTRING(std::string("error exit in") + std::string(__FILE__) + std::to_string(__LINE__));;
 
 			return -1;
@@ -8146,7 +8146,7 @@ int DTIso3D::locDec(Pipe pip, int size, INTEGER stnBeg, INTEGER stnEnd)
 #endif
 
 		m_pElems = pNewElems;
-		memset(&m_pElems[m_nElems], 0, sizeof(Elem) * (nAlloc - m_nElems));
+		memset(&m_pElems[m_nElems], 0, sizeof(oldElem) * (nAlloc - m_nElems));
 		m_nAllocElems = nAlloc;
 	}
 #else
@@ -8517,7 +8517,7 @@ int DTIso3D::calcSubTetsNum()
 {
 	int i, num;
 	INTEGER iEle;
-	Elem* pElem;
+	oldElem* pElem;
 
 	for (i = 0, num = 0; i < m_vecSubTets.size(); i++)
 	{
@@ -8550,7 +8550,7 @@ int DTIso3D::removeNegativeVElem_Edge(INTEGER iEdg)
 	const int MAX_DIST_COUNT = 20;
 	int iterNum = 0, maxMoveCnt, moveCnt;
 	MYPOINT oldPnt;
-	Elem* pElem;
+	oldElem* pElem;
 
 #ifdef _ONE_LONG_ARRAY
 	INTEGER elemSize = m_nElems;
@@ -8956,7 +8956,7 @@ int DTIso3D::updateNeig(INTEGER iEle, INTEGER f1, INTEGER f2, INTEGER f3,
 #else
 	INTEGER elemSize = m_pElems.getArraySize();
 #endif
-	Elem* pElem;
+	oldElem* pElem;
 
 	if (iEle >= 0 && iEle < elemSize)
 	{
@@ -8982,9 +8982,9 @@ int DTIso3D::specCase1(Pipe pip, int size)
 	int ia, ib, ic1, ic2, id1, id2, ie1, ie2;
 	INTEGER a, b, c, d, e;
 	INTEGER iACDE, iBDCE;
-	Elem* pACDE, * pBDCE;
+	oldElem* pACDE, * pBDCE;
 	INTEGER iACBE, iABCD, iABDE;
-	Elem* pACBE, * pABCD, * pABDE;
+	oldElem* pACBE, * pABCD, * pABDE;
 	MYPOINT pnts[DIM + 1];
 	int i, m;
 	REAL tv;
@@ -9165,9 +9165,9 @@ int DTIso3D::specCase2(Pipe pip, int size)
 	int a, b, c, d, e, f;
 	INTEGER iExtra;
 	INTEGER iACDE, iADCF, iBDCE, iBCDF;
-	Elem* pACDE, * pADCF, * pBDCE, * pBCDF;
+	oldElem* pACDE, * pADCF, * pBDCE, * pBCDF;
 	INTEGER iABDE, iACBE, iADBF, iABCF;
-	Elem* pABDE, * pACBE, * pADBF, * pABCF;
+	oldElem* pABDE, * pACBE, * pADBF, * pABCF;
 	MYPOINT pnts[DIM + 1];
 	int i, m, n;
 	REAL tv;
@@ -9406,7 +9406,7 @@ int DTIso3D::edgCase(Pipel* pPipel, Pipe pip, int size)
 {
 	int type, ec;
 	INTEGER p, iABCD, iABCP, iAPCD;
-	Elem* pABCD, * pABCP, * pAPCD;
+	oldElem* pABCD, * pABCP, * pAPCD;
 	REAL tv;
 	int ia, ib, ic, id;
 	INTEGER a, b, c, d;
@@ -9540,8 +9540,8 @@ int DTIso3D::douEdgCase(Pipel* pPipel, Pipe pip, int size)
 	int sn; /* type of decomposing face  */
 	INTEGER iABCD;
 	INTEGER iABCP1, iP1BCP2, iP1P2CD, iABCP2, iAP2CP1, iABP2P1, iP1BP2D;
-	Elem* pABCD;
-	Elem* pABCP1, * pP1BCP2, * pP1P2CD, * pABCP2, * pAP2CP1, * pABP2P1, * pP1BP2D;
+	oldElem* pABCD;
+	oldElem* pABCP1, * pP1BCP2, * pP1P2CD, * pABCP2, * pAP2CP1, * pABP2P1, * pP1BP2D;
 	INTEGER p1, p2;
 	int i, m;
 	REAL tv;
@@ -9991,7 +9991,7 @@ int DTIso3D::nodFacCase(Pipel* pPipel, Pipe pip, int size)
 	INTEGER a, b, c, d, p;
 	int i, m;
 	INTEGER iABCD, iABCP, iAPCD, iABPD;
-	Elem* pABCD, * pABCP, * pAPCD, * pABPD;
+	oldElem* pABCD, * pABCP, * pAPCD, * pABPD;
 	MYPOINT pnts[DIM + 1];
 	REAL tv;
 	INTEGER iPipNeig;
@@ -10137,7 +10137,7 @@ int DTIso3D::edgFacCase(Pipel* pPipel, Pipe pip, int size)
 	INTEGER a, b, c, d, p1, p2;
 	int i, m;
 	INTEGER iABCD, iABCP1, iP1BP2D, iP1BCP2, iP1P2CD;
-	Elem* pABCD, * pABCP1, * pP1BP2D, * pP1BCP2, * pP1P2CD;
+	oldElem* pABCD, * pABCP1, * pP1BP2D, * pP1BCP2, * pP1P2CD;
 	MYPOINT pnts[DIM + 1];
 	REAL tv;
 	INTEGER iPipNeig;
@@ -10326,7 +10326,7 @@ int DTIso3D::douFacCase(Pipel* pPipel, Pipe pip, int size)
 	INTEGER a, b, c, d, p1, p2;
 	int i, m;
 	INTEGER iABCD, iABCP1, iP1BCP2, iP1P2CD, iP1BP2D, iAP1CD;
-	Elem* pABCD, * pABCP1, * pP1BCP2, * pP1P2CD, * pP1BP2D, * pAP1CD;
+	oldElem* pABCD, * pABCP1, * pP1BCP2, * pP1P2CD, * pP1BP2D, * pAP1CD;
 	MYPOINT pnts[DIM + 1];
 	REAL tv;
 	INTEGER iPipNeig;
@@ -11368,7 +11368,7 @@ INTEGER DTIso3D::addSubFacet(INTEGER i1, INTEGER i2, INTEGER i3, INTEGER iLast)
 INTEGER DTIso3D::abstNodFirEle()
 {
 	INTEGER i;
-	Elem* pE;
+	oldElem* pE;
 	INTEGER iNod, cnt = 0;
 	int m;
 #ifdef _ONE_LONG_ARRAY
@@ -11401,7 +11401,7 @@ int DTIso3D::checkEdgeSP(INTEGER* nLost, INTEGER* nSPs, INTEGER* nMaxSPs)
 	Sphere sph;
 	Pipe pip;
 	int nSph = 0, nPip = 0, j, m;
-	Elem* pT = nullptr;
+	oldElem* pT = nullptr;
 	int nMiss = 1;
 	INTEGER iEdg, nOldNodes;
 	INTEGER numOfLE = 0, numOfSP = 0, numOfInstEs = 0, numOfInstFs = 0;
@@ -11588,7 +11588,7 @@ int DTIso3D::recvEdges()
 	SurEdg* pSE = nullptr;
 	Sphere sph;
 	int nSph = 0, j;
-	Elem* pT = nullptr;
+	oldElem* pT = nullptr;
 	int nMiss = 1;
 	int nRecv = 0, m;
 	std::vector<int> vecFlags(m_nSurEdgs);
@@ -11689,7 +11689,7 @@ int DTIso3D::recvEdges()
 	SurEdg* pSE = nullptr;
 	Sphere sph;
 	int nSph = 0, j;
-	Elem* pT = nullptr;
+	oldElem* pT = nullptr;
 	int nMiss = 1;
 	int nRecv = 0, m;
 	int nCircle = 2;
@@ -11806,7 +11806,7 @@ int DTIso3D::recvEdges_NoStnPnt()
 	SurEdg* pSE = nullptr;
 	Sphere sph;
 	int nSph = 0, j;
-	Elem* pT = nullptr;
+	oldElem* pT = nullptr;
 	int nMiss = 1;
 	int nRecv = 0, m;
 	int nLost = 0, nSucc = 0, nFail = 0;
@@ -12355,7 +12355,7 @@ int DTIso3D::splitEdge(INTEGER iEdg, int level)
 		return 0;
 	}
 
-	MBLNode newNode;
+	oldMBLNode newNode;
 	newNode.iReserved = 0;
 	newNode.iReserved2 = 0;
 	for (int i = 0; i < DIM; i++) {
@@ -12374,7 +12374,7 @@ int DTIso3D::splitEdge(INTEGER iEdg, int level)
 			//disturb
 			const int disturbPTable[8] = { 6,3,4,7,0,2,1,5 };
 			const double disturb[8] = { 0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0 };
-			MBLNode& nd = m_pNodes[m_pNodes.getArraySize() - 1];
+			oldMBLNode& nd = m_pNodes[m_pNodes.getArraySize() - 1];
 			for (int i = 0; i < DIM; i++)
 			{
 				(nd.pt)[i] = (nd.pt)[i] + disturb[disturbPTable[disturbPTable[(iDisturb + i) % 8]]] *
@@ -12459,7 +12459,7 @@ int DTIso3D::recvBndEdge_NoStnPnt()
 	SurEdg* pSE = nullptr;
 	Sphere sph;
 	int nSph = 0, j;
-	Elem* pT = nullptr;
+	oldElem* pT = nullptr;
 	int nMiss = 1;
 	int nRecv = 0, m;
 	int nLost = 0, nSucc = 0, nFail = 0;
@@ -13099,7 +13099,7 @@ int DTIso3D::recvBndEdge_NoStnPnt_V2_OneLoop()
 	SurEdg* pSE = nullptr;
 	Sphere sph;
 	int nSph = 0, j;
-	Elem* pT = nullptr;
+	oldElem* pT = nullptr;
 	int nMiss = 1;
 	int nRecv = 0, m;
 	int nLost = 0, nSucc = 0, nFail = 0;
@@ -13430,7 +13430,7 @@ int DTIso3D::findAllInstEntitiesOfBE(INTEGER iEdg, InstEntList & listInstEnts, b
 	Pipel* pPipel = nullptr;
 	int i, nPip;
 	int ia, ib, ic, id;
-	Elem* pElem = nullptr;
+	oldElem* pElem = nullptr;
 	int nOldNodes;
 	int type1, type2;
 	Sphere sph;
@@ -13577,7 +13577,7 @@ int DTIso3D::findAllInstEntitiesOfBF(INTEGER iFac, InstEntList & listInstEnts, b
 	int i, j, nCluss;
 	int ia, ib, ic, id;
 	INTEGER b, d;
-	Elem* pElem = nullptr;
+	oldElem* pElem = nullptr;
 	int nOldNodes;
 	Sphere sph;
 	int nSph;
@@ -13726,7 +13726,7 @@ int DTIso3D::removeInstEntOfBE(INTEGER iEdg, InstEntList & listInstEnts, int iEn
 	int nShe;
 	INTEGER consEdges[MAX_CONSTRAINT_SIZE][2];
 	int consEdgeSize = 0;
-	Elem* pElem;
+	oldElem* pElem;
 
 #ifdef _ONE_LONG_ARRAY
 	listInflationEnts.initialise(m_nNodes);
@@ -13931,7 +13931,7 @@ int DTIso3D::removeInstEntOfBE_V2(INTEGER iEdg, InstEntList & listInstEnts, int 
 	int consEdgeSize = 1, flatEdgeSize = 0;
 	int i, j, m;
 	INTEGER iElem;
-	Elem* pElem = nullptr;
+	oldElem* pElem = nullptr;
 	APOINT ln[2], fac[3], pnt;
 	int intType, intValue;
 	int rtn;
@@ -14347,9 +14347,9 @@ int DTIso3D::swap23(INTEGER indices[3], INTEGER iElems[3], bool tvCheck)
 	int ia, ib, ic1, ic2, id1, id2, ie1, ie2;
 	INTEGER a, b, c, d, e;
 	INTEGER iACDE, iBDCE;
-	Elem* pACDE, * pBDCE;
+	oldElem* pACDE, * pBDCE;
 	INTEGER iACBE, iABCD, iABDE;
-	Elem* pACBE, * pABCD, * pABDE;
+	oldElem* pACBE, * pABCD, * pABDE;
 	MYPOINT pnts[DIM + 1];
 	int i, m;
 	REAL tv;
@@ -14545,9 +14545,9 @@ int DTIso3D::swap32(INTEGER indices[2], INTEGER iElems[3], bool tvCheck)
 	int ia1, ia2, ia3, ib1, ib2, ib3, ic1, ic2, id2, id3, ie3, ie1;
 	INTEGER a, b, c, d, e;
 	INTEGER iACDE, iBDCE;
-	Elem* pACDE, * pBDCE;
+	oldElem* pACDE, * pBDCE;
 	INTEGER iACBE, iABCD, iABDE;
-	Elem* pACBE, * pABCD, * pABDE;
+	oldElem* pACBE, * pABCD, * pABDE;
 	MYPOINT pnts[DIM + 1];
 	int i, m;
 	REAL tv;
@@ -14776,7 +14776,7 @@ int DTIso3D::swap32_LabelNodes(INTEGER indices[2], INTEGER iElems[3], INTEGER sk
 	int ia1, ia2, ia3, ib1, ib2, ib3, ic1, ic2, id2, id3, ie3, ie1;
 	INTEGER a, b, c, d, e;
 	INTEGER iACBE, iABCD, iABDE;
-	Elem* pACBE, * pABCD, * pABDE;
+	oldElem* pACBE, * pABCD, * pABDE;
 	int i, m;
 	int ort = 0;
 
@@ -14904,7 +14904,7 @@ int DTIso3D::removeAnEdge_DFS(INTEGER a, INTEGER b, INTEGER lastFacNode, Shell s
 	int infDir[3];
 	Sphere facePrts;
 	int numFacePrts = 0;
-	Elem* pElem = nullptr;
+	oldElem* pElem = nullptr;
 
 	/* -----------------------------------------------------------------------------------
 	* 第1步：调用SPR操作四面体化初始壳shell(a, b); 得到其最优解
@@ -15356,7 +15356,7 @@ int DTIso3D::remeshAShell_SPR(INTEGER a, INTEGER b, Shell she, int* pnShe, INTEG
 	std::map<int, int>::iterator mapIt, mapIt1, mapIt2;
 	int iCaviEdg, iCaviENod;
 	Sphere newElems;
-	Elem* pElem;
+	oldElem* pElem;
 
 	nShe = *pnShe;
 	findShellFaces(a, b, she, nShe, faceNodes, faceParents, &faceNum);
@@ -15628,7 +15628,7 @@ int DTIso3D::includeDependentEdgeCnt(INTEGER iElem, InstEntList & listDependentE
 	int i, cnt = 0;
 	int iEnt;
 	int indices[3];
-	Elem* pElem = &m_pElems[iElem];
+	oldElem* pElem = &m_pElems[iElem];
 
 	iEnt = listDependentEnts.getFirstEnt();
 	while (iEnt > 0)
@@ -15657,7 +15657,7 @@ int DTIso3D::remeshAShell_EarRemoval(INTEGER a, INTEGER b, Shell she, int* pnShe
 	int iEnt, InstEntList & listInstEnts, InstEntList & listDependentEnts, INTEGER iInitNode)
 {
 	int nShe, faceNum = 0;
-	Elem* pElem = nullptr;
+	oldElem* pElem = nullptr;
 	INTEGER faceNodes[MAX_SHELL_SIZE], faceParents[2 * MAX_SHELL_SIZE];
 	int faceNodesDep[MAX_SHELL_SIZE], faceNodesEar[MAX_SHELL_SIZE], faceNodesClp[MAX_SHELL_SIZE];
 	INTEGER iInitElem;
@@ -16957,7 +16957,7 @@ int DTIso3D::swap23Recursive(INTEGER a, INTEGER b, INTEGER matrix_k[][MAX_SKIRT_
 {
 	int i, j, k, m, cnt = 0;
 	INTEGER swapNodes[3], swapElems[3], tElems[2];
-	Elem* pElem;
+	oldElem* pElem;
 
 	if (jj > ii + 1 || (jj < ii && (jj + faceNum) > ii + 1))
 	{
@@ -17010,7 +17010,7 @@ int DTIso3D::swap23Recursive(INTEGER a, INTEGER b, INTEGER matrix_k[][MAX_SKIRT_
 	int i, j, k, m, cnt = 0, iii, jjj, kkk;
 	const int faceNum_SQ = faceNum * faceNum;
 	INTEGER swapNodes[3], swapElems[3], tElems[2];
-	Elem* pElem;
+	oldElem* pElem;
 	bool bA, bB;
 	REAL q;
 
@@ -17197,7 +17197,7 @@ int DTIso3D::updateInstEntities(InstEntList & listInstEnts)
 	Sphere sph;
 	int nSph, i, j;
 	int indices[3], idxTmp;
-	Elem* pElem = nullptr;
+	oldElem* pElem = nullptr;
 
 	iEntIt = listInstEnts.getFirstEnt();
 	while (iEntIt > 0)
@@ -17369,7 +17369,7 @@ int DTIso3D::recvEdges_LessStnPnt()
 	SurEdg* pSE = nullptr;
 	Sphere sph;
 	int nSph = 0, j;
-	Elem* pT = nullptr;
+	oldElem* pT = nullptr;
 	int nMiss = 1;
 	int nRecv = 0, m;
 	int nLost = 0, nSucc = 0, nFail = 0;
@@ -18683,7 +18683,7 @@ RECOVERY:
 * ************************************************* */
 int DTIso3D::ouIn(INTEGER iEle, INTEGER iTri, int* iLost)
 {
-	Elem* pE = nullptr;
+	oldElem* pE = nullptr;
 	SurTri* pST = nullptr;
 	int indices[4], cnt, m;
 	INTEGER iForm;
@@ -18787,7 +18787,7 @@ int DTIso3D::findFirCluEdg(INTEGER iFac, Sphere sph, int nSph,
 	int nCnt = 1, i, m, n;
 	SurTri* pST = &m_pSurTris[iFac];
 	INTEGER iNod, e;
-	Elem* pEle;
+	oldElem* pEle;
 	int nind[DIM], edgCnt = 0;
 	INTEGER iStart, iEnd, iMin, iMax;
 	MYPOINT ln1, ln2, facn[3], pnt;
@@ -19064,7 +19064,7 @@ int DTIso3D::creClus(Clusterel* pClus, INTEGER iFac,
 	int ies, iee;
 	INTEGER es, ee;
 	int flags[6] = { 0, 0, 0, 0, 0, 0 };
-	Elem* pEle = &m_pElems[pClus->iEle];
+	oldElem* pEle = &m_pElems[pClus->iEle];
 	bool bS, bE;
 	SurTri* pST = &m_pSurTris[iFac];
 	MYPOINT fac[3], ln[2];
@@ -19257,7 +19257,7 @@ int DTIso3D::checNewEdg(Clusterel* pClus, int ec, INTEGER iFac,
 {
 	int i, m;
 	INTEGER iEle = pClus->iEle;
-	Elem* pEle = &m_pElems[iEle];
+	oldElem* pEle = &m_pElems[iEle];
 	SurTri* pST = &m_pSurTris[iFac];
 	MYPOINT fac[3], ln[2];
 	int iType;
@@ -19449,7 +19449,7 @@ int DTIso3D::addClusCands(Clusterel* pClus, ClusCand cands, int* nCand)
 {
 	int m, n;
 	INTEGER iNeig;
-	Elem* pEle = &m_pElems[pClus->iEle];
+	oldElem* pEle = &m_pElems[pClus->iEle];
 	int cnt;
 	/* codes of start & end nodes of a given edge code */
 	static const int ecse[6][2] =
@@ -19554,7 +19554,7 @@ int DTIso3D::addClusCands(Clusterel* pClus, ClusCand cands, int* nCand)
 int DTIso3D::addClusCands(Clusterel* pClus, ClusCand cands, int* nCand)
 {
 	int i, m, n;
-	Elem* pEle = &m_pElems[pClus->iEle];
+	oldElem* pEle = &m_pElems[pClus->iEle];
 	int cnt;
 	/* codes of start & end nodes of a given edge code */
 	const int ecse[6][2] =
@@ -19708,7 +19708,7 @@ int DTIso3D::updateSubFacets(INTEGER iFacet, INTEGER iDesFacet)
 	SurTri* pST = nullptr;
 	DesFacet* pDF = nullptr;
 	DesEdge* pDE = nullptr;
-	Elem* pE = nullptr;
+	oldElem* pE = nullptr;
 	Sphere sph;
 	INTEGER nSph, nAllNodes = 0, nEdNodes = 0, nFtNodes = 0, iDesEdg;
 	INTEGER allNodes[MAX_ADD_NOD + 3];
@@ -20171,7 +20171,7 @@ int DTIso3D::findCluster_NoEdgeRecved(INTEGER iFac, Sphere sph, int nSph,
 {
 	int i, m, k, l;
 	INTEGER iEle, iNei;
-	Elem* pElem;
+	oldElem* pElem;
 	INTEGER facei1[3], facei2[3];
 	MYPOINT facep1[3], facep2[3];
 	SurTri* pST = nullptr;
@@ -20524,7 +20524,7 @@ int DTIso3D::decClus(Cluster cluss, int nClus, INTEGER iFac, DesFacet * pDesFace
 	Clusterel* pClus;
 	int size1, size2;
 	INTEGER iElem, iNeig;
-	Elem* pElem = nullptr;
+	oldElem* pElem = nullptr;
 	int nRet = 0;
 
 	/*
@@ -20533,7 +20533,7 @@ int DTIso3D::decClus(Cluster cluss, int nClus, INTEGER iFac, DesFacet * pDesFace
 	 */
 	INTEGER iMaxReq;
 	INTEGER nAlloc;
-	Elem* pNewElems = nullptr;
+	oldElem* pNewElems = nullptr;
 
 	iMaxReq = nClus * MAX_DEC_SIZE;
 
@@ -20547,12 +20547,12 @@ int DTIso3D::decClus(Cluster cluss, int nClus, INTEGER iFac, DesFacet * pDesFace
 			nAlloc += (INTEGER)(NUM_ADD_RATIO * nAlloc);
 		} while (nAlloc <= m_nElems + nClus * MAX_DEC_SIZE);
 
-		pNewElems = (Elem*)realloc(m_pElems, sizeof(Elem) * nAlloc);
+		pNewElems = (oldElem*)realloc(m_pElems, sizeof(oldElem) * nAlloc);
 		if (!pNewElems)
 		{
 			spdlog::info("cannot reallocate memory for elements:\n");
 			spdlog::info("Size={}.\n", nAlloc);
-			spdlog::info("Memory=%.1fMB\n", sizeof(Elem) * nAlloc / (1024.0 * 1024.0));
+			spdlog::info("Memory=%.1fMB\n", sizeof(oldElem) * nAlloc / (1024.0 * 1024.0));
 			throw EXCEPTIONSTRING(std::string("error exit in") + std::string(__FILE__) + std::to_string(__LINE__));;
 
 			return -1;
@@ -20560,7 +20560,7 @@ int DTIso3D::decClus(Cluster cluss, int nClus, INTEGER iFac, DesFacet * pDesFace
 		//		printf("successfully reallocate memory for elements, new size is %d\n", nAlloc);
 
 		m_pElems = pNewElems;
-		memset(&m_pElems[m_nElems], 0, sizeof(Elem) * (nAlloc - m_nElems));
+		memset(&m_pElems[m_nElems], 0, sizeof(oldElem) * (nAlloc - m_nElems));
 		m_nAllocElems = nAlloc;
 	}
 #else
@@ -20749,7 +20749,7 @@ INTEGER DTIso3D::findClusNeig(INTEGER iEle, int iNeig,
 	INTEGER f1, INTEGER f2, INTEGER f3,
 	Cluster cluss, int nClus)
 {
-	Elem* pE = &m_pElems[iEle], * pNeig, * pTet;
+	oldElem* pE = &m_pElems[iEle], * pNeig, * pTet;
 	INTEGER neig, iTet;
 	int iClus, i;
 	Clusterel* pClus;
@@ -20780,7 +20780,7 @@ INTEGER DTIso3D::findClusNeig(INTEGER iEle, int iNeig,
 int DTIso3D::findClusSN(INTEGER iABCD, int ic, int* sn, Cluster cluss, int nClus)
 {
 	INTEGER  iNeig;
-	Elem* pE, * pNeig;
+	oldElem* pE, * pNeig;
 	Clusterel* pClus;
 	int iClus;
 	int nFac = 0, m, n;
@@ -20841,7 +20841,7 @@ int DTIso3D::coPlanCase(Clusterel * pClus, INTEGER iFac, VECTOR normf, DesFacet 
 	int in1, in2, in3, in4;
 	MYPOINT pn1, pn2, pn3;
 	INTEGER iEle;
-	Elem* pEle;
+	oldElem* pEle;
 	int m;
 	INTEGER iNeig;
 	int flag, iSubFt;
@@ -20945,7 +20945,7 @@ int DTIso3D::oneEdgCase(Clusterel * pClus, INTEGER iFac, VECTOR normf,
 {
 	int ec;
 	INTEGER p, iABCD, iABCP, iAPCD, iSubFt;
-	Elem* pABCD, * pABCP, * pAPCD;
+	oldElem* pABCD, * pABCP, * pAPCD;
 	REAL tv;
 	int ia, ib, ic, id;
 	INTEGER a, b, c, d;
@@ -21132,8 +21132,8 @@ int DTIso3D::twoEdgCase(Clusterel * pClus, INTEGER iFac, VECTOR normf,
 	int sn; /* type of decomposing face  */
 	INTEGER iABCD;
 	INTEGER iABCP1, iP1BCP2, iP1P2CD, iABCP2, iAP2CP1;
-	Elem* pABCD;
-	Elem* pABCP1, * pP1BCP2, * pP1P2CD, * pABCP2, * pAP2CP1;
+	oldElem* pABCD;
+	oldElem* pABCP1, * pP1BCP2, * pP1P2CD, * pABCP2, * pAP2CP1;
 	INTEGER p[2], p1, p2;
 	int i, m, n;
 	REAL tv;
@@ -21535,7 +21535,7 @@ int DTIso3D::thrEdgCase(Clusterel * pClus, INTEGER iFac, VECTOR normf,
 	const int ecse[6][2] =
 	{ {0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {2, 3} };
 	INTEGER iABCD;
-	Elem* pABCD;
+	oldElem* pABCD;
 	int ibn[3], sns[3], snflags[3] = { 0, 0, 0 }, nFree = 0, nS = 0, nN = 0, snt;
 	int nRet = 0, m;
 	int id, iTok;
@@ -21638,7 +21638,7 @@ int DTIso3D::zeroSCase(Clusterel * pClus, INTEGER iFac, VECTOR normf,
 {
 	INTEGER iABCD, iAP1P2H, iAP2BH, iBP2P3H, iCBP3H, iACP1H,
 		iCP3P1H, iABCH, iP1P3P2H, iP1P2P3D;
-	Elem* pABCD, * pAP1P2H, * pAP2BH, * pBP2P3H, * pCBP3H, * pACP1H,
+	oldElem* pABCD, * pAP1P2H, * pAP2BH, * pBP2P3H, * pCBP3H, * pACP1H,
 		* pCP3P1H, * pABCH, * pP1P3P2H, * pP1P2P3D;
 	INTEGER a, b, c, d, p1, p2, p3, h;
 	int ia, ib, ic, iTok;
@@ -22081,7 +22081,7 @@ int DTIso3D::oneSCase(Clusterel * pClus, INTEGER iFac, VECTOR normf,
 	int id, int ibot[3], int sns[3], DesFacet * pDesFacet)
 {
 	INTEGER iABCD, iABCP3, iABP3P2, iAP2P3P1, iP1P2P3D;
-	Elem* pABCD, * pABCP3, * pABP3P2, * pAP2P3P1, * pP1P2P3D;
+	oldElem* pABCD, * pABCP3, * pABP3P2, * pAP2P3P1, * pP1P2P3D;
 	INTEGER a, b, c, d, p1, p2, p3;
 	int ia, ib, ic, mie, mae, bdec, t;
 	int i, m;
@@ -22385,7 +22385,7 @@ int DTIso3D::doubSCase(Clusterel * pClus, INTEGER iFac, VECTOR normf,
 	int id, int ibot[3], int sns[3], DesFacet * pDesFacet)
 {
 	INTEGER iABCD, iABCP1, iP1BCP2, iP1P2CP3, iP1P2P3D;
-	Elem* pABCD, * pABCP1, * pP1BCP2, * pP1P2CP3, * pP1P2P3D;
+	oldElem* pABCD, * pABCP1, * pP1BCP2, * pP1P2CP3, * pP1P2P3D;
 	INTEGER a, b, c, d, p1, p2, p3;
 	int ia, ib, ic, mie, mae, bdec, t;
 	int i, m;
@@ -22691,7 +22691,7 @@ int DTIso3D::triSCase(Clusterel * pClus, INTEGER iFac, VECTOR normf,
 {
 	INTEGER iABCD, iAP1BH, iP1P2BH, iBP2CH, iCP2P3H, iACP3H,
 		iAP3P1H, iABCH, iP1P3P2H, iP1P2P3D;
-	Elem* pABCD, * pAP1BH, * pP1P2BH, * pBP2CH, * pCP2P3H, * pACP3H,
+	oldElem* pABCD, * pAP1BH, * pP1P2BH, * pBP2CH, * pCP2P3H, * pACP3H,
 		* pAP3P1H, * pABCH, * pP1P3P2H, * pP1P2P3D;
 	INTEGER a, b, c, d, p1, p2, p3, h;
 	int ia, ib, ic, iTok;
@@ -23133,7 +23133,7 @@ int DTIso3D::fouEdgCase(Clusterel * pClus, INTEGER iFac, VECTOR normf,
 	const int ecse[6][2] =
 	{ {0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {2, 3} };
 	INTEGER iABCD;
-	Elem* pABCD;
+	oldElem* pABCD;
 	int sns[4], snflags[4] = { 0, 0, 0, 0 }, nFree = 0, nS = 0, nN = 0, snt;
 	int nRet = 0, m, n;
 	int fwtn[2], mif, maf; /* faces with TYPE_N, valid only while nN == 2 */
@@ -23370,7 +23370,7 @@ int DTIso3D::zeroNCase(Clusterel * pClus, INTEGER iFac, VECTOR normf,
 	Cluster cluss, int nClus, int iabcd[4], int sns[3], DesFacet * pDesFacet)
 {
 	INTEGER iABCD, iP1P2P3D, iP1P3CD, iP1P3P4C, iP1P3P2B, iP1P4P3A, iABP3P1;
-	Elem* pABCD, * pP1P2P3D, * pP1P3CD, * pP1P3P4C, * pP1P3P2B, * pP1P4P3A, * pABP3P1;
+	oldElem* pABCD, * pP1P2P3D, * pP1P3CD, * pP1P3P4C, * pP1P3P2B, * pP1P4P3A, * pABP3P1;
 	INTEGER a, b, c, d, p1, p2, p3, p4;
 	int ia, ib, ic, id;
 	int i, m;
@@ -23733,7 +23733,7 @@ int DTIso3D::oneNCase(Clusterel * pClus, INTEGER iFac, VECTOR normf,
 	Cluster cluss, int nClus, int iabcd[4], int sns[3], DesFacet * pDesFacet)
 {
 	INTEGER iABCD, iP1P2P3D, iP1P3CD, iP1P3P4C, iP1P3P2A, iP1P4P3A, iABP3P2;
-	Elem* pABCD, * pP1P2P3D, * pP1P3CD, * pP1P3P4C, * pP1P3P2A, * pP1P4P3A, * pABP3P2;
+	oldElem* pABCD, * pP1P2P3D, * pP1P3CD, * pP1P3P4C, * pP1P3P2A, * pP1P4P3A, * pABP3P2;
 	INTEGER a, b, c, d, p1, p2, p3, p4;
 	int ia, ib, ic, id;
 	int i, m;
@@ -24089,7 +24089,7 @@ int DTIso3D::doubNeigNCase(Clusterel * pClus, INTEGER iFac, VECTOR normf,
 	Cluster cluss, int nClus, int iabcd[4], int sns[3], DesFacet * pDesFacet)
 {
 	INTEGER iABCD, iP1P2P3C, iP1P2CD, iP1P3P4C, iP1P3P2A, iP1P4P3A, iABP3P2;
-	Elem* pABCD, * pP1P2P3C, * pP1P2CD, * pP1P3P4C, * pP1P3P2A, * pP1P4P3A, * pABP3P2;
+	oldElem* pABCD, * pP1P2P3C, * pP1P2CD, * pP1P3P4C, * pP1P3P2A, * pP1P4P3A, * pABP3P2;
 	INTEGER a, b, c, d, p1, p2, p3, p4;
 	int ia, ib, ic, id;
 	int i, m;
@@ -24447,7 +24447,7 @@ int DTIso3D::doubOppoNCase(Clusterel * pClus, INTEGER iFac, VECTOR normf,
 {
 	INTEGER iABCD, iP1P2P3D, iP1P3CD, iP1P3P4C, iP1P4P3H, iP1P3P2H,
 		iAP4P1H, iBP2P3H, iAP1P2H, iAP2BH, iABP4H, iBP3P4H;
-	Elem* pABCD, * pP1P2P3D, * pP1P3CD, * pP1P3P4C, * pP1P4P3H, * pP1P3P2H,
+	oldElem* pABCD, * pP1P2P3D, * pP1P3CD, * pP1P3P4C, * pP1P4P3H, * pP1P3P2H,
 		* pAP4P1H, * pBP2P3H, * pAP1P2H, * pAP2BH, * pABP4H, * pBP3P4H;
 	INTEGER a, b, c, d, p1, p2, p3, p4, h;
 	int ia, ib, ic, id;
@@ -24954,7 +24954,7 @@ int DTIso3D::triNCase(Clusterel * pClus, INTEGER iFac, VECTOR normf,
 	Cluster cluss, int nClus, int iabcd[4], int sns[3], DesFacet * pDesFacet)
 {
 	INTEGER iABCD, iP1P2P4C, iP1P2CD, iP2P3P4C, iP1P4P2A, iP2P4P3B, iABP4P2;
-	Elem* pABCD, * pP1P2P4C, * pP1P2CD, * pP2P3P4C, * pP1P4P2A, * pP2P4P3B, * pABP4P2;
+	oldElem* pABCD, * pP1P2P4C, * pP1P2CD, * pP2P3P4C, * pP1P4P2A, * pP2P4P3B, * pABP4P2;
 	INTEGER a, b, c, d, p1, p2, p3, p4;
 	int ia, ib, ic, id;
 	int i, m;
@@ -25313,7 +25313,7 @@ int DTIso3D::fouNCase(Clusterel * pClus, INTEGER iFac, VECTOR normf,
 	Cluster cluss, int nClus, int iabcd[4], int sns[3], DesFacet * pDesFacet)
 {
 	INTEGER iABCD, iP1P2P4D, iP2CP4D, iP2P3P4C, iP1P4P2A, iP2P4P3B, iABP4P2;
-	Elem* pABCD, * pP1P2P4D, * pP2CP4D, * pP2P3P4C, * pP1P4P2A, * pP2P4P3B, * pABP4P2;
+	oldElem* pABCD, * pP1P2P4D, * pP2CP4D, * pP2P3P4C, * pP1P4P2A, * pP2P4P3B, * pABP4P2;
 	INTEGER a, b, c, d, p1, p2, p3, p4;
 	int ia, ib, ic, id;
 	int i, m;
@@ -25676,7 +25676,7 @@ int DTIso3D::recvFaces()
 	Sphere sph;
 	int nSph;
 	int nFind = 0;
-	Elem* pE = nullptr;
+	oldElem* pE = nullptr;
 	int flag; /* OUTER / INNER  */
 	int iLost;
 	std::vector<int> vecFlag(m_nSurTris);
@@ -25788,7 +25788,7 @@ int DTIso3D::recvFaces()
 	Sphere sph;
 	int nSph;
 	int nFind = 0;
-	Elem* pE = nullptr;
+	oldElem* pE = nullptr;
 	int flag; /* OUTER / INNER  */
 	int iLost;
 	INTEGER iDesF = -1;
@@ -25862,7 +25862,7 @@ int DTIso3D::recvFaces_NoStnPnt()
 	Sphere sph;
 	int nSph;
 	int nFind = 0;
-	Elem* pE = nullptr;
+	oldElem* pE = nullptr;
 	int flag; /* OUTER / INNER  */
 	int nRecv = 0;
 	int nLost = 0, nSucc = 0, nFail = 0;
@@ -26114,7 +26114,7 @@ bool DTIso3D::isCPClusNeig(INTEGER iCand, Cluster cluss, int nClus)
 	INTEGER iNeig;
 	Clusterel* pClus;
 	int iNeigClus;
-	Elem* pCand = &m_pElems[iCand], * pNeig;
+	oldElem* pCand = &m_pElems[iCand], * pNeig;
 
 	for (m = 0; m <= DIM && !bNeig; m++)
 	{
@@ -26334,7 +26334,7 @@ int DTIso3D::typeEles()
 	INTEGER i, j;
 	INTEGER iElem, iNeig, iSrch, iDesFac = 0, iNod1, iNod2, iNod3, iLost, iLast;
 	int nOuIn, nReverse;
-	Elem* pElem, * pSrch;
+	oldElem* pElem, * pSrch;
 	int m;
 	int genus = 0;
 	SurTri* pST = nullptr;
@@ -26730,7 +26730,7 @@ int DTIso3D::computeInteriorVolume(REAL * vol)
 #else
 	INTEGER elemSize = m_pElems.getArraySize();
 #endif
-	Elem* pElem = nullptr;
+	oldElem* pElem = nullptr;
 	INTEGER i;
 	int nOuIn;
 	REAL sum = 0.0, vlmi = 0.0;
@@ -26769,7 +26769,7 @@ int DTIso3D::typeDelEles()
 	int n;
 	INTEGER nRmv = 0;
 	INTEGER nDelBef = 0, nDelAft = 0, nUndelBef = 0, nUndelAft = 0;
-	Elem* pElem;
+	oldElem* pElem;
 
 #ifdef _ONE_LONG_ARRAY
 	INTEGER elemSize = m_nElems;
@@ -26811,7 +26811,7 @@ int DTIso3D::rmvOuterEles()
 {
 	INTEGER i, iElem, iSrch, iNeig;
 	int nOuIn;
-	Elem* pElem, * pSrch;
+	oldElem* pElem, * pSrch;
 	int m, n;
 	INTEGER nRmv = 0;
 	INTEGER nDelBef = 0, nDelAft = 0, nUndelBef = 0, nUndelAft = 0;
@@ -26962,7 +26962,7 @@ INTEGER DTIso3D::getUndiscNodCnt(INTEGER iNodS, INTEGER iNodE)
 int DTIso3D::beforeInnerPntInst()
 {
 	INTEGER iEle = 0;
-	Elem* pEle = nullptr;
+	oldElem* pEle = nullptr;
 #ifdef _ONE_LONG_ARRAY
 	INTEGER elemSize = m_nElems;
 #else
@@ -27017,7 +27017,7 @@ int DTIso3D::innerPntInst()
 	int nCircle = 0, nAdd = 0;
 	INTEGER nOldNodes;
 	REAL dps;
-	MBLNode* pNewNodes = nullptr;
+	oldMBLNode* pNewNodes = nullptr;
 	INTEGER nNewNodes = 0;
 #ifdef _ERROR_CHK
 	INTEGER iAddFail;
@@ -27122,7 +27122,7 @@ int DTIso3D::innerPntInst()
 					setCldNod(iEle, 0);
 
 					/* 别忘了清空刚才被占用的位置  */
-					memset(&m_pNodes[iNod], 0, sizeof(MBLNode));
+					memset(&m_pNodes[iNod], 0, sizeof(oldMBLNode));
 #ifdef _ONE_LONG_ARRAY
 					if (iNod == m_nNodes - 1)//nodeSize - 1)
 					{
@@ -28284,7 +28284,7 @@ int DTIso3D::formInitCaviData(INTEGER baseE[], int baseSize, INTEGER iNod, bool 
 	MYPOINT pnt;
 	REAL dt, cri;
 	bool if_cav_bond = false;
-	Elem* pElem = nullptr, * pSrch = nullptr;
+	oldElem* pElem = nullptr, * pSrch = nullptr;
 	const REAL alphaSqua = m_fAlpha * m_fAlpha;
 	const REAL spaceSqua = m_pNodes[iNod].space * m_pNodes[iNod].space;
 	const int fcn[4][4] =
@@ -28475,7 +28475,7 @@ int DTIso3D::updateTriangulation(INTEGER iNod)
 	INTEGER l, k, m, iEmp, m1, m2, i1, i2, nfc = 0, npc = 0, nsc = 0;
 	MYPOINT pnew[DIM + 1];
 	REAL tv, cen[DIM], rad;
-	Elem* pElem, * pNewElem;
+	oldElem* pElem, * pNewElem;
 
 #if DIM == 2 /* 2D  */
 #elif DIM == 3 /* 3D  */
@@ -29594,7 +29594,7 @@ FINISHED:
 INTEGER DTIso3D::autCreNodes()
 {
 	INTEGER iEle;
-	Elem* pEle;
+	oldElem* pEle;
 	MYPOINT pnt;
 	REAL dp, dpB, dpS, dt;
 	int m, n;
@@ -29647,7 +29647,7 @@ INTEGER DTIso3D::autCreNodes()
 INTEGER DTIso3D::autCreNodes()
 {
 	INTEGER i, iEle;
-	Elem* pEle;
+	oldElem* pEle;
 	MYPOINT pnt;
 	REAL dp, dt;
 	int m, n;
@@ -29710,8 +29710,8 @@ INTEGER DTIso3D::autCreNodes()
 INTEGER	DTIso3D::autCreNodes_NewArr(bool bEraseOldMem)
 {
 	INTEGER i, iEle;
-	Elem* pEle;
-	MBLNode* pNodes[DIM + 1];
+	oldElem* pEle;
+	oldMBLNode* pNodes[DIM + 1];
 	MYPOINT pnt;
 	REAL dp, dt;
 	int m, n;
@@ -29725,13 +29725,13 @@ INTEGER	DTIso3D::autCreNodes_NewArr(bool bEraseOldMem)
 			m_pCreateNodes = nullptr;
 		}
 
-		if (!(m_pCreateNodes = (MBLNode*)malloc(sizeof(MBLNode) * (size + 1))))
+		if (!(m_pCreateNodes = (oldMBLNode*)malloc(sizeof(oldMBLNode) * (size + 1))))
 		{
 			spdlog::info("Not enough memory.\n");
 			throw EXCEPTIONSTRING(std::string("error exit in") + std::string(__FILE__) + std::to_string(__LINE__));;
 		}
 	}
-	memset(m_pCreateNodes, 0, sizeof(MBLNode) * (size + 1));
+	memset(m_pCreateNodes, 0, sizeof(oldMBLNode) * (size + 1));
 	m_nCreateNodes = 0;
 
 	/* -----------------------------------------------------------
@@ -29948,7 +29948,7 @@ int DTIso3D::addInnerNode(INTEGER iNod)
 	{
 		{3, 2, 1}, {0, 2, 3}, {3, 1, 0}, {0, 1, 2}
 	};
-	Elem* pElem, * pSrch;
+	oldElem* pElem, * pSrch;
 
 #ifdef _ERROR_CHK
 	int nErrCd = 0;
@@ -30541,8 +30541,8 @@ int DTIso3D::rmvNodsAndEles()
 	INTEGER iRmvNodCnt = 0, iRmvEleCnt = 0;
 	DesFacet* pDF = nullptr;
 	int m, mm;
-	Elem* pElem, * pElemK, * pElemN;
-	MBLNode* pNode, * pNodeK;
+	oldElem* pElem, * pElemK, * pElemN;
+	oldMBLNode* pNode, * pNodeK;
 
 #ifdef _ONE_LONG_ARRAY
 	INTEGER elemSize = m_nElems, nodeSize = m_nNodes;
@@ -30964,7 +30964,7 @@ INTEGER DTIso3D::findParent(INTEGER i1, INTEGER i2, INTEGER i3)
 	Sphere sph;
 	int nSph;
 	INTEGER iEle = -1;
-	Elem* pEle;
+	oldElem* pEle;
 	int simCnt = 0;
 	INTEGER ii[3] = { i1, i2, i3 };
 
@@ -30999,7 +30999,7 @@ INTEGER DTIso3D::findParent_BruteForce(INTEGER i1, INTEGER i2, INTEGER i3)
 {
 	INTEGER i;
 	int simCnt = 0, m;
-	Elem* pElem;
+	oldElem* pElem;
 
 #ifdef _ONE_LONG_ARRAY
 	INTEGER elemSize = m_nElems;
@@ -31038,8 +31038,8 @@ int DTIso3D::printConformalRecvInfo()
 	INTEGER i;
 	INTEGER iEANE, iEANF, iDesFWthNds, iTotal;
 	INTEGER nAlloc;
-	MBLNode* pNewNodes = nullptr;
-	Elem* pNewElems = nullptr;
+	oldMBLNode* pNewNodes = nullptr;
+	oldElem* pNewElems = nullptr;
 
 	iEANE = iEANF = iTotal = 0;
 
@@ -31077,8 +31077,8 @@ int DTIso3D::prepareRecvDesBnds()
 	INTEGER i;
 	INTEGER iEANE, iEANF, iDesFWthNds, iTotal;
 	INTEGER nAlloc;
-	MBLNode* pNewNodes = nullptr;
-	Elem* pNewElems = nullptr;
+	oldMBLNode* pNewNodes = nullptr;
+	oldElem* pNewElems = nullptr;
 
 	iEANE = iEANF = iTotal = 0;
 
@@ -31140,12 +31140,12 @@ int DTIso3D::prepareRecvDesBnds()
 			nAlloc += (INTEGER)(NUM_ADD_RATIO * nAlloc);
 		} while (nAlloc <= m_nElems + 10 * iTotal);
 
-		pNewElems = (Elem*)realloc(m_pElems, sizeof(Elem) * nAlloc);
+		pNewElems = (oldElem*)realloc(m_pElems, sizeof(oldElem) * nAlloc);
 		if (!pNewElems)
 		{
 			spdlog::info("cannot reallocate memory for elements:\n");
 			spdlog::info("Size={}.\n", nAlloc);
-			spdlog::info("Memory=%.1fMB\n", sizeof(Elem) * nAlloc / (1024.0 * 1024.0));
+			spdlog::info("Memory=%.1fMB\n", sizeof(oldElem) * nAlloc / (1024.0 * 1024.0));
 			throw EXCEPTIONSTRING(std::string("error exit in") + std::string(__FILE__) + std::to_string(__LINE__));;
 
 			return -1;
@@ -31153,7 +31153,7 @@ int DTIso3D::prepareRecvDesBnds()
 		//		printf("successfully reallocate memory for elements, new size is %d\n", nAlloc);
 
 		m_pElems = pNewElems;
-		memset(&m_pElems[m_nElems], 0, sizeof(Elem) * (nAlloc - m_nElems));
+		memset(&m_pElems[m_nElems], 0, sizeof(oldElem) * (nAlloc - m_nElems));
 		m_nAllocElems = nAlloc;
 	}
 #else
@@ -31625,7 +31625,7 @@ int DTIso3D::removeEANE(INTEGER iNod, INTEGER iDesEdg, INTEGER iPre, INTEGER iNx
 	INTEGER iOneEdgNode = 0;
 	int j, k;
 	DesEdge* pDesNeigE = nullptr;
-	Elem* pElem, * pElemLftOu, * pElemLftIn, * pElemRgtOu, * pElemRgtIn;
+	oldElem* pElem, * pElemLftOu, * pElemLftIn, * pElemRgtOu, * pElemRgtIn;
 	INTEGER faceIt, faceHd, faceTl;
 	INTEGER efaces[MAX_EDGE_FACETS];
 	int nEFaces = 0;
@@ -32772,7 +32772,7 @@ int DTIso3D::updateNeigInfoOfSharedSED(
 int DTIso3D::editSurfs()
 {
 	INTEGER iElem;
-	Elem* pElem;
+	oldElem* pElem;
 	int m, i1, i2, i3, iTok;
 #ifdef _ONE_LONG_ARRAY
 	INTEGER elemSize = m_nElems;
@@ -33209,8 +33209,8 @@ int DTIso3D::writeNGB(const char* fname)
 
 int DTIso3D::printResult()
 {
-	double nodeMemUnit = sizeof(MBLNode) / (1024.0 * 1024.0);
-	double elemMemUnit = sizeof(Elem) / (1024.0 * 1024.0);
+	double nodeMemUnit = sizeof(oldMBLNode) / (1024.0 * 1024.0);
+	double elemMemUnit = sizeof(oldElem) / (1024.0 * 1024.0);
 	double faceMemUnit = sizeof(SurTri) / (1024.0 * 1024.0);
 	double edgeMemUnit = sizeof(SurEdg) / (1024.0 * 1024.0);
 	const int memUsageArrSize = 4;
@@ -33355,7 +33355,7 @@ void DTIso3D::setGridData(const char* fname)
 	m_nAllocNodes = (INIT_NOD_NUM + npt) * 1.2;
 	m_pNodes = (Node*)malloc(m_nAllocNodes * sizeof(Node));
 	m_nAllocElems = (nele + nstri) * 1.2;
-	m_pElems = (Elem*)malloc(m_nAllocElems * sizeof(Elem));
+	m_pElems = (oldElem*)malloc(m_nAllocElems * sizeof(oldElem));
 
 	if (!m_pNodes || !m_pElems)
 	{
@@ -33425,7 +33425,7 @@ int DTIso3D::writeOBJ(const char* fname)
 {
 	INTEGER i, iNg1, iNg2, iNg3, iNg4, iFm1, iFm2, iFm3, iFm4, nFac = 0;
 	FILE* fp = fopen(fname, "w");
-	Elem* pElem;
+	oldElem* pElem;
 #ifdef _ONE_LONG_ARRAY
 	INTEGER elemSize = m_nElems, nodeSize = m_nNodes;
 #else
@@ -33599,7 +33599,7 @@ int DTIso3D::sphereToPolyhedron(Sphere sph, int nSph, polyhedron * poly,
 	INTEGER iia, iib, iic, iid;
 	std::map<int, int>::iterator mapIt;
 	INTEGER ele, neg, nv = 0;
-	Elem* pElems[MAX_SPHERE_SIZE], * pElem;
+	oldElem* pElems[MAX_SPHERE_SIZE], * pElem;
 
 	memset(poly, 0, sizeof(polyhedron));
 	*numv = 0;
@@ -33704,7 +33704,7 @@ int DTIso3D::sphereToPolyhedron(Sphere sph, int nSph, polyhedron * poly,
 	INTEGER iia, iib, iic, iid;
 	INTEGER ele, neg, nv = 0;
 	INTEGER iloc, iglob;
-	Elem* pElems[MAX_SPHERE_SIZE], * pElem;
+	oldElem* pElems[MAX_SPHERE_SIZE], * pElem;
 
 	memset(poly, 0, sizeof(polyhedron));
 	*numv = 0;
@@ -34073,7 +34073,7 @@ int DTIso3D::addDivideResult(divide * divi, INTEGER l2g_nod[], INTEGER numv, Sph
 	INTEGER l2g_ele[MAX_SPHERE_SIZE], iLoc;
 	INTEGER eGlob1, eGlob2;
 	INTEGER nAlloc;
-	Elem* pNewElems[MAX_SPHERE_SIZE], * pOldElems[MAX_SPHERE_SIZE], * pElem, * pElem1, * pElem2;
+	oldElem* pNewElems[MAX_SPHERE_SIZE], * pOldElems[MAX_SPHERE_SIZE], * pElem, * pElem1, * pElem2;
 	INTEGER iIdx;
 	MYPOINT pnew[DIM + 1];
 	REAL tv;
@@ -34081,12 +34081,12 @@ int DTIso3D::addDivideResult(divide * divi, INTEGER l2g_nod[], INTEGER numv, Sph
 	/* 将结果加入到单元数组中  */
 	for (i = 0; i < divi->num; i++)
 	{
-		//		spdlog::info("Add Elem {} (Total: {}); ({};{};{};{})\n", i, divi->num, divi->te[i][0], divi->te[i][1], divi->te[i][2], divi->te[i][3]);
+		//		spdlog::info("Add oldElem {} (Total: {}); ({};{};{};{})\n", i, divi->num, divi->te[i][0], divi->te[i][1], divi->te[i][2], divi->te[i][3]);
 				/* 不能利用中间空位  */
 		iLoc = getNewEleLoc();//m_nElems++;
 		l2g_ele[i] = iLoc;
 		pElem = pNewElems[i] = &m_pElems[iLoc];
-		memset(pElem, 0, sizeof(Elem));
+		memset(pElem, 0, sizeof(oldElem));
 		for (j = 0; j <= 3; j++)
 		{
 			iIdx = l2g_nod[divi->te[i][j]];
@@ -34239,8 +34239,8 @@ int DTIso3D::addDivideResult2(divide * divi, INTEGER l2g_nod[], INTEGER numv, Sp
 	INTEGER l2g_ele[MAX_SPHERE_SIZE], iLoc;
 	INTEGER eGlob1, eGlob2;
 	INTEGER nAlloc;
-	Elem* pNewElems[MAX_SPHERE_SIZE], * pElem, * pElem1, * pElem2;
-	MBLNode* pNode;
+	oldElem* pNewElems[MAX_SPHERE_SIZE], * pElem, * pElem1, * pElem2;
+	oldMBLNode* pNode;
 	INTEGER iIdx;
 	MYPOINT pnew[DIM + 1];
 	REAL tv;
@@ -34252,7 +34252,7 @@ int DTIso3D::addDivideResult2(divide * divi, INTEGER l2g_nod[], INTEGER numv, Sp
 		iLoc = getNewEleLoc();//m_nElems++;
 		l2g_ele[i] = iLoc;
 		pElem = pNewElems[i] = &m_pElems[iLoc];
-		memset(pElem, 0, sizeof(Elem));
+		memset(pElem, 0, sizeof(oldElem));
 		for (j = 0; j <= 3; j++)
 		{
 			iIdx = l2g_nod[divi->te[i][j]];
@@ -34381,7 +34381,7 @@ int DTIso3D::flatSphereByFaceNeig(Sphere sph, int& nSph, int inOu, bool noSutTet
 	int i, k, nSph_Cpy;
 	INTEGER ie, in;
 	Sphere sph_cpy;
-	Elem* pOldElems[MAX_SPHERE_SIZE], * pElem, * pElemIn;
+	oldElem* pOldElems[MAX_SPHERE_SIZE], * pElem, * pElemIn;
 
 	nSph_Cpy = nSph;
 	memcpy(sph_cpy, sph, sizeof(Sphere));
@@ -34424,7 +34424,7 @@ int DTIso3D::flatSphereByFaceNeig_SubTetOnly(Sphere sph, int& nSph)
 	int i, k, nSph_Cpy;
 	INTEGER ie, in;
 	Sphere sph_cpy;
-	Elem* pOldElems[MAX_SPHERE_SIZE], * pElem, * pElemIn;
+	oldElem* pOldElems[MAX_SPHERE_SIZE], * pElem, * pElemIn;
 
 	nSph_Cpy = nSph;
 	memcpy(sph_cpy, sph, sizeof(Sphere));
@@ -34469,7 +34469,7 @@ int DTIso3D::flatSphereByFaceNeig_NoIsolatedPnt(Sphere sph, int& nSph, bool noSu
 	Sphere sph_cpy;
 	INTEGER iCaviE;
 	std::vector<INTEGER>::iterator caviEV_it;
-	Elem* pOldElems[MAX_SPHERE_SIZE], * pElem, * pElemIn;
+	oldElem* pOldElems[MAX_SPHERE_SIZE], * pElem, * pElemIn;
 
 	nSph_Cpy = nSph;
 	memcpy(sph_cpy, sph, sizeof(Sphere));
@@ -34623,7 +34623,7 @@ int DTIso3D::flatSphereByCandidateFaceList_NoIsolatedPnt(Sphere sph, int& nSph, 
 	int nShe;
 	INTEGER flatEdges[128];
 	int flatEdgeSize = 0;
-	Elem* pElem = nullptr;
+	oldElem* pElem = nullptr;
 
 	nSph_Cpy = nSph;
 	memcpy(sph_cpy, sph, sizeof(Sphere));
@@ -34816,7 +34816,7 @@ bool DTIso3D::isFaceNeedInflated(INTEGER indices[], INTEGER facePrt1, INTEGER fa
 	INTEGER flatEdges[], int* flatEdgeSize, INTEGER consEdges[][2], int consEdgeSize)
 {
 	INTEGER iACDE, iBDCE;
-	Elem* pACDE = nullptr, * pBDCE = nullptr;
+	oldElem* pACDE = nullptr, * pBDCE = nullptr;
 	int nc1, nc2, ia, ib, ic1, id1, ie1;
 	INTEGER a, b, c, d, e;
 	int i, m, k;
@@ -35964,7 +35964,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		bool bHintValid, bDetectFourEdgeCase;
 		INTEGER iNewEle, iNewEleNodes[DIM + 1], iOldEles[DIM + 1], iElem, iNeig;
 		int ia, ib, ic, id;
-		Elem* pNewEle = nullptr, * pElem;
+		oldElem* pNewEle = nullptr, * pElem;
 		APOINT pnts[DIM + 1];
 		REAL tv = 0.0;
 		std::map<INTEGER, int> mapG2L;
@@ -36459,7 +36459,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 	int DTIso3D::prepareRmvSteinerPntAftInstInnNode()
 	{
 		INTEGER i;
-		Elem* pE;
+		oldElem* pE;
 		INTEGER iNod, cnt = 0;
 		int m;
 #ifdef _ONE_LONG_ARRAY
@@ -36652,10 +36652,10 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		m_BGMesh.pElems = nullptr;
 
 		if (m_BGMesh.nNodes > 0)
-			m_BGMesh.pNodes = (MBLNode*)malloc(sizeof(MBLNode) * nBMN);
+			m_BGMesh.pNodes = (oldMBLNode*)malloc(sizeof(oldMBLNode) * nBMN);
 
 		if (m_BGMesh.nElems > 0)
-			m_BGMesh.pElems = (Elem*)malloc(sizeof(Elem) * nBME);
+			m_BGMesh.pElems = (oldElem*)malloc(sizeof(oldElem) * nBME);
 
 		if ((nBMN > 0 && !m_BGMesh.pElems) ||
 			(nBME > 0 && !m_BGMesh.nElems))
@@ -36731,9 +36731,9 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 			memset(m_pNodes, 0, m_nAllocNodes * sizeof(Node));
 
 		m_nAllocElems = INIT_ALLOC_ELE_NUM(m_nSurTris);
-		m_pElems = (Elem*)malloc(m_nAllocElems * sizeof(Elem));
+		m_pElems = (oldElem*)malloc(m_nAllocElems * sizeof(oldElem));
 		if (m_pElems)
-			memset(m_pElems, 0, m_nAllocElems * sizeof(Elem));
+			memset(m_pElems, 0, m_nAllocElems * sizeof(oldElem));
 #else
 		nAllocNodes = INIT_ALLOC_NOD_NUM(m_nSurTris);
 		if (nAllocNodes < INIT_NOD_NUM + m_nSurNodes)
@@ -36783,7 +36783,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 #ifdef _VERBOSE
 		printf("*********Successfully allocate memory, here is the list************:\n");
 		spdlog::info("NODE: NUMBER: {}; BITS: {}\n", m_nAllocNodes, m_nAllocNodes * sizeof(Node));
-		spdlog::info("ELEMENT: NUMBER: {}; BITS: {}\n", m_nAllocElems, m_nAllocElems * sizeof(Elem));
+		spdlog::info("ELEMENT: NUMBER: {}; BITS: {}\n", m_nAllocElems, m_nAllocElems * sizeof(oldElem));
 		spdlog::info("FACET: NUMBER: {}; BITS: {}\n", m_nAllocSurTris, m_nAllocSurTris * sizeof(SurTri));
 		spdlog::info("EDGE: NUMBER: {}; BITS: {}\n", m_nAllocSurEdgs, m_nAllocSurEdgs * sizeof(SurEdg));
 		spdlog::info("DESTROYED FACET: NUMBER: {}; BITS: {}\n", m_nAllocDesFacets, m_nAllocDesFacets * sizeof(DesFacet));
@@ -36793,10 +36793,10 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		iMemory =
 #ifdef _ONE_LONG_ARRAY
 			m_nAllocNodes * sizeof(Node) +
-			m_nAllocElems * sizeof(Elem) +
+			m_nAllocElems * sizeof(oldElem) +
 #else
-			m_pNodes.getArrayCapacity() * sizeof(MBLNode) +
-			m_pElems.getArrayCapacity() * sizeof(Elem) +
+			m_pNodes.getArrayCapacity() * sizeof(oldMBLNode) +
+			m_pElems.getArrayCapacity() * sizeof(oldElem) +
 #endif
 			m_nAllocSurTris * sizeof(SurTri) +
 			m_nAllocSurEdgs * sizeof(SurEdg) +
@@ -36923,7 +36923,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		m_pNodes = (Node*)malloc(m_nAllocNodes * sizeof(Node));
 
 		m_nAllocElems = INIT_ALLOC_ELE_NUM(m_nSurTris);
-		m_pElems = (Elem*)malloc(m_nAllocElems * sizeof(Elem));
+		m_pElems = (oldElem*)malloc(m_nAllocElems * sizeof(oldElem));
 #else
 		nAllocNodes = INIT_ALLOC_NOD_NUM(m_nSurTris);
 		if (nAllocNodes < INIT_NOD_NUM + m_nSurNodes)
@@ -36965,7 +36965,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 #ifdef _VERBOSE
 		printf("*********Successfully allocate memory, here is the list************:\n");
 		spdlog::info("NODE: NUMBER: {}; BITS: {}\n", m_nAllocNodes, m_nAllocNodes * sizeof(Node));
-		spdlog::info("ELEMENT: NUMBER: {}; BITS: {}\n", m_nAllocElems, m_nAllocElems * sizeof(Elem));
+		spdlog::info("ELEMENT: NUMBER: {}; BITS: {}\n", m_nAllocElems, m_nAllocElems * sizeof(oldElem));
 		spdlog::info("FACET: NUMBER: {}; BITS: {}\n", m_nAllocSurTris, m_nAllocSurTris * sizeof(SurTri));
 		spdlog::info("EDGE: NUMBER: {}; BITS: {}\n", m_nAllocSurEdgs, m_nAllocSurEdgs * sizeof(SurEdg));
 		spdlog::info("DESTROYED FACET: NUMBER: {}; BITS: {}\n", m_nAllocDesFacets, m_nAllocDesFacets * sizeof(DesFacet));
@@ -36975,10 +36975,10 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		iMemory =
 #ifdef _ONE_LONG_ARRAY
 			m_nAllocNodes * sizeof(Node) +
-			m_nAllocElems * sizeof(Elem) +
+			m_nAllocElems * sizeof(oldElem) +
 #else
-			m_pNodes.getArrayCapacity() * sizeof(MBLNode) +
-			m_pElems.getArrayCapacity() * sizeof(Elem) +
+			m_pNodes.getArrayCapacity() * sizeof(oldMBLNode) +
+			m_pElems.getArrayCapacity() * sizeof(oldElem) +
 #endif
 			m_nAllocSurTris * sizeof(SurTri) +
 			m_nAllocSurEdgs * sizeof(SurEdg) +
@@ -38502,7 +38502,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 			(*vtx_connectivity)[i] = new int[3];
 			(*cell_vtx)[i] = new int[3];
 			eidx = sph[i];
-			Elem temp = m_pElems[eidx];
+			oldElem temp = m_pElems[eidx];
 
 			(*cells)[i] = eidx;
 			switch (pIdxs[i])
@@ -38587,7 +38587,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		float quals[6], minvalue, q;
 		bool bAcute;
 		TetraElemQual tetEleQual;
-		Elem* pElem;
+		oldElem* pElem;
 		int a, b, c, d;
 
 		for (ia = 0; ia < ncell; ia++)
@@ -38983,7 +38983,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		float q;
 		int icnt, icnt_old;
 		REAL fmin, faver, fmin_old, faver_old;
-		Elem* pElem;
+		oldElem* pElem;
 
 #ifdef _TIMING_PERFORMANCE
 		time_start[MESH_SMOOTHING_TIME] = SPRlogTime();
@@ -39151,7 +39151,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		float q;
 		int icnt, icnt_old;
 		REAL fmin, faver, fmin_old, faver_old;
-		Elem* pElem, * pElemIt;
+		oldElem* pElem, * pElemIt;
 		MeshElment mshElm;
 
 #ifdef _TIMING_PERFORMANCE
@@ -39395,7 +39395,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		int faceNum, facePrts[2 * MAX_SKIRT_POLY_SIZE];
 		float tetsqual[MAX_SKIRT_POLY_SIZE], onetetqual[6], qvalue;
 
-		Elem ele = m_pElems[she[0]];
+		oldElem ele = m_pElems[she[0]];
 
 		for (i = 0; i <= DIM; i++)
 		{
@@ -40199,7 +40199,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		INTEGER a, b, c, d;
 		int iEdge, ia;
 		ElemQual tetEleQual;
-		Elem* pElem = nullptr;
+		oldElem* pElem = nullptr;
 		float qual, quals[6], minvalue;
 		bool bAcute;
 
@@ -40256,7 +40256,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 #endif
 	{
 		ElemQual tetEleQual;
-		Elem* pElem = nullptr;
+		oldElem* pElem = nullptr;
 
 #ifdef _DEBUG
 #ifdef _ONE_LONG_ARRAY
@@ -40794,7 +40794,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		INTEGER iElemNd;
 		int ia, ib, ic, id;
 		REAL* erray[][2] = { {nullptr, nullptr}, {u, v}, {t, u}, {v, t} };
-		Elem* pElem = &m_pElems[iElem];
+		oldElem* pElem = &m_pElems[iElem];
 		INTEGER* pElemForm = pElem->form;
 		//const REAL ONE_SIXTH = 0.16666666666666666666666666666666666666667;//1.0/6.0;
 
@@ -41770,7 +41770,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		float q, quals[6], minvalue;
 		TetraElemQual tetEleQual;
 		int a, b, c, d;
-		Elem* pElem;
+		oldElem* pElem;
 		const int MAX_TOPO_TRANS_TIMES = 5;
 
 		clock_t t1 = clock();
@@ -41857,7 +41857,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		float q, quals[6], minvalue;
 		TetraElemQual tetEleQual;
 		int a, b, c, d;
-		Elem* pElem;
+		oldElem* pElem;
 
 		clock_t t1 = clock();
 		//1. 遍历所有网格单元，建立shell哈希表及差质量单元堆
@@ -41989,7 +41989,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		float divide_limits[128], qValue, qValues[6], qWorstValue;
 		int divideSize = 0, divideCounter[128], divideCounter_noBnd[128], valuePerElem = 0;
 		INTEGER iElem, iNode, iAngle;
-		Elem* pElem = nullptr;
+		oldElem* pElem = nullptr;
 		INTEGER iDivide, i1, i2, i3, i4;
 		bool bBndElem, bBadElem;
 		FILE* fout = nullptr;
@@ -42223,7 +42223,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		float sminB = 180.0, sminNB = 180.0, smaxB = 0.0, smaxNB = 0.0;
 		int* iAngCntS, * iAngEleS, * iAngIdx, * iAngCntNbdryS;
 		bool* bBdryAngleS = nullptr;
-		Elem* pElem;
+		oldElem* pElem;
 
 #ifdef _ONE_LONG_ARRAY
 		nele = m_nElems;
@@ -42519,7 +42519,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 	bool DTIso3D::checkElemQuality(int qualmeasure)
 	{
 		INTEGER iElem, elemSize, i1, i2, i3, i4;
-		Elem* pElem = nullptr;
+		oldElem* pElem = nullptr;
 		float qStored, qComputed;
 
 #ifdef _ONE_LONG_ARRAY
@@ -42601,7 +42601,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		float fSmallSolid = 0.0, fLargeSolid = 360, fSmallDihed = 0, fLargeDihed = 180;
 		float fSmallSolidMargin = 3, fLargeSolidMargin = 60, fSmallDihedMargin = 10, fLargeDihedMargin = 20;
 		BADCELLTYPE iType;
-		Elem* pElem;
+		oldElem* pElem;
 
 		m_brepair = true;
 		maxpass = 3;
@@ -42881,7 +42881,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		std::set<int>::iterator setIt;
 		TetraElemQual* tetEleQual = nullptr;
 		int iSucc = 0;
-		Elem* pElem;
+		oldElem* pElem;
 		int total = 0;
 
 #ifdef _TIMING_PERFORMANCE
@@ -42992,7 +42992,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		MeshElment mshElm;
 		float q;
 		int rtn;
-		Elem* pElem;
+		oldElem* pElem;
 
 		assert(m_elmHeap->isEmpty());
 
@@ -43104,7 +43104,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 			{
 				int s, e;
 				MeshElment mshElm = m_elmHeap->getMinElem();
-				iElm = mshElm.Elem;
+				iElm = mshElm.oldElem;
 
 				if(isDelEle(iElm))
 				{
@@ -43303,7 +43303,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 					continue;
 
 				MeshElment mshElm;
-				mshElm.Elem = i;
+				mshElm.oldElem = i;
 				mshElm.elmQual = &m_tetraElmQuals[i];
 
 				m_elmHeap->insertElem(mshElm);
@@ -43327,7 +43327,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		REAL edgeLengths[NUM_EDGE_PER_ELE], maxEdgeLen;
 		int s, e, edgeCodes[NUM_EDGE_PER_ELE];
 		MeshElment mshElm;
-		Elem* pElem = nullptr;
+		oldElem* pElem = nullptr;
 
 #ifdef _TIMING_PERFORMANCE
 		time_start[EDGE_SPLITTING_TIME] = SPRlogTime();
@@ -43622,7 +43622,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		Shell she;
 		TetraElemQual tetEleQual;
 		MeshElment mshElm;
-		Elem* pElem, * pNeig;
+		oldElem* pElem, * pNeig;
 		int retValue, nErrCd;
 		int triedTimes = 0, succTimes = 0;
 
@@ -43783,7 +43783,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		int candFaceSize = 0, coreFaces[MAX_SANDWICHED_FACES], coreFaceSize = 0, coloredFaceSize = 0, colorUpdate = 0, skirtEdgeSize, skirtSize;
 		int iTemp, jTemp, iBest, iOrt, jOrt;
 		int removableFaces[MAX_SANDWICHED_FACES], removFaceSize = 0, faceIntrNodeSize[MAX_SANDWICHED_FACES];
-		Elem* pElemIt, * pNeigIt;
+		oldElem* pElemIt, * pNeigIt;
 		REAL ort1, ort2, ort3, qold, qTemp;
 		REAL faceOrt[MAX_SANDWICHED_FACES][3];
 		MYPOINT pnta, pntb;
@@ -44220,7 +44220,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		//static int Clock[4] = {3, 1, 2, 3, 0, 1};
 		int i, ep[2], iE;
 		int iNeig = -1;
-		Elem* pElem;
+		oldElem* pElem;
 		//前两个点表示一条边，前三个点的右手规则指向第四个点
 		//const int tetra_edge[6][3] =
 		//{ {0, 1, 2}, {0, 2, 3}, {0, 3, 1}, {1, 2, 0}, {1, 3, 2}, {2, 3, 0} };
@@ -44293,7 +44293,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 	int DTIso3D::findSphereElem(INTEGER iElem, Sphere sph, int* nSph)
 	{
 		int i, j, k;
-		Elem* pElem;
+		oldElem* pElem;
 		Sphere tmpSph[4];
 		INTEGER ntmpSph[4];
 
@@ -44324,12 +44324,12 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		return 0;
 	}
 
-	int DTIso3D::findShellBadEdges(INTEGER iElem/*Elem *pElem*/, Shell she, int* nShe)
+	int DTIso3D::findShellBadEdges(INTEGER iElem/*oldElem *pElem*/, Shell she, int* nShe)
 	{
 		int i, j, k, ii[2], m, n, iE;
 		//REAL dCoords[4][3];
-		MBLNode* pNode;
-		Elem* pElem;
+		oldMBLNode* pNode;
+		oldElem* pElem;
 		//FORM_ARR p;
 		INTEGER p[4];
 		float qual, adDihe[6];
@@ -44366,7 +44366,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 			ep[1] = pElem->form[tetra_edge[ii[i]][1]];
 
 #if _DEBUG //debug
-			MBLNode* pNode1 = nullptr, * pNode2 = nullptr;
+			oldMBLNode* pNode1 = nullptr, * pNode2 = nullptr;
 			pNode1 = &m_pNodes[ep[0]];
 			pNode2 = &m_pNodes[ep[1]];
 #endif //_DEBUG
@@ -44414,7 +44414,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		TetraElemQual tetEleQual;
 		MeshElment mshElm;
 
-		Elem* pElem;
+		oldElem* pElem;
 		INTEGER l2g[3 * MAX_SHELL_SIZE], num_cavNodes = 0;
 		//#ifdef _USING_STD_LIB
 #if 1
@@ -44638,7 +44638,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 					{
 						pElem = &m_pElems[l2gElems[i]];
 #ifdef _DEBUG
-						MBLNode pNode[4];
+						oldMBLNode pNode[4];
 						for (j = 0; j < 4; j++)
 						{
 							pNode[j] = m_pNodes[pElem->form[j]];
@@ -44718,10 +44718,10 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		TetraElemQual tetEleQual;
 		MeshElment mshElm;
 		InstEntList listDependentEnts;
-		Elem* pElem;
+		oldElem* pElem;
 		int facep[3], iNeig;
 		int ia, ib, ic, id;
-		Elem* pNeig;
+		oldElem* pNeig;
 		int a, b;
 		int retValue, triedTimes = 0, succTimes = 0;
 
@@ -44943,7 +44943,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		TetraElemQual tetEleQual;
 		std::multimap<int, int> medge;
 		std::multimap<int, int>::iterator uper, lower, iter;
-		Elem* pElem;
+		oldElem* pElem;
 		InstEntList listDependentEnts;
 
 		iloop = 0;
@@ -46945,8 +46945,8 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		int faceNumCpy, faceNum_SQ, faceNum_CB, * pShift = nullptr;
 		bool bOptimalSolution = false;
 		float eps = 1.0e-2;
-		Elem* pElem = nullptr;
-		MBLNode* pNodeA = nullptr, * pNodeB = nullptr, * pNode0 = nullptr, * pNode1 = nullptr, * pNode2 = nullptr,
+		oldElem* pElem = nullptr;
+		oldMBLNode* pNodeA = nullptr, * pNodeB = nullptr, * pNode0 = nullptr, * pNode1 = nullptr, * pNode2 = nullptr,
 			* pNodeI = nullptr, * pNodeK = nullptr, * pNodeJ = nullptr, * pNodeII = nullptr, * pNodeJJ = nullptr;
 
 		nShe = *pnShe;
@@ -47819,8 +47819,8 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		int skirtSizeCpy, skirtSize_SQ, skirtSize_CB, * pShift = nullptr;
 		bool bOptimalSolution = false;
 		float eps = 1.0e-2;
-		Elem* pElem = nullptr;
-		MBLNode* pNodeA = nullptr, * pNodeB = nullptr, * pNode0 = nullptr, * pNode1 = nullptr, * pNode2 = nullptr,
+		oldElem* pElem = nullptr;
+		oldMBLNode* pNodeA = nullptr, * pNodeB = nullptr, * pNode0 = nullptr, * pNode1 = nullptr, * pNode2 = nullptr,
 			* pNodeI = nullptr, * pNodeK = nullptr, * pNodeJ = nullptr, * pNodeII = nullptr, * pNodeJJ = nullptr;
 		int nRet = 0;
 
@@ -48342,7 +48342,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		INTEGER iLoc;
 		INTEGER eGlob1, eGlob2;
 		INTEGER nAlloc;
-		Elem* pNewElems[MAX_LOCAL_MESH_SIZE], * pOldElems[MAX_LOCAL_MESH_SIZE], * pElem = nullptr, * pElem1, * pElem2;
+		oldElem* pNewElems[MAX_LOCAL_MESH_SIZE], * pOldElems[MAX_LOCAL_MESH_SIZE], * pElem = nullptr, * pElem1, * pElem2;
 		INTEGER iIdx;
 		MYPOINT pnew[DIM + 1];
 		REAL tv;
@@ -48364,12 +48364,12 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		/* 将新网格加入到单元数组中  */
 		for (i = 0; i < newElemSize; i++)
 		{
-			//		spdlog::info("Add Elem {} (Total: {}); ({};{};{};{})\n", i, divi->num, divi->te[i][0], divi->te[i][1], divi->te[i][2], divi->te[i][3]);
+			//		spdlog::info("Add oldElem {} (Total: {}); ({};{};{};{})\n", i, divi->num, divi->te[i][0], divi->te[i][1], divi->te[i][2], divi->te[i][3]);
 					/* 不能利用中间空位  */
 			iLoc = getNewEleLoc();;//m_nElems++;
 			newElemsArray[i] = iLoc;
 			pElem = pNewElems[i] = &m_pElems[iLoc];
-			memset(pElem, 0, sizeof(Elem));
+			memset(pElem, 0, sizeof(oldElem));
 			for (j = 0; j <= 3; j++)
 			{
 				iIdx = newElemsConns[4 * i + j];
@@ -48525,7 +48525,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		INTEGER faceNodes[MAX_SHELL_SIZE], faceParents[2 * MAX_SHELL_SIZE], sortedNodes[MAX_SHELL_SIZE];
 		int i, j, k, extendEdgCnt, faceNum = 0, numFacePrts = 0;
 		Sphere facePrts;
-		Elem* pElem = nullptr;
+		oldElem* pElem = nullptr;
 		float qual = 0.0;
 
 		nShe = *pnShe;
@@ -48753,7 +48753,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		bool bHintValid, bDetectFourEdgeCase;
 		INTEGER iNewEle, iNewEleNodes[DIM + 1], iOldEles[DIM + 1], iElem, iNeig;
 		int ia, ib, ic, id;
-		Elem* pNewEle = nullptr, * pElem;
+		oldElem* pNewEle = nullptr, * pElem;
 		APOINT pnts[DIM + 1];
 		REAL tv = 0.0;
 		std::map<INTEGER, int> mapG2L;
@@ -49048,7 +49048,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		bool bRetSmoothing = false;
 		int a, b, c, d;
 		bool bAcute;
-		Elem* pCentNodeElem;
+		oldElem* pCentNodeElem;
 		const REAL INIT_Q_FACTOR = 0.85;
 
 #ifdef _ONE_LONG_ARRAY
@@ -49848,7 +49848,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		REAL edgeLengths[NUM_EDGE_PER_ELE], maxEdgeLen;
 		int s, e, edgeCodes[NUM_EDGE_PER_ELE];
 		MeshElment mshElm;
-		Elem* pElem = nullptr;
+		oldElem* pElem = nullptr;
 
 #ifdef _TIMING_PERFORMANCE
 		time_start[EDGE_SPLITTING_TIME] = SPRlogTime();
@@ -50025,7 +50025,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		int locNodeSmoothFlag[MAX_SPR_POLY_SIZE];
 		const REAL HUGEFLOAT = 1.0e100;
 		INTEGER iABCP, iAPCD;
-		Elem* pABCD = nullptr;
+		oldElem* pABCD = nullptr;
 		float quals[6];
 		APOINT posP;
 		const REAL MIN_QUAL_IMPRV = 0.0;//1.0e-3;
@@ -50483,7 +50483,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 	void DTIso3D::setShellPipe(int s, int e, Shell she, int nshe, int p, Pipe pip, int& nPip)
 	{
 		int i, j, iNode1, cod1, iEle;
-		Elem elm;
+		oldElem elm;
 
 		for (i = 0; i < nshe; i++)
 		{
@@ -50595,7 +50595,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		MYPOINT pnt, pnts[DIM + 1];
 		double dp, tv;
 		Shell she;
-		Elem elm, * pABCD, * pABCP, * pAPCD;
+		oldElem elm, * pABCD, * pABCP, * pAPCD;
 		Pipe pip;
 		Pipel* pPipel;
 		int nPip = 0, iPipNeig, iABCD, iABCP, iAPCD, iInitNode;
@@ -50856,7 +50856,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		FILE* fout = nullptr;
 		fout = fopen("tet.pl3", "w");
 		int npt, nele, ntri, i, a;
-		Elem* pElem = &m_pElems[ielm];
+		oldElem* pElem = &m_pElems[ielm];
 
 		npt = 4;
 		nele = 1;
@@ -50886,7 +50886,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		TetraElemQual tetEleQual;
 		float q;
 		FILE* fout = nullptr;
-		Elem* pElem = nullptr;
+		oldElem* pElem = nullptr;
 		APOINT pnt;
 
 #ifdef _ONE_LONG_ARRAY
@@ -51022,7 +51022,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		float qold, q1, q2, q3, qnew;
 		int indices[3], eles[3];
 		bool bAcute;
-		Elem* pElem, * pNeig;
+		oldElem* pElem, * pNeig;
 
 #ifdef _ONE_LONG_ARRAY
 		nEle = m_nElems;
@@ -51116,7 +51116,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 		int cnt_t, i, nel;
 		float fmin_t, faver_t, q, minq;
 		TetraElemQual tetEleQual;
-		Elem* pElem = nullptr;
+		oldElem* pElem = nullptr;
 		bool bRet = false;
 
 #ifdef _TIMING_PERFORMANCE
@@ -51171,7 +51171,7 @@ int DTIso3D::removeInnnerNode_SPR_QualImprv(INTEGER iNod, bool bSmooth, INTEGER 
 	void DTIso3D::evalMesh(int* numOfBadElems, REAL * minQual, REAL * aveQualOfBadElems, int qualmeasure, REAL qualLimit)
 	{
 		INTEGER iElem, elemSize, validElemSize = 0, nBadE = 0;
-		Elem* pElem = nullptr;
+		oldElem* pElem = nullptr;
 		TetraElemQual tetEleQual;
 		REAL q, minQ = 1.0e20, aveQ = 0.0;
 

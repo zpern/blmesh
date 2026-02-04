@@ -23,7 +23,7 @@ void MNormalMesh::SetBehavior(ChamferBehavior& behavior)
 {
 	behavior_ = behavior;
 }
-#pragma optimize("",off);
+
 void MNormalMesh::ReadPlsBuf(std::string f,
                              std::vector<std::array<double, 3>>& points) {
         std::istringstream fin(f);
@@ -126,7 +126,7 @@ void MNormalMesh::ReadPlsBuf(std::string f,
         CalculateNodeNormal();
 
 }
-#pragma optimize("",on);
+
 void MNormalMesh::ReadPls(std::string filename)
 {
 

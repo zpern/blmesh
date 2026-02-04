@@ -64,8 +64,8 @@ typedef struct Source
 /* 背景网格 */
 typedef struct BGMesh
 {
-	Elem *pElems;	 /* 背景网格单元数组 background element array*/
-	MBLNode *pNodes;	 /* 背景网格节点数组 backgound nodes array */
+	oldElem *pElems;	 /* 背景网格单元数组 background element array*/
+	oldMBLNode *pNodes;	 /* 背景网格节点数组 backgound nodes array */
 	INTEGER nElems;	 /* 背景网格单元数目 number of background elements */
 	INTEGER nNodes;  /* 背景网格节点数目 number of background nodes */
 } BGMesh;
