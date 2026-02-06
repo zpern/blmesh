@@ -497,6 +497,7 @@ namespace TiGER {
 		std::vector<double>		max_skewness,  /* 等面积偏斜度**/
 		std::vector<double>      max_orth, /* 最大非正交值**/
 		double		bisostop,       /* 各向同性停止**/
+		double     clearance,                                               /* 附面层留空是否留固定距离 **/
 		/* ------------------------- 输出参数 -------------------------**/
 		double** ppdMNC,		/* 体网格节点坐标 **/
 		int* pnMN,			/* 体网格节点数目 **/
@@ -613,6 +614,7 @@ namespace TiGER {
 		blconfig.max_skewness = max_skewness;
 		blconfig.max_orth = max_orth;
 		blconfig.max_layer_diff = max_layer_diff;
+        blconfig.clearance = clearance;
 		ControlVolume cv1;
 		ControlVolume cv2;
 		auto bdyfile = PRE::blpre(input, blconfig, points,cv1,cv2);

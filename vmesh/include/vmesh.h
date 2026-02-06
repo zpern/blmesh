@@ -123,6 +123,7 @@ int API_Gen_Boundary_ALM_Mesh(
 	std::vector<double>		max_skewness,  /* 等面积偏斜度**/
 	std::vector<double>      max_orth, /* 最大非正交值**/
     double bisostop,                /* 各向同性停止**/
+    double clearance,                                               /* 附面层留空是否留固定距离 **/
     /* ------------------------- 输出参数 -------------------------**/
     double **ppdMNC, /* 体网格节点坐标 **/
     int *pnMN,       /* 体网格节点数目 **/

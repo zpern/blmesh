@@ -205,6 +205,7 @@ struct ConfigArgc {
     std::vector<double> max_orth;
     int max_layer_diff;
     bool iscompresslen;
+    double clearance;
     /*do not generate bdylayermesh */
     std::vector<int> matchfc;
 

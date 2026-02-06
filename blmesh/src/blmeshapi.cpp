@@ -68,7 +68,7 @@ void main(int argc, char* argv[]) {
     cf.max_orth = blconfig.max_orth;
     cf.max_layer_diff = blconfig.max_layer_diff;
     cf.iscompresslen = false;
-
+    cf.clearance = blconfig.clearance;
 #ifdef _DEBUG
     cf.smooth_attempt = 0;
 #endif

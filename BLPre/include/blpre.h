@@ -28,6 +28,7 @@ struct blpreConfig {
     int max_layer_diff;
     bool fast_intersection = true;
     bool preMultiple = false;
+    double clearance;
 };
 struct ControlVolume {
     std::vector<std::array<double, 3>> v;
