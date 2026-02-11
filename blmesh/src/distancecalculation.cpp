@@ -13,14 +13,18 @@ DistanceCalculator::~DistanceCalculator()
 struct PoolGuard {
     bool prevFront, prevNode;
     PoolGuard(bool enable_pool) {
+#ifdef USE_MEMORY_POOL
         prevFront = BLFront::PoolEnabled();
         prevNode  = BLNode::PoolEnabled();
         BLFront::SetPoolEnabled(enable_pool);
         BLNode::SetPoolEnabled(enable_pool);
+#endif
     }
     ~PoolGuard() {
+#ifdef USE_MEMORY_POOL
         BLFront::SetPoolEnabled(prevFront);
         BLNode::SetPoolEnabled(prevNode);
+#endif
     }
 };
 

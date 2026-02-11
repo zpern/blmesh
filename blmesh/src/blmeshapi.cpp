@@ -34,7 +34,7 @@ VM blmesh(std::tuple<std::string, double*, int*, int*, std::vector<double>> sfil
     double expan_beta,
     int number_opt,
     std::array<double, 12> per_matrix) {
-
+    std::cout<<"begin blmesh function"<<std::endl;
     VM ret;
     double start_time = clock();
     int argc = 1;
@@ -153,6 +153,7 @@ void main(int argc, char* argv[]) {
 #ifdef _2D_BLMESH
     blmesh->InitBLMesh(BLMType::blm2d);
 #else
+    std::cout<<"initializa mesh"<<std::endl;
     blmesh->InitBLMesh();
 #endif
 
@@ -164,8 +165,9 @@ void main(int argc, char* argv[]) {
 
     blmesh->CalZeroNorm();
     blmesh->generate_pyramid = havepyramid;
+    std::cout<<"generate mesh"<<std::endl;
     blmesh->GenerateBLMesh();
-
+    std::cout<<"generate mesh done"<<std::endl;
     if (checkterminate()) {
         blmesh->FreeMemoryInFrontAndNode();
         return ret;
