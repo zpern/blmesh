@@ -4893,25 +4893,53 @@ void BLMesh::PreCheckPrismValid(BLFront *blFront)
 
 	//前沿探测留空
 	if (cf.clearance > 0) {
-		up_front_normal = up_front_normal * cf.clearance;
+		up_front_normal = up_front_normal.normalized() * cf.clearance + up_front_normal ;
 	}
 	else{
-        up_front_normal = up_front_normal * (blFront->m_pBLNods[0]->GetHeightLength()) * 0.3;
+        up_front_normal = up_front_normal * (blFront->m_pBLNods[0]->GetHeightLength());
 	}
 
-	BLVector startpos(0,0,0);
-	for (int i = 0; i < 3; i++)
-		for (int j = 0; j < 3; j++)
-			startpos[j] += m_pNodes[conn[i + 3]].coord[j];
-	startpos = startpos / 3;
-    
-	if (m_ocTree->chckIntersectWithLine(startpos+ up_front_normal * 0.05, startpos + up_front_normal) < 1) {
-		blFront->is_prism_valid = 0;
+	// 取三角形三个点（这里仍按你原来的 conn[i+3] 作为三点）
+    BLVector triPos[3];
+    BLVector startpos(0, 0, 0);
+
+    for (int i = 0; i < 3; ++i) {
+        triPos[i] = BLVector(m_pNodes[conn[i + 3]].coord[0],
+                             m_pNodes[conn[i + 3]].coord[1],
+                             m_pNodes[conn[i + 3]].coord[2]);
+        startpos += triPos[i];
+    }
+    startpos = startpos / 3.0;
+
+    // 封装一次探测：从 p + n*a 到 p + n*b
+    auto probeBlocked = [&](const BLVector &p, double a, double b) -> bool {
+        return m_ocTree->chckIntersectWithLine(p + up_front_normal * a, p + up_front_normal * b) < 1;
+    };
+
+    bool blocked = false;
+
+    // 1) 先做你原来的“中点”探测（保持到 1.0）
+    blocked = probeBlocked(startpos, 0.05, 1.3);
+
+    // 2) 再对三角形三个顶点分别做 0.6 的探测
+    if (!blocked) {
+        for (int i = 0; i < 3; ++i) {
+            if (probeBlocked(triPos[i], 0.05, 0.7)) {
+                blocked = true;
 #ifdef _DEBUG
-		cout << "stop by edge_check " << endl;
-		cout << " id= " << blNod->GetDecentID() << endl;
+                cout << "stop by edge_check (vertex " << i << ")" << endl;
 #endif
-	}
+                break;
+            }
+        }
+    }
+
+    if (blocked) {
+        blFront->is_prism_valid = 0;
+#ifdef _DEBUG
+        cout << " id= " << blNod->GetDecentID() << endl;
+#endif
+    }
 
 	return;
 }
