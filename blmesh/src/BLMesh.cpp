@@ -4937,7 +4937,7 @@ void BLMesh::PreCheckPrismValid(BLFront *blFront)
     if (blocked) {
         blFront->is_prism_valid = 0;
 #ifdef _DEBUG
-        cout << " id= " << blNod->GetDecentID() << endl;
+        cout << "stop by edge_check (vertex " << i << ")" << endl;
 #endif
     }
 
