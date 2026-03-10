@@ -82,7 +82,7 @@ public:
         std::lock_guard<std::mutex> lock(pool_mutex_);
         
         // 先释放已有内存
-        freeMemoryInPool();
+        freeMemoryInPoolUnlocked();
         
         // 分配连续内存块，使用operator new保证内存对齐
         buffer_ptr_ = static_cast<T*>(::operator new(sizeof(T) * size));
@@ -102,23 +102,7 @@ public:
 
         std::lock_guard<std::mutex> lock(pool_mutex_);
 
-        // 释放预分配的连续内存块
-        if (buffer_ptr_) {
-            ::operator delete(buffer_ptr_);
-            buffer_ptr_ = nullptr;
-        }
-        pool_size_ = 0;
-
-        // 释放额外申请的内存
-        for (auto p : extra_buffer_) {
-            ::operator delete(p);
-        }
-        extra_buffer_.clear();
-        extra_set_.clear();
-
-        // 清空内存池
-        memory_pools_.clear();
-        memory_pools_.shrink_to_fit();
+        freeMemoryInPoolUnlocked();
     }
 
     // 静态成员变量声明
@@ -142,6 +126,28 @@ private:
         }
         // 2) 检查是否是额外申请的内存
         return extra_set_.find(static_cast<T*>(p)) != extra_set_.end();
+    }
+
+    // 不加锁的释放内存池
+    static void freeMemoryInPoolUnlocked()
+    {
+        // 释放预分配的连续内存块（与 ::operator new 配对）
+        if (buffer_ptr_) {
+            ::operator delete(buffer_ptr_);
+            buffer_ptr_ = nullptr;
+        }
+        pool_size_ = 0;
+
+        // 释放额外申请的内存
+        for (auto p : extra_buffer_) {
+            ::operator delete(p);
+        }
+        extra_buffer_.clear();
+        extra_set_.clear();
+
+        // 清空内存池
+        memory_pools_.clear();
+        memory_pools_.shrink_to_fit(); // 可选：频繁调用可考虑去掉以提升性能
     }
 };
 

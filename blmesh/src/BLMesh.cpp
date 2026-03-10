@@ -3220,7 +3220,7 @@ void BLMesh::GenerateBLMesh()
 
 			blNod->SetHightRatio(0);
 
-			//normn = blNod->GetNormal();
+			normn = blNod->GetNormal();
 #endif
 			normal = blNod->GetHeight();
 			/*if( blNod->GetBSys() )
@@ -4443,12 +4443,19 @@ void BLMesh::CheckInsertSideSuface(BLFront *blFront)
 	//bool flag[DIM3];
 	bool is_inserect = false;
 	bool used_by_neigh_front[3] = {false};
+    int* conn;
 	BLNode *blNods[DIM3];
 
 	blFront->GetNodes(&nNods, blNods);
 
 	blFront->GetNeigbourFronts(&neigs, neigFrts);
-
+	for (i = 0; i < 3; i++) {
+        if (blNods[i]->GetDecentID() == 71) {
+            std::cout << "xyhs" << std::endl;
+			 conn = blFront->conn.data();
+		}
+	}
+	
 	/*获取底层front周围的三个front的多出来的侧面的三角形ID，存在ithird中*/
 	for (i = 0; i < neigs; i++)
 	{
@@ -4499,8 +4506,7 @@ void BLMesh::CheckInsertSideSuface(BLFront *blFront)
 	if (is_inserect)
 	{
 #ifdef _DEBUG
-		cout << "=====================" << endl;
-		cout << "side inter 1";
+		cout << "side inter surface id = " << blNods[0]->GetDecentID()<<endl;
 #endif
 		scheck.clear();
 		for (i = 0; i < DIM3; i++)
@@ -4835,6 +4841,9 @@ void BLMesh::PreCheckPrismValid(BLFront *blFront)
 	//上层法向与节点法向反向
 	for (int i = 0; i < nNods; i++) {
 		blNod = blNods[i];
+        if (blNod->GetDecentID() == 71) {
+            std::cout << "xyhs";
+        }
 		if (up_front_normal * blNods[i]->GetNormal() < 1e-6)
 		{				
 			blFront->is_prism_valid = 0;
@@ -4853,7 +4862,7 @@ void BLMesh::PreCheckPrismValid(BLFront *blFront)
 		blFront->is_prism_valid = 0;
 #ifdef _DEBUG
 		cout << "upper face degenerate"<< endl;
-		cout << "id= " << blNod->GetDecentID() << endl;
+		cout << "id= " << blNods[0]->GetDecentID() << endl;
 #endif
 		return;
 	}
@@ -4868,7 +4877,7 @@ void BLMesh::PreCheckPrismValid(BLFront *blFront)
 			blFront->is_prism_valid = 0;
 #ifdef _DEBUG
 			cout << "node normal deviates form face normal" << endl;
-			cout << "id= " << blNod->GetDecentID() << endl;
+			cout << "id= " << blNods[i]->GetDecentID() << endl;
 #endif
 			return;
 		}
@@ -4886,7 +4895,7 @@ void BLMesh::PreCheckPrismValid(BLFront *blFront)
         if (!CheckPrismOrth(blFront, false)) 
 			cout << "orth  id=";
 
-		cout << blNod->GetDecentID() << endl;
+		cout << blNods[0]->GetDecentID() << endl;
 
 #endif
 	}
@@ -4918,16 +4927,17 @@ void BLMesh::PreCheckPrismValid(BLFront *blFront)
 
     bool blocked = false;
 
-    // 1) 先做你原来的“中点”探测（保持到 1.0）
+    // 1) 先做你原来的“中点”探测（保持到 1.3）
     blocked = probeBlocked(startpos, 0.05, 1.3);
 
-    // 2) 再对三角形三个顶点分别做 0.6 的探测
+    // 2) 再对三角形三个顶点分别做 0.7 的探测
     if (!blocked) {
         for (int i = 0; i < 3; ++i) {
             if (probeBlocked(triPos[i], 0.05, 0.7)) {
                 blocked = true;
 #ifdef _DEBUG
-                cout << "stop by edge_check (vertex " << i << ")" << endl;
+                cout << "forward point id = ";
+				cout << blNods[i]->GetDecentID() << endl;
 #endif
                 break;
             }
@@ -4937,7 +4947,8 @@ void BLMesh::PreCheckPrismValid(BLFront *blFront)
     if (blocked) {
         blFront->is_prism_valid = 0;
 #ifdef _DEBUG
-        cout << "stop by edge_check (vertex " << i << ")" << endl;
+        cout << "forward surface id = ";
+        cout << blNods[0]->GetDecentID() << endl;
 #endif
     }
 

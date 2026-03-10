@@ -39,7 +39,6 @@ namespace TiGER {
             igl::boundary_loop(F, L_);
             judgyType(V_);
 		}
-		#pragma optimize("",off);
         Eigen::RowVector3d project(const Eigen::RowVector3d& vec) {
 			Eigen::RowVector3d ans;
 			tree.projection(vec, ans);
@@ -51,7 +50,6 @@ namespace TiGER {
 		* @brife a normal that started from point
 		* try to project the normal
 		*/
-#pragma optimize("",off);
         void adjustNormal(const Eigen::RowVector3d& point, Eigen::RowVector3d& normal, bool boundary = false) {
             Eigen::RowVector3d endpoint = point + normal;
             Eigen::RowVector3d nep;
@@ -75,7 +73,7 @@ namespace TiGER {
             
             normal.normalize();
 		}
-        #pragma optimize("",on);
+
         void adjustNormalSecond(const Eigen::RowVector3d& point, Eigen::RowVector3d& normal, bool boundary = false)
         {
             Eigen::RowVector3d endpoint = point + normal;
