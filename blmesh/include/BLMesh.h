@@ -477,6 +477,7 @@ private:
 	int process_id;
 	// outerboundary
 	int* outbdry;
+    int *outbdryfarfield;
 	int noutbdry;
 	std::vector<BLFront*> m_vBdyFront;//理论上存储着在表面的单元，理论上应该是大小和面网格大小一样
 

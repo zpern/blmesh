@@ -7502,8 +7502,8 @@ bool Octree::chckIntersect(int data, TreeNode *node, const OCCUBE cube,std::arra
 				
 				if (!share_node_num)
 				{
-					if (tri_tri_inter(pNods[triIdx1[0]].coord, pNods[triIdx1[1]].coord, pNods[triIdx1[2]].coord, \
-						pNods[triIdx2[0]].coord, pNods[triIdx2[1]].coord, pNods[triIdx2[2]].coord)) {
+					if (tri_tri_inter(pNods[triIdx1[0]].coord, pNods[triIdx1[1]].coord, pNods[triIdx1[2]].coord, 
+									  pNods[triIdx2[0]].coord, pNods[triIdx2[1]].coord, pNods[triIdx2[2]].coord)) {
 						last_intersection_ = cell_data[i].id;
 						return true;
 					}

@@ -530,35 +530,39 @@ int BLMesh::SetBoundary(INPUTFORMAT file) {
 				m_pNodes[m_pElems[i].conn[j]].bfarfield = true;
 			//	m_pNodes[m_pElems[i].conn[j]].pointer = nullptr;
 			}
-		}
-		else if (bct == BoundaryType::symmetry||bct==BoundaryType::per)
-		{
-			std::array<int, 3> element;
-			for (int k = 0; k < 3; k++)
-				element[k] = ele[4 * i + k];
-			symmface[m_pElems[i].igom].push_back(element);
-			for (j = 0; j < dim; j++)
-			{
-				m_pNodes[m_pElems[i].conn[j]].bsysm = true;
-				auto vec = m_pNodes[m_pElems[i].conn[j]].isymfc;
-				if(auto it = std::find(vec.begin(), vec.end(), m_pElems[i].igom)== vec.end())
-					m_pNodes[m_pElems[i].conn[j]].isymfc.push_back(m_pElems[i].igom);
-		//		m_pNodes[m_pElems[i].conn[j]].pointer = nullptr;
+		} 
+		else if (bct == BoundaryType::symmetry || bct == BoundaryType::per) {
+            std::array<int, 3> element;
+            for (int k = 0; k < 3; k++) {
+                element[k] = ele[4 * i + k];
+            }
+
+            symmface[m_pElems[i].igom].push_back(element);
+
+            for (j = 0; j < dim; j++) {
+                m_pNodes[m_pElems[i].conn[j]].bsysm = true;
+
+                auto &vec = m_pNodes[m_pElems[i].conn[j]].isymfc;
+                if (auto it = std::find(vec.begin(), vec.end(), m_pElems[i].igom);
+                    it == vec.end()) {
+                    vec.push_back(m_pElems[i].igom);
+                }
 
 #ifndef _NEW_SYMM
-				if (m_sysPlane == SymmetryPlane::SYSMMETRY_X)
-					m_sysValue += m_pNodes[m_pElems[i].conn[j]].coord[0];
-				else if (m_sysPlane == SymmetryPlane::SYSMMETRY_Y)
-					m_sysValue += m_pNodes[m_pElems[i].conn[j]].coord[1];
-				else if (m_sysPlane == SymmetryPlane::SYSMMETRY_Z)
-					m_sysValue += m_pNodes[m_pElems[i].conn[j]].coord[2];
+                if (m_sysPlane == SymmetryPlane::SYSMMETRY_X) {
+                    m_sysValue += m_pNodes[m_pElems[i].conn[j]].coord[0];
+                } else if (m_sysPlane == SymmetryPlane::SYSMMETRY_Y) {
+                    m_sysValue += m_pNodes[m_pElems[i].conn[j]].coord[1];
+                } else if (m_sysPlane == SymmetryPlane::SYSMMETRY_Z) {
+                    m_sysValue += m_pNodes[m_pElems[i].conn[j]].coord[2];
+                }
 
-				cnt++;
+                cnt++;
 #endif
-			}
+            }
 
-			SetElmDelete(i);
-		}
+            SetElmDelete(i);
+        }
 
 		m_pElems[i].pointer = (void *)blFront;
 
@@ -713,6 +717,10 @@ int BLMesh::SetBoundary(INPUTFORMAT file) {
 			}
 		}
 	}
+
+	// build m_ocTree_symm
+	
+
 
 	//end of intersection
 	m_blFrontList->RestoreFront();
@@ -2767,7 +2775,7 @@ int BLMesh::AddNode(BLVector pnt, double space)
 		//intersection
 		if (m_ocAgent)
 			m_ocAgent->setNod(m_pNodes);
-
+			m_ocAgent_symm->setNod(m_pNodes);
 			//end of intersection
 #endif
 	}
@@ -3181,9 +3189,6 @@ void BLMesh::GenerateBLMesh()
                 std::abs(m_pNodes[a].coord[1] - 56.7135) <= eps &&
                 std::abs(m_pNodes[a].coord[2] - 365.083) <= eps) {
 				tempcalculate++;
-				if (tempcalculate == 18) {
-					std::cout<<"xyhs";
-				}
             }
 			if (blNod->GetBSys()) {
 				auto ans = blNod->GetHeight();
@@ -4449,12 +4454,7 @@ void BLMesh::CheckInsertSideSuface(BLFront *blFront)
 	blFront->GetNodes(&nNods, blNods);
 
 	blFront->GetNeigbourFronts(&neigs, neigFrts);
-	for (i = 0; i < 3; i++) {
-        if (blNods[i]->GetDecentID() == 71) {
-            std::cout << "xyhs" << std::endl;
-			 conn = blFront->conn.data();
-		}
-	}
+
 	
 	/*获取底层front周围的三个front的多出来的侧面的三角形ID，存在ithird中*/
 	for (i = 0; i < neigs; i++)
@@ -4493,13 +4493,13 @@ void BLMesh::CheckInsertSideSuface(BLFront *blFront)
 			break;
 		}
 		if (!blNods[0]->GetBSys() && !blNods[1]->GetBSys() && !blNods[2]->GetBSys()) {
-			//m_ocTree_symm->insertPreProcess(itri[k]);
-			//if (m_ocTree_symm->chckIntersectPreProcess(itri[k]))
-			//{
-			//	is_inserect = true;
-			//	break;
-			//}
-			//m_ocTree_symm->rmDataPreProcess(itri[k]);
+			m_ocTree_symm->insertPreProcess(itri[k]);
+			if (m_ocTree_symm->chckIntersectPreProcess(itri[k]))
+			{
+				is_inserect = true;
+				break;
+			}
+			m_ocTree_symm->rmDataPreProcess(itri[k]);
 		}
 	}
 
@@ -4555,7 +4555,7 @@ void BLMesh::CheckInsertSuface(BLFront *blFront)
 			is_inserect = true;
 #ifdef _DEBUG
 			cout << "=====================" << endl;
-			cout << "side inter 2";
+			cout << "side inter 1";
 #endif
 			for (i = 0; i < neigs; i++) {
 				inser_queue.push_back(neigFrts[i]);
@@ -4841,9 +4841,6 @@ void BLMesh::PreCheckPrismValid(BLFront *blFront)
 	//上层法向与节点法向反向
 	for (int i = 0; i < nNods; i++) {
 		blNod = blNods[i];
-        if (blNod->GetDecentID() == 71) {
-            std::cout << "xyhs";
-        }
 		if (up_front_normal * blNods[i]->GetNormal() < 1e-6)
 		{				
 			blFront->is_prism_valid = 0;
@@ -4922,7 +4919,7 @@ void BLMesh::PreCheckPrismValid(BLFront *blFront)
 
     // 封装一次探测：从 p + n*a 到 p + n*b
     auto probeBlocked = [&](const BLVector &p, double a, double b) -> bool {
-        return m_ocTree->chckIntersectWithLine(p + up_front_normal * a, p + up_front_normal * b) < 1;
+        return m_ocTree->chckIntersectWithLine(p + up_front_normal * a, p + up_front_normal * b) < 1 || m_ocTree_symm->chckIntersectWithLine(p + up_front_normal * a, p + up_front_normal * (b-0.3)) < 1;
     };
 
     bool blocked = false;
@@ -6075,18 +6072,21 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 				cons[2] = conn[2];
 				tridx = itri[ntri++] = AddTriElem(3, cons);
 				m_ocTree->insertPreProcess(tridx);
+				m_ocTree_symm->insertPreProcess(tridx);
 
 				cons[0] = conn[1];
 				cons[1] = idx2;
 				cons[2] = idx;
 				tridx = itri[ntri++] = AddTriElem(3, cons);
 				m_ocTree->insertPreProcess(tridx);
+				m_ocTree_symm->insertPreProcess(tridx);
 
 				cons[0] = conn[2];
 				cons[1] = idx;
 				cons[2] = idx1;
 				tridx = itri[ntri++] = AddTriElem(3, cons);
 				m_ocTree->insertPreProcess(tridx);
+				m_ocTree_symm->insertPreProcess(tridx);
 			}
 		}
 
@@ -6188,18 +6188,21 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 							cons[2] = conn[2];
 							tridx = itri[ntri++] = AddTriElem(3, cons);
 							m_ocTree->insertPreProcess(tridx);
+							m_ocTree_symm->insertPreProcess(tridx);
 
 							cons[0] = conn[1];
 							cons[1] = idx2;
 							cons[2] = idx;
 							tridx = itri[ntri++] = AddTriElem(3, cons);
 							m_ocTree->insertPreProcess(tridx);
+							m_ocTree_symm->insertPreProcess(tridx);
 
 							cons[0] = conn[2];
 							cons[1] = idx;
 							cons[2] = idx1;
 							tridx = itri[ntri++] = AddTriElem(3, cons);
 							m_ocTree->insertPreProcess(tridx);
+							m_ocTree_symm->insertPreProcess(tridx);
 						}
 					}
 				}
@@ -6210,7 +6213,7 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 		for (int j = 0; j < ntri; j++)
 		{
 			if (!ret)
-				ret = m_ocTree->chckIntersectPreProcess(itri[j]);
+				ret = m_ocTree->chckIntersectPreProcess(itri[j]) || m_ocTree_symm->chckIntersectPreProcess(itri[j]);
 
 
 		}
@@ -6226,6 +6229,7 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 			for (int k = 0; k < ntri; k++)
 			{
 				m_ocTree->rmDataPreProcess(itri[k]);
+				m_ocTree_symm->rmDataPreProcess(itri[k]);
 			}
 
 			//m_ocTree->insert(ft->GetTriIdx(), m_ocTree->getRootNode(), m_cbCube);
