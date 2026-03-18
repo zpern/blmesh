@@ -481,12 +481,12 @@ namespace TiGER {
 
 	int API_Gen_Boundary_ALM_Mesh(
 		/* ------------------------- 输入参数 --------------------------**/
-		double* pdSNC,			/* 曲面网格节点坐标，coord[3*i], coord[3*i+1], coord[3*i+2]为第i个节点x,y,z坐标 **/
-		int			nSN,			/* 曲面网格边界节点数目 **/
-		int* pnSFFm,		/* 曲面网格单元节点编号 **/
-		int* pnSFTp,		/* 曲面网格单元类型。当前仅支持三角形单元 **/
-		int* pnSFPt,		/* 曲面网格单元所在几何面编号 ,从1开始 **/
-		int			nSF,			/* 曲面网格单元数目 **/
+		double* pdSNC,						/* 曲面网格节点坐标，coord[3*i], coord[3*i+1], coord[3*i+2]为第i个节点x,y,z坐标 **/
+		int	nSN,							/* 曲面网格边界节点数目 **/
+		int* pnSFFm,						/* 曲面网格单元节点编号 **/
+		int* pnSFTp,						/* 曲面网格单元类型。当前仅支持三角形单元 **/
+		int* pnSFPt,						/* 曲面网格单元所在几何面编号 ,从1开始 **/
+		int	 nSF,							/* 曲面网格单元数目 **/
 		std::map<int, int> pnFT,			/* 几何面类型： 0为远场； 1 为物面； 2为对称面 ,3为不长边界层的面,4为周期性面**/
 		int			nLN,			/* 边界层层数 **/
 		std::vector<int> layer_vec, /* 边界层层数数组 **/
@@ -609,8 +609,6 @@ namespace TiGER {
 		blconfig.per = bcs[4];
 		blconfig.adjacent = bcs[5];
 		blconfig.use_multiple_normals = b_use_multiple_normals;
-        blconfig.multiple_numlayer = 1;
-        blconfig.multiple_steplength = dLen;
 		blconfig.max_skewness = max_skewness;
 		blconfig.max_orth = max_orth;
 		blconfig.max_layer_diff = max_layer_diff;
@@ -764,145 +762,111 @@ namespace TiGER {
 	}
 		
 	int API_Gen_Boundary_FullLayer_Mesh(
-		/* ------------------------- 输入参数 --------------------------**/
-		double* pdSNC,			/* 曲面网格节点坐标，coord[3*i], coord[3*i+1], coord[3*i+2]为第i个节点x,y,z坐标 **/
-		int			nSN,			/* 曲面网格边界节点数目 **/
-		int* pnSFFm,		/* 曲面网格单元节点编号 **/
-		int* pnSFTp,		/* 曲面网格单元类型。当前仅支持三角形单元 **/
-		int* pnSFPt,		/* 曲面网格单元所在几何面编号 ,从1开始 **/
-		int			nSF,			/* 曲面网格单元数目 **/
-		std::map<int, int> pnFT,			/* 几何面类型： 0为远场； 1 为物面； 2为对称面 ,3为不长边界层的面,4为周期性面**/
-		int			nLN,			/* 边界层层数 **/
-		std::vector<int> layer_vec, /* 边界层层数数组 **/
-		int			max_layer_diff, /*相邻网格边界层层数差*/
-		double		dLen,			/* 边界层第一层厚度 **/
-		std::vector<double> length_vec, /* 边界层第一层厚度数组 **/
-		double		dRto,			/* 边界层厚度增长因子 **/
-        int multiple_numlayer,          /* 多法向层数 **/
-        double multiple_steplength,        /* 多法向步长 **/
-		double		max_skewness,  /* 各向异性停止**/
-		double		bisostop,       /* 各向同性停止**/
-		/* ------------------------- 输出参数 -------------------------**/
-		double** ppdMNC,		/* 体网格节点坐标 **/
-		int* pnMN,			/* 体网格节点数目 **/
-		int** ppnMEFm,		/* 体网格单元节点编号 **/
-		int** ppnMETp,		/* 体网格单元类型。当前支持单元类型：三棱柱，金字塔 **/
-		int* pnME,			/* 体网格单元数目 **/
-		/* ------------------------- 边界层网格顶面层面网格参数 -------------------------**/
-		double** ppdSNC0,		/* 顶面网格节点坐标，coord[3*i], coord[3*i+1], coord[3*i+2]为第i个节点x,y,z坐标 **/
-		int* pnSN0,			/* 顶面网格边界节点数目 **/
-		int* pnSEO,			/* 顶面网格单元数目 **/
-		int** ppnSFTpO,		/* 顶面网格单元类型。当前仅支持三角形单元 **/
-		int** ppnSFFmO,			/* 体网格单元数目 **/
-		int** l2g,             /*  顶面网格id到全局点id的映射  */
-		double** ppnsizing, /* 顶面网格目标尺寸 */
-		/////* ------------------------- 边界信息 ------------------------- **/ 
-		int* num_boundary_face,  /////* 边界面网格数量 **/ 
-		int** boundary_mesh,  /////* 边界面网格，注意每四个为一组，而且注意如果为三角形，最后一项为-1，id从0开始 **/ 
-		int** boundary_face,  /////* 边界面网格对应的面id，长度为num_boundary_face **/ 
-		/* ------------------------- 其他参数 -------------------------**/
-		bool b_have_pyramid, /* 是否有金字塔 **/
-		bool b_use_multiple_normals, /* 是否启用多法向 缺省为false **/
-        bool fast_intersection,      /*是否启用快速相交检测**/
-        bool preMultiple,            /*是否对多法向角点做预处理**/
-		bool b_output_io_file,  /* 是否将api的输入和输出都输出到文件系统中（仅用于DEBUG）缺省为false **/
-		std::string filename,   /* 几何文件名，缺省为virtualmesh **/
-		std::array<double, 12> per_matrix  /* 周期性面控制矩阵,前9位为旋转矩阵 m00，m01，m02 .... ，后三位为位移向量xyz **/
-	) {
-		tiger::Config cf;
-		cf.SetDefaultConfig();
-		cf.isotropic_stop = 1;
-		cf.dStepLen = dLen;
-		cf.dStepLenRatio = dRto;
-		cf.nLayerNum = nLN;
-		cf.nInitLayerNum_vec = layer_vec;
-		cf.dStepLen_vec = length_vec;
-		cf.sGeoFileName = filename;
-		vector<vector<int>> bcs;
-		bcs.resize(10);
-		//vector<int> symm;
-		//vector<int> box;
-		//vector<int> match;
-		//vector<int> per;
-		for (auto i: pnFT) {
-			bcs[i.second].push_back(i.first);
-		}
+        /* ------------------------- 输入参数 --------------------------**/
+        int multiple_numlayer,                          /* 多法向层数 **/
+        double multiple_steplength,                     /* 多法向步长 **/
+        std::vector<double> len_vec,                    /* 多法向步长数组 **/
+        bool preMultiple,                               /*是否对多法向角点做预处理**/
+        bool fast_intersection,                         /*是否启用快速相交检测**/
+        double *pdSNC,                                  /* 曲面网格节点坐标，coord[3*i], coord[3*i+1],coord[3*i+2]为第i个节点x,y,z坐标 **/
+        int nSN,                                        /* 曲面网格边界节点数目 **/
+        int *pnSFFm,                                    /* 曲面网格单元节点编号 **/
+        int *pnSFTp,                                    /* 曲面网格单元类型。当前仅支持三角形单元 **/
+        int *pnSFPt,                                    /* 曲面网格单元所在几何面编号 ,从1开始 **/
+        int nSF,                                        /* 曲面网格单元数目 **/
+        std::map<int, int> pnFT,	                    /* 几何面类型： 0为远场； 1 为物面； 2为对称面 ,3为不长边界层的面,4为周期性面**/
+									 
+        /* ------------------------- 输出参数 -------------------------**/
+        double **ppdMNC,                                /* 体网格节点坐标 **/
+        int *pnMN,                                      /* 体网格节点数目 **/
+        int **ppnMEFm,                                  /* 体网格单元节点编号 **/
+        int **ppnMETp,                                  /* 体网格单元类型。当前支持单元类型：三棱柱，金字塔 **/
+        int *pnME,                                      /* 体网格单元数目 **/
 
-		cf.vecBoxFc = bcs[0];
-		cf.vecSymmFc = bcs[2];
-		cf.vecMatchFc = bcs[4];
-		cf.vecAdjacentFc = bcs[5];
-		//cf.WriteConfigFile();
+        /* ------------------------- 边界层网格顶面层面网格参数 -------------------------**/
+        double **ppdSNC0,                               /* 顶面网格节点坐标，coord[3*i], coord[3*i+1],coord[3*i+2]为第i个节点x,y,z坐标 **/
+        int *pnSN0,                                     /* 顶面网格边界节点数目 **/
+        int *pnSEO,                                     /* 顶面网格单元数目 **/
+        int **ppnSFTpO,                                 /* 顶面网格单元类型。当前仅支持三角形单元 **/
+        int **ppnSFFmO,                                 /* 体网格单元数目 **/
+        int **l2g,                                      /*  顶面网格id到全局点id的映射  */
+        double **ppnsizing,                             /* 顶面网格点尺寸 */
 
-		int npt = nSN;
-		int nelm = nSF;
-		//ofstream fout("virtualmesh.pls");
-		stringstream* fout = new stringstream();
+        /////* ------------------------- 边界信息 ------------------------- **/
+        int *num_boundary_face,                         /* 边界面网格数量 **/
+        int **boundary_mesh,                            /* 边界面网格，注意每四个为一组，而且注意如果为三角形，最后一项为-1，id从0开始**/
+        int **boundary_face,                            /* 边界面网格对应的面id，长度为num_boundary_face **/
 
+        /* ------------------------- 其他参数 -------------------------**/
+        bool b_output_io_file,                          /* 是否将api的输入和输出都输出到文件系统中（仅用于DEBUG）缺省为false**/
+        std::string filename                            /* 几何文件名，缺省为virtualmesh **/
+    )
+    {
+        vector<vector<int>> bcs;
+        bcs.resize(10);
+        for (auto i : pnFT) {
+            bcs[i.second].push_back(i.first);
+        }
 
-		*fout << nelm << " " << npt << " " << 0 << " " << 0 << " " << 0 << " " << 0 << endl;
+        // 输入流式文件fout
+        stringstream *fout = new stringstream();
 
-		std::vector<std::array<double, 3>> points;
-		for (int i = 0; i < npt; i++) {
-			points.push_back(std::array<double, 3>{pdSNC[3 * i + 0], pdSNC[3 * i + 1], pdSNC[3 * i + 2]});
-		}
-		for (int i = 0; i < nelm; i++) {
-			*fout << i + 1 << " " << pnSFFm[3 * i + 0] << " " << pnSFFm[3 * i + 1] << " " << pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
-		}
-		//fout.close();
-		string input(fout->str());
+        *fout << nSF << " " << nSN << " " << 0 << " " << 0 << " " << 0 << " " << 0 << endl;
+        std::vector<std::array<double, 3>> points;
+        for (int i = 0; i < nSN; i++) {
+            points.push_back(
+                std::array<double, 3>{pdSNC[3 * i + 0], pdSNC[3 * i + 1], pdSNC[3 * i + 2]});
+        }
+        for (int i = 0; i < nSF; i++) {
+            *fout << i + 1 << " " << pnSFFm[3 * i + 0] << " " << pnSFFm[3 * i + 1] << " "
+                  << pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
+        }
+        string input(fout->str());
 
-		if (b_output_io_file) {
-			ofstream ftest("BoundaryMeshing.txt");
-			ftest.setf(ios::fixed, ios::floatfield);  // 设定为 fixed 模式，以小数点表示浮点数
-			ftest.precision(17);
-			ftest << "nLN: " << nLN << endl;
-			ftest << "dLen: " << dLen << endl;
-			ftest << "dRto: " << dRto << endl;
-			ftest << "max_skewness: " << max_skewness << endl;
-			ftest << "bisostop: " << bisostop << endl;
-			ftest << "boundary_info: " << endl;
-			for (auto i : pnFT) {
-				ftest << i.first << " " << i.second << " " << std::endl;;
-			}
-			ftest << "b_use_multiple_normals: " << b_use_multiple_normals << endl;
-			ftest << nelm << " " << npt << " " << endl;
-			for (int i = 0; i < npt; i++) {
-				ftest << i + 1 << " " << pdSNC[3 * i + 0] << " " << pdSNC[3 * i + 1] << " " << pdSNC[3 * i + 2] << endl;
-			}
-			for (int i = 0; i < nelm; i++) {
-				ftest << i + 1 << " " << pnSFFm[3 * i + 1] << " " << pnSFFm[3 * i + 0] << " " << pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
-			}
+            // 输出调试文件
+        if (b_output_io_file) {
+            ofstream ftest("BoundaryMeshing.txt");
+            ftest.setf(ios::fixed, ios::floatfield); // 设定为 fixed 模式，以小数点表示浮点数
+            ftest.precision(17);
+            ftest << "nLN: " << multiple_numlayer << endl;
+            ftest << "dLen: " << multiple_steplength << endl;
+            ftest << "boundary_info: " << endl;
+            for (auto i : pnFT) {
+                ftest << i.first << " " << i.second << " " << std::endl;
+                ;
+            }
+            ftest << nSF << " " << nSN << " " << endl;
+            for (int i = 0; i < nSN; i++) {
+                ftest << i + 1 << " " << pdSNC[3 * i + 0] << " " << pdSNC[3 * i + 1] << " "
+                      << pdSNC[3 * i + 2] << endl;
+            }
+            for (int i = 0; i < nSF; i++) {
+                ftest << i + 1 << " " << pnSFFm[3 * i + 1] << " " << pnSFFm[3 * i + 0] << " "
+                      << pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
+            }
+            ftest.close();
+        }
 
-			ftest.close();
-		}
-
-		blpreConfig blconfig;
-		blconfig.n = nLN;
-		blconfig.Ro = dRto;
-		blconfig.len = dLen;
-		blconfig.layer_vec = layer_vec;
-		blconfig.len_vec = length_vec;
+        // 准备生成参数
+        blpreConfig blconfig;
+        blconfig.n = multiple_numlayer;
+        blconfig.len = multiple_steplength;
+        blconfig.len_vec = len_vec;
+        blconfig.fast_intersection = fast_intersection;
+        blconfig.preMultiple = preMultiple;
         blconfig.box = bcs[0];
         blconfig.wall = bcs[1];
         blconfig.symm = bcs[2];
-		blconfig.match = bcs[3];
-		blconfig.per = bcs[4];
-		blconfig.adjacent = bcs[5];
-		blconfig.use_multiple_normals = b_use_multiple_normals;
-        blconfig.multiple_numlayer = multiple_numlayer;
-        blconfig.multiple_steplength = multiple_steplength;
-        blconfig.max_skewness[0] = max_skewness;
-		blconfig.max_layer_diff = max_layer_diff;
-        blconfig.length_vec = length_vec;
-        blconfig.fast_intersection = fast_intersection;
-        blconfig.preMultiple = preMultiple;
-		ControlVolume cv1;
-        ControlVolume cv2;
-		PRE::multiply(blconfig,input,points,cv1,cv2);
-		delete fout;
+        blconfig.match = bcs[3];
+        blconfig.per = bcs[4];
+        blconfig.adjacent = bcs[5];
 
-		std::map<std::array<double, 3>, int> coord_to_id;
+        ControlVolume cv1;
+        ControlVolume cv2;
+        PRE::multiply(blconfig, input, points, cv1, cv2);
+        delete fout;
+
+        std::map<std::array<double, 3>, int> coord_to_id;
         std::vector<std::array<double, 3>> global_points;
 
         // --- helper ---
@@ -991,7 +955,7 @@ namespace TiGER {
             (*ppdSNC0)[3 * i + 2] = points[i][2];
         }
 
-		// --- 顶面单元 ---
+        // --- 顶面单元 ---
         // 解析 input 获取 f
         std::vector<std::array<int, 3>> f_vec;
         {
@@ -1002,7 +966,7 @@ namespace TiGER {
             for (int i = 0; i < nelm; ++i) {
                 int id0, id1, id2, face;
                 iss >> id >> id0 >> id1 >> id2 >> face; // 注意你 input 的顺序
-                f_vec.push_back({id0-1, id1-1, id2-1});
+                f_vec.push_back({id0 - 1, id1 - 1, id2 - 1});
             }
         }
 
@@ -1023,15 +987,13 @@ namespace TiGER {
             (*l2g)[i] = coord_to_id[{points[i][0], points[i][1], points[i][2]}];
         }
 
-
-		*ppnsizing = new double[*pnSN0];
+        *ppnsizing = new double[*pnSN0];
         for (int i = 0; i < *pnSN0; ++i) {
-            (*ppnsizing)[i] = dLen;
+            (*ppnsizing)[i] = multiple_steplength;
         }
 
-		return 0;
-	}
-
+        return 0;
+    }
 
 	int API_Mesh_Optimize(double * pdMNC, int num_boundary_face, int* boundary_mesh, int nMN, int * pnMEFm, int * pnMETp, int nME)
 	{
@@ -1179,6 +1141,4 @@ namespace TiGER {
 		}
 		return 0;
 	}
-
-
 }

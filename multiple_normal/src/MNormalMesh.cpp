@@ -654,7 +654,6 @@ void MNormalMesh::pre_WriteVol(std::vector<std::array<double, 3>> &v,std::vector
     }
     return;
     }
-#pragma optimize("",off);
 void MNormalMesh::WriteVol(std::vector<std::array<double, 3>> &v,std::vector<std::vector<int>> &f,int &lower_num,int &add_point_num)
 {
     std::map<std::array<double, 3>, int> coord_to_id;
@@ -754,9 +753,22 @@ void MNormalMesh::WriteVol(std::vector<std::array<double, 3>> &v,std::vector<std
                     iter_count++;
                     record_point.clear();
                     // continue;  // 让外层重新跑一遍检测（如果你是 while/for 结构）
-                } else {
+                } 
+                else {
                     // 已经到最大次数：先做一次“步长置0重试”
                     if (!zero_step_retry_done) {
+#ifdef _DEBUG
+                        std::cout << "first" << std::endl;
+                        for (auto p : record_point) {
+                            spdlog::error("point id = {}, coord = ({:.16f}, {:.16f}, {:.16f}), "
+                                          "length = {:.16f}",
+                                          p,
+                                          coordinate[p].x,
+                                          coordinate[p].y,
+                                          coordinate[p].z,
+                                          length[p]);
+                        }
+#endif // DEBUG
                         for (auto i : record_point) {
                             length[i] *= 0.0;
                         }
@@ -764,12 +776,25 @@ void MNormalMesh::WriteVol(std::vector<std::array<double, 3>> &v,std::vector<std
                         record_point.clear();
                         break;
                     } 
-                    //else {
-                    //    // 置0重试后仍相交：退出
-                    //    spdlog::info("Temporarily revert to using a single normal.");
-                    //    multiplySuccess = false;
-                    //    return;
-                    //}
+                    else {
+#ifdef _DEBUG
+                        std::cout << "second" << std::endl;
+                        for (auto p : record_point) {
+                            spdlog::error("point id = {}, coord = ({:.16f}, {:.16f}, {:.16f}), "
+                                          "length = {:.16f}",
+                                          p,
+                                          coordinate[p].x,
+                                          coordinate[p].y,
+                                          coordinate[p].z,
+                                          length[p]);
+                        }
+#endif // DEBUG
+       // 置0重试后仍相交：退出
+                        spdlog::info("Temporarily revert to using a single normal.");
+                        multiplySuccess = false;
+                        return;
+                    }
+                    break;
                 }
 
                 std::vector<BLVector> grown_coordinate;
@@ -1082,7 +1107,6 @@ void MNormalMesh::WriteVol(std::vector<std::array<double, 3>> &v,std::vector<std
 
     return;
     }
-    #pragma optimize("",on);
 void MNormalMesh::WriteMesh(std::string& f, std::vector<std::array<double, 3>>& points, double len)
 {
 
@@ -1248,15 +1272,7 @@ void MNormalMesh::CalculateMultiNormal()
 		number_of_complex_nodes++;
 		i->SplitNode();	
 	}
-	/*
-	for (auto i : need_to_split) {
-		if (!i->getFinalMesh().triangle_lists_.empty()) {
-			cout << i->getFinalMesh().max_skewness_ << endl;
-		}
-		else
-			cout << i->original_skewness_ << endl;
-	}
-	*/
+
 	clock_t end_time = clock();
 	spdlog::info("");
 	spdlog::info("");

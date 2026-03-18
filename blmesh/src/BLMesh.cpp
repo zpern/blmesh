@@ -3228,29 +3228,7 @@ void BLMesh::GenerateBLMesh()
 			normn = blNod->GetNormal();
 #endif
 			normal = blNod->GetHeight();
-			/*if( blNod->GetBSys() )
-            {
-                auto ans = blNod->GetHeight();
-                int decent_id = blNod->GetDecentID();
 
-                int nodeid = iNod;
-                Eigen::RowVector3d start_point(m_pNodes[nodeid].coord[0], m_pNodes[nodeid].coord[1],
-                                               m_pNodes[nodeid].coord[2]);
-                Eigen::RowVector3d normal(ans[0], ans[1], ans[2]);
-                std::vector<int> faceid = m_pNodes[nodeid].isymfc;
-                if( faceid.size() == 1 )
-                    faceid2sp[faceid[0]].adjustNormalSecond(start_point, normal);
-                else
-                {
-                    for( int j = 0; j < 1; j++ )
-                    {
-                        faceid2sp[faceid[0]].adjustNormalSecond(start_point, normal, true);
-                        faceid2sp[faceid[1]].adjustNormalSecond(start_point, normal, true);
-                    }
-                }
-                BLVector n(normal(0), normal(1), normal(2));
-                blNod->SetNormal(n);
-            }*/
 			newpos = normal;
 			newpos.x += m_pNodes[iNod].coord[0];
 			newpos.y += m_pNodes[iNod].coord[1];

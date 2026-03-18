@@ -67,7 +67,7 @@ void MeshInfo::Initialize(double* point_array,int nPt, int nElm, int *Elem)
 	m_nElm = nElm;
 	m_ppoint = point_array;
 	m_pElm = new Elm[m_nElm];
-	for (i=0; i<nElm; i++)
+	for (i=0; i<m_nElm; i++)
 	{
 		if(m_mtType == MeshType::MESH_2D)
 			nconn = 2;

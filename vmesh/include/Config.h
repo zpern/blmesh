@@ -34,20 +34,20 @@ private:
     /* public data */
 public:
     std::string sConfigName;
-    int iWrtLvl; // 0: all menbers; 1: geometry members; 2: mesh members
-    double dElemNum;    // total element number
+    int iWrtLvl;                    // 0: all menbers; 1: geometry members; 2: mesh members
+    double dElemNum;                // total element number
 
     /* basic members */
-    //std::string filename;  	// the project name
+    //std::string filename;  	    // the project name
 
     /* geometry members */
     int iGeoType;
     std::string sKwGeoType;
     std::string sCmtGeoType;
 
-    std::string sGeoFileName;	// the geometry file name
-    std::string sKwGeoFileName;	// the key word
-    std::string sCmtGeoFileName; // the comment
+    std::string sGeoFileName;	    // the geometry file name
+    std::string sKwGeoFileName;	    // the key word
+    std::string sCmtGeoFileName;    // the comment
 
     double dSTolerance;				//set sTolerance, default value 1.0e-8
     std::string sKwSTolerance;

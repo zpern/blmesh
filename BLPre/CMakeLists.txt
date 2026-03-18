@@ -6,7 +6,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0 -g")
 message("building blpre")
 #
 add_definitions(-D _LIB)
-include_directories(./include ./src  ../MNormal)
+include_directories(./include ./src  ../multiple_normal)
 add_library(blpre STATIC 
 include/blpre.h
 src/main.cpp

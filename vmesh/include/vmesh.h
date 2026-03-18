@@ -156,57 +156,44 @@ int API_Gen_Boundary_ALM_Mesh(
 );
 
 int API_Gen_Boundary_FullLayer_Mesh(
-    /* ------------------------- 输入参数 --------------------------**/
-    double *pdSNC, /* 曲面网格节点坐标，coord[3*i], coord[3*i+1],
-                      coord[3*i+2]为第i个节点x,y,z坐标 **/
-    int nSN,       /* 曲面网格边界节点数目 **/
-    int *pnSFFm,   /* 曲面网格单元节点编号 **/
-    int *pnSFTp,   /* 曲面网格单元类型。当前仅支持三角形单元,从1开始 **/
-    int *pnSFPt,   /* 曲面网格单元所在几何面编号 ,从1开始 **/
-    int nSF,       /* 曲面网格单元数目 **/
-    std::map<int, int>
-        pnFT,      /* 几何面类型： 0为远场； 1 为物面； 2为对称面 ,3为不长边界层的面,4为周期性面**/
-    int nLN,       /* 边界层层数 **/
-    std::vector<int> layer_vec,     /* 边界层层数数组 **/
-    int max_layer_diff,             /*相邻网格边界层层数差*/
-    double dLen,                    /* 边界层第一层厚度 **/
-    std::vector<double> length_vec, /* 边界层第一层厚度数组 **/
-    double dRto,                    /* 边界层厚度增长因子 **/
-    int multiple_numlayer,          /* 多法向层数 **/
-    double multiple_steplength,     /* 多法向步长 **/
-    double max_skewness,            /* 各向异性停止**/
-    double bisostop,                /* 各向同性停止**/
-    /* ------------------------- 输出参数 -------------------------**/
-    double **ppdMNC, /* 体网格节点坐标 **/
-    int *pnMN,       /* 体网格节点数目 **/
-    int **ppnMEFm,   /* 体网格单元节点编号 **/
-    int **ppnMETp,   /* 体网格单元类型。当前支持单元类型：三棱柱，金字塔 **/
-    int *pnME,       /* 体网格单元数目 **/
-    /* ------------------------- 边界层网格顶面层面网格参数 -------------------------**/
-    double **ppdSNC0,       /* 曲面网格节点坐标，coord[3*i], coord[3*i+1],
-                               coord[3*i+2]为第i个节点x,y,z坐标 **/
-    int *nSN0,              /* 曲面网格边界节点数目 **/
-    int *pnSEO,             /* 顶面网格单元数目 **/
-    int **ppnSFTpO,         /* 顶面网格单元类型。当前仅支持三角形单元 **/
-    int **ppnSFFmO,         /* 顶面网格单元节点编号 **/
-    int **l2g,              /* local点id到global点id的映射 */
-    double **point_sizing,  /* 顶面网格点尺寸 */
-                            /* ------------------------- 边界信息 -------------------------**/
-    int *num_boundary_face, /*边界面网格数量 **/
-    int **
-        boundary_mesh, /*边界面网格，注意每四个为一组，而且注意如果为三角形，最后一项为-1，id从0开始
-                        **/
-    int **boundary_face, /*边界面网格对应的面id，长度为num_boundary_face **/
-    /* ------------------------- 其他参数 -------------------------**/
-    bool b_have_pyramid = true,          /*是否有金字塔**/
-    bool b_use_multiple_normals = false, /*是否启用多法向**/
-    bool fast_intersection = false,      /*是否启用快速相交检测**/
-    bool preMultiple = false,            /*是否对对法向角点进行预处理**/
-    bool b_output_io_file = false,       /*是否将api的输入和输出都输出到文件系统中（仅用于DEBUG）**/
-    std::string filename = "virtualmesh", /*几何文件名，缺省为virtualmesh**/
-    std::array<double, 12> per_matrix =
-        std::array<double, 12>() /* 周期性面控制矩阵,前9位为旋转矩阵 m00，m01，m02 ....
-                                    ，后三位为位移向量xyz**/
+		/* ------------------------- 输入参数 --------------------------**/
+        int multiple_numlayer,					/* 多法向层数 **/
+        double multiple_steplength,				/* 多法向步长 **/
+        std::vector<double> len_vec,			/* 多法向步长数组 **/
+		bool preMultiple,						/*是否对多法向角点做预处理**/
+        bool fast_intersection,					/*是否启用快速相交检测**/
+		double* pdSNC,							/* 曲面网格节点坐标，coord[3*i], coord[3*i+1], coord[3*i+2]为第i个节点x,y,z坐标 **/
+		int nSN,								/* 曲面网格边界节点数目 **/
+		int* pnSFFm,							/* 曲面网格单元节点编号 **/
+		int* pnSFTp,							/* 曲面网格单元类型。当前仅支持三角形单元 **/
+		int* pnSFPt,							/* 曲面网格单元所在几何面编号 ,从1开始 **/
+		int			nSF,						/* 曲面网格单元数目 **/
+		std::map<int, int> pnFT,				/* 几何面类型： 0为远场； 1 为物面； 2为对称面 ,3为不长边界层的面,4为周期性面**/
+
+		/* ------------------------- 输出参数 -------------------------**/
+		double** ppdMNC,						/* 体网格节点坐标 **/
+		int* pnMN,								/* 体网格节点数目 **/
+		int** ppnMEFm,							/* 体网格单元节点编号 **/
+		int** ppnMETp,							/* 体网格单元类型。当前支持单元类型：三棱柱，金字塔 **/
+		int* pnME,								/* 体网格单元数目 **/
+
+		/* ------------------------- 边界层网格顶面层面网格参数 -------------------------**/
+		double** ppdSNC0,						/* 顶面网格节点坐标，coord[3*i], coord[3*i+1], coord[3*i+2]为第i个节点x,y,z坐标 **/
+		int* pnSN0,								/* 顶面网格边界节点数目 **/
+		int* pnSEO,								/* 顶面网格单元数目 **/
+		int** ppnSFTpO,							/* 顶面网格单元类型。当前仅支持三角形单元 **/
+		int** ppnSFFmO,							/* 体网格单元数目 **/
+		int** l2g,								/*  顶面网格id到全局点id的映射  */
+		double** ppnsizing,						/* 顶面网格点尺寸 */
+
+		/////* ------------------------- 边界信息 ------------------------- **/ 
+		int* num_boundary_face,					/* 边界面网格数量 **/ 
+		int** boundary_mesh,					/* 边界面网格，注意每四个为一组，而且注意如果为三角形，最后一项为-1，id从0开始 **/ 
+		int** boundary_face,					/* 边界面网格对应的面id，长度为num_boundary_face **/ 
+
+		/* ------------------------- 其他参数 -------------------------**/
+		bool b_output_io_file,					/* 是否将api的输入和输出都输出到文件系统中（仅用于DEBUG）缺省为false **/
+		std::string filename					/* 几何文件名，缺省为virtualmesh **/
 );
 
 int API_Mesh_Optimize(
