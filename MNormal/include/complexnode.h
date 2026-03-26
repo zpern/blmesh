@@ -20,9 +20,10 @@ class ComplexNode:public MultBLNode {
 public:
     /**
     * @brief Construct a new Complex Node object
-    * 
+    *
     */
     ComplexNode();
+
 	/**
 	* @brief return the min asin(visable angle) 0--bad 1--best
 	* @normal the marching direction of node
@@ -47,16 +48,10 @@ public:
 	double visible_angle_;
 	double original_skewness_;
 	int node_id_;
-
+    double highRatio = 1;
 
 
 private:
-
-
 	VirtualSphereMeshGenerator generator_;/// Marching direction must lie on the regio. In geometry, direction must pointer to outer region of model
-
-	
-
-
 };
 #endif

@@ -5,7 +5,7 @@ include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 CHECK_CXX_COMPILER_FLAG("-std=c++14" COMPILER_SUPPORTS_CXX14)
 
-include_directories(./include ./src ../blmesh/include ../BLPre/include/)
+include_directories(./include ./src ../blmesh/include ../BLPre/include/ ../MNormal/include/)
 include_directories(../dtiso3d/third/tetgen)
 
 

@@ -1,6 +1,7 @@
 #include "vmesh.h"
 #include "Config.h"
 #include "blpre.h"
+#include "MNormal_API.h"
 #include "blmeshapi.h"
 #include "../common/singleton_terminate.h"
 #include "../postprocess/postprocess.h"
@@ -146,7 +147,8 @@ namespace TiGER {
 		blconfig.len = dLen;
 		blconfig.use_multiple_normals = false;
 		ControlVolume cv;
-		auto bdyfile = PRE::blpre(input, blconfig, points,cv);
+		auto temp_bdyfile = PRE::blpre(blconfig,input,points);
+		auto bdyfile = PRE::temptransform(temp_bdyfile);
 		VM v = blmesh(bdyfile, blconfig, true, false, true, false, b_output_io_file, sizefunction, expan_beta, nopt);
 		*ppdMNC = v.ppdMNC;
 		*pnMN = v.pnMN;
@@ -381,7 +383,8 @@ namespace TiGER {
 		blconfig.adjacent = bcs[5];
 		blconfig.use_multiple_normals = b_use_multiple_normals;
 		ControlVolume cv;
-		auto bdyfile = PRE::blpre((input), blconfig, points,cv);
+		auto temp_bdyfile = PRE::blpre(blconfig,input,points);
+		auto bdyfile = PRE::temptransform(temp_bdyfile);
 
 		if (checkterminate()) {
 			*ppdMNC = v.ppdMNC;
@@ -481,95 +484,74 @@ namespace TiGER {
 
 	int API_Gen_Boundary_ALM_Mesh(
 		/* ------------------------- 输入参数 --------------------------**/
-		double* pdSNC,						/* 曲面网格节点坐标，coord[3*i], coord[3*i+1], coord[3*i+2]为第i个节点x,y,z坐标 **/
-		int	nSN,							/* 曲面网格边界节点数目 **/
-		int* pnSFFm,						/* 曲面网格单元节点编号 **/
-		int* pnSFTp,						/* 曲面网格单元类型。当前仅支持三角形单元 **/
-		int* pnSFPt,						/* 曲面网格单元所在几何面编号 ,从1开始 **/
-		int	 nSF,							/* 曲面网格单元数目 **/
-		std::map<int, int> pnFT,			/* 几何面类型： 0为远场； 1 为物面； 2为对称面 ,3为不长边界层的面,4为周期性面**/
-		int			nLN,			/* 边界层层数 **/
-		std::vector<int> layer_vec, /* 边界层层数数组 **/
-		int			max_layer_diff, /*相邻网格边界层层数差*/
-		double		dLen,			/* 边界层第一层厚度 **/
-		std::vector<double> length_vec, /* 边界层第一层厚度数组 **/
-		double		dRto,			/* 边界层厚度增长因子 **/
-		std::vector<double>		max_skewness,  /* 等面积偏斜度**/
-		std::vector<double>      max_orth, /* 最大非正交值**/
-		double		bisostop,       /* 各向同性停止**/
-		double     clearance,                                               /* 附面层留空是否留固定距离 **/
+		double* pdSNC,						                       /* 曲面网格节点坐标，coord[3*i], coord[3*i+1], coord[3*i+2]为第i个节点x,y,z坐标 **/
+		int	nSN,							                       /* 曲面网格边界节点数目 **/
+		int* pnSFFm,						                       /* 曲面网格单元节点编号 **/
+		int* pnSFTp,						                       /* 曲面网格单元类型。当前仅支持三角形单元 **/
+		int* pnSFPt,						                       /* 曲面网格单元所在几何面编号 ,从1开始 **/
+		int	 nSF,							                       /* 曲面网格单元数目 **/
+		std::map<int, int> pnFT,			                       /* 几何面类型： 0为远场； 1 为物面； 2为对称面 ,3为不长边界层的面,4为周期性面**/
+		int			nLN,			                               /* 边界层层数 **/
+		std::vector<int> layer_vec,                                /* 边界层层数数组 **/
+		int			max_layer_diff,                                /* 相邻网格边界层层数差*/
+		double		dLen,			                               /* 边界层第一层厚度 **/
+		std::vector<double> length_vec,                            /* 边界层第一层厚度数组 **/
+		double		dRto,			                               /* 边界层厚度增长因子 **/
+		std::vector<double>		max_skewness,                      /* 等面积偏斜度**/
+		std::vector<double>      max_orth,                         /* 最大非正交值**/
+		double		bisostop,                                      /* 各向同性停止**/
+		double     clearance,                                      /* 附面层留空是否留固定距离 **/
+
 		/* ------------------------- 输出参数 -------------------------**/
-		double** ppdMNC,		/* 体网格节点坐标 **/
-		int* pnMN,			/* 体网格节点数目 **/
-		int** ppnMEFm,		/* 体网格单元节点编号 **/
-		int** ppnMETp,		/* 体网格单元类型。当前支持单元类型：三棱柱，金字塔 **/
-		int* pnME,			/* 体网格单元数目 **/
+		double** ppdMNC,	                                       /* 体网格节点坐标 **/
+		int* pnMN,			                                       /* 体网格节点数目 **/
+		int** ppnMEFm,		                                       /* 体网格单元节点编号 **/
+		int** ppnMETp,		                                       /* 体网格单元类型。当前支持单元类型：三棱柱，金字塔 **/
+		int* pnME,			                                       /* 体网格单元数目 **/
+
 		/* ------------------------- 边界层网格顶面层面网格参数 -------------------------**/
-		double** ppdSNC0,		/* 顶面网格节点坐标，coord[3*i], coord[3*i+1], coord[3*i+2]为第i个节点x,y,z坐标 **/
-		int* pnSN0,			/* 顶面网格边界节点数目 **/
-		int* pnSEO,			/* 顶面网格单元数目 **/
-		int** ppnSFTpO,		/* 顶面网格单元类型。当前仅支持三角形单元 **/
-		int** ppnSFFmO,			/* 顶面网格单元节点编号 **/
-		int** l2g,             /*  顶面网格id到全局点id的映射  */
-		double** ppnsizing, /* 顶面网格目标尺寸 */
-		/////* ------------------------- 边界信息 ------------------------- **/ 
-		int* num_boundary_face,  /////* 边界面网格数量 **/ 
-		int** boundary_mesh,  /////* 边界面网格，注意每四个为一组，而且注意如果为三角形，最后一项为-1，id从0开始 **/ 
-		int** boundary_face,  /////* 边界面网格对应的面id，长度为num_boundary_face **/ 
+		double** ppdSNC0,		                                   /* 顶面网格节点坐标，coord[3*i], coord[3*i+1], coord[3*i+2]为第i个节点x,y,z坐标 **/
+		int* pnSN0,			                                       /* 顶面网格边界节点数目 **/
+		int* pnSEO,			                                       /* 顶面网格单元数目 **/
+		int** ppnSFTpO,		                                       /* 顶面网格单元类型。当前仅支持三角形单元 **/
+		int** ppnSFFmO,			                                   /* 顶面网格单元节点编号 **/
+		int** l2g,                                                 /*  顶面网格id到全局点id的映射  **/
+		double** ppnsizing,                                        /* 顶面网格目标尺寸 **/
+
+		/* ------------------------- 边界信息 ------------------------- **/ 
+		int* num_boundary_face,		                               /* 边界面网格数量 **/ 
+		int** boundary_mesh,		                               /* 边界面网格，注意每四个为一组，而且注意如果为三角形，最后一项为-1，id从0开始 **/ 
+		int** boundary_face,		                               /* 边界面网格对应的面id，长度为num_boundary_face **/ 
+
 		/* ------------------------- 其他参数 -------------------------**/
-		bool b_have_pyramid, /* 是否有金字塔 **/
-		bool b_use_multiple_normals, /* 是否启用多法向 缺省为false **/
-		bool b_output_io_file,  /* 是否将api的输入和输出都输出到文件系统中（仅用于DEBUG）缺省为false **/
-		std::string filename,   /* 几何文件名，缺省为virtualmesh **/
-		std::array<double, 12> per_matrix  /* 周期性面控制矩阵,前9位为旋转矩阵 m00，m01，m02 .... ，后三位为位移向量xyz **/
+		bool b_have_pyramid,									   /* 是否有金字塔 **/
+		bool b_use_multiple_normals,                               /* 是否启用多法向 缺省为false **/
+		bool b_output_io_file,									   /* 是否将api的输入和输出都输出到文件系统中（仅用于DEBUG）缺省为false **/
+		std::string filename,									   /* 几何文件名，缺省为virtualmesh **/
+		std::array<double, 12> per_matrix                          /* 周期性面控制矩阵,前9位为旋转矩阵 m00，m01，m02 .... ，后三位为位移向量xyz **/
 	) {
-		tiger::Config cf;
-		cf.SetDefaultConfig();
-		cf.isotropic_stop = 1;
-		cf.dStepLen = dLen;
-		cf.dStepLenRatio = dRto;
-		cf.nLayerNum = nLN;
-		cf.nInitLayerNum_vec = layer_vec;
-		cf.dStepLen_vec = length_vec;
-		cf.sGeoFileName = filename;
+
+		// read input
 		vector<vector<int>> bcs;
 		bcs.resize(10);
-		//vector<int> symm;
-		//vector<int> box;
-		//vector<int> match;
-		//vector<int> per;
 		for (auto i: pnFT) {
 			bcs[i.second].push_back(i.first);
 		}
 
-		cf.vecBoxFc = bcs[0];
-		cf.vecSymmFc = bcs[2];
-		cf.vecMatchFc = bcs[4];
-		cf.vecAdjacentFc = bcs[5];
-		//cf.WriteConfigFile();
-
-		int npt = nSN;
-		int nelm = nSF;
-		//ofstream fout("virtualmesh.pls");
 		stringstream* fout = new stringstream();
-
-
-		*fout << nelm << " " << npt << " " << 0 << " " << 0 << " " << 0 << " " << 0 << endl;
+		*fout << nSF << " " << nSN << " " << 0 << " " << 0 << " " << 0 << " " << 0 << endl;
 
 		std::vector<std::array<double, 3>> points;
-		for (int i = 0; i < npt; i++) {
+		for (int i = 0; i < nSN; i++) {
 			points.push_back(std::array<double, 3>{pdSNC[3 * i + 0], pdSNC[3 * i + 1], pdSNC[3 * i + 2]});
 		}
-		for (int i = 0; i < nelm; i++) {
+		for (int i = 0; i < nSF; i++) {
 			*fout << i + 1 << " " << pnSFFm[3 * i + 0] << " " << pnSFFm[3 * i + 1] << " " << pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
 		}
 
-
-
-
-		//fout.close();
 		string input(fout->str());
 
+		// print BoundaryMeshing
 		if (b_output_io_file) {
 			ofstream ftest("BoundaryMeshing.txt");
 			ftest.setf(ios::fixed, ios::floatfield);  // 设定为 fixed 模式，以小数点表示浮点数
@@ -585,37 +567,49 @@ namespace TiGER {
 				ftest << i.first << " " << i.second << " " << std::endl;;
 			}
 			ftest << "b_use_multiple_normals: " << b_use_multiple_normals << endl;
-			ftest << nelm << " " << npt << " " << endl;
-			for (int i = 0; i < npt; i++) {
+			ftest << nSF << " " << nSN << " " << endl;
+			for (int i = 0; i < nSN; i++) {
 				ftest << i + 1 << " " << pdSNC[3 * i + 0] << " " << pdSNC[3 * i + 1] << " " << pdSNC[3 * i + 2] << endl;
 			}
-			for (int i = 0; i < nelm; i++) {
+			for (int i = 0; i < nSF; i++) {
 				ftest << i + 1 << " " << pnSFFm[3 * i + 1] << " " << pnSFFm[3 * i + 0] << " " << pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
 			}
 
 			ftest.close();
 		}
 
+		//set config
 		blpreConfig blconfig;
 		blconfig.n = nLN;
 		blconfig.Ro = dRto;
 		blconfig.len = dLen;
 		blconfig.layer_vec = layer_vec;
 		blconfig.len_vec = length_vec;
+        blconfig.use_multiple_normals = b_use_multiple_normals;
+        blconfig.max_skewness = max_skewness;
+        blconfig.max_orth = max_orth;
+        blconfig.max_layer_diff = max_layer_diff;
+        blconfig.clearance = clearance;
         blconfig.box = bcs[0];
         blconfig.wall = bcs[1];
         blconfig.symm = bcs[2];
 		blconfig.match = bcs[3];
 		blconfig.per = bcs[4];
 		blconfig.adjacent = bcs[5];
-		blconfig.use_multiple_normals = b_use_multiple_normals;
-		blconfig.max_skewness = max_skewness;
-		blconfig.max_orth = max_orth;
-		blconfig.max_layer_diff = max_layer_diff;
-        blconfig.clearance = clearance;
+
 		ControlVolume cv1;
-		ControlVolume cv2;
-		auto bdyfile = PRE::blpre(input, blconfig, points,cv1,cv2);
+
+
+		auto temp_bdyfile = PRE::blpre(blconfig,input,points);
+
+        if (blconfig.use_multiple_normals) {
+            blconfig.n = 1;
+            MNormal::generateFirstLayer(blconfig, input, points, cv1);
+			blconfig.n = nLN;
+        }
+
+		temp_bdyfile = PRE::blpre(blconfig,input,points);
+        auto bdyfile = PRE::temptransform(temp_bdyfile);
 		delete fout;
 
 		VM v = blmesh(bdyfile, blconfig, false, true, b_have_pyramid, bisostop, b_output_io_file, nullptr, 1.2, 0, per_matrix);
@@ -643,7 +637,7 @@ namespace TiGER {
 
         // 新的节点数组
         std::vector<double> nppdMNC;
-        nppdMNC.reserve((*pnMN + cv1.v.size() + cv2.v.size()) * 3);
+        nppdMNC.reserve((*pnMN + cv1.v.size()) * 3);
 
         // ------------------ 1. 处理原始节点 ------------------
         for (int i = 0; i < *pnMN; i++) {
@@ -677,9 +671,6 @@ namespace TiGER {
         if (!cv1.f.empty()) {
             merge_cv(cv1);
         }
-        if (!cv2.f.empty()) {
-            merge_cv(cv2);
-        }
 
         // 更新节点数量
         *pnMN = static_cast<int>(coord_to_id.size());
@@ -692,8 +683,8 @@ namespace TiGER {
         // ------------------ 3. 合并单元 ------------------
         std::vector<int> nppnMEFm;
         std::vector<int> nppnMETp;
-        nppnMEFm.reserve(6 * (*pnME) + 6 * cv1.f.size() + 6 * cv2.f.size());
-        nppnMETp.reserve(*pnME + cv1.f.size() + cv2.f.size());
+        nppnMEFm.reserve(6 * (*pnME) + 6 * cv1.f.size());
+        nppnMETp.reserve(*pnME + cv1.f.size());
 
         // 拷贝原单元
         int offset = 0;
@@ -739,9 +730,6 @@ namespace TiGER {
 
         if (!cv1.f.empty()) {
             merge_cv_elements(cv1);
-        }
-        if (!cv2.f.empty()) {
-            merge_cv_elements(cv2);
         }
 
         // 更新单元数量
@@ -852,8 +840,6 @@ namespace TiGER {
         blconfig.n = multiple_numlayer;
         blconfig.len = multiple_steplength;
         blconfig.len_vec = len_vec;
-        blconfig.fast_intersection = fast_intersection;
-        blconfig.preMultiple = preMultiple;
         blconfig.box = bcs[0];
         blconfig.wall = bcs[1];
         blconfig.symm = bcs[2];
@@ -863,7 +849,7 @@ namespace TiGER {
 
         ControlVolume cv1;
         ControlVolume cv2;
-        PRE::multiply(blconfig, input, points, cv1, cv2);
+        //MNormal::generateFullLayer(blconfig, input, points, cv1, cv2);
         delete fout;
 
         std::map<std::array<double, 3>, int> coord_to_id;

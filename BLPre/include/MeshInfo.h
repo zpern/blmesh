@@ -1,12 +1,14 @@
 #pragma once
 #include <stdio.h>
 #include <stdlib.h>
+#include <vector>
+#include <array>
 #include <set>
 #include <map>
 
 //#define NULL 0
-#define DIM3 3
 #define DIM2 2
+#define DIM3 3
 #define NEIG_NULL -1
 #define MAX_CONN 4
 
@@ -16,46 +18,58 @@ enum MeshType
 	MESH_3D = 1
 };
 
-typedef struct
+struct Elm
 {
 	int nconn;
 	int conn[MAX_CONN];
 	int neig[MAX_CONN];
 	int igeom;
-}Elm;
+};
 
 class MeshInfo
 {
 public:
-	MeshInfo(MeshType mtType)
-	{
-		m_mtType = mtType;
-		m_pPntidx = NULL;
-		m_pPntElm = NULL;
-		m_pElm = NULL;
-	}
+    MeshInfo(MeshType mtType)
+        : m_mtType(mtType), m_nElm(0), m_nPt(0)
+    {
+    }
 
-	~MeshInfo(void);
-	void RemoveBarePoint(int nPt, int nElm, int *Elm);
-	void Initialize(double* point_array,int nPt, int nElm, int *Elm);
+    ~MeshInfo() = default;
 
+
+    void Initialize(int nPt,
+                    int nElm,
+                    const std::vector<std::array<double, 3>> &point_array,
+                    const std::vector<std::array<int, 4>> &Elm);
     void CheckDuplicateFacesOrThrow();
-	void CalPntElm();
-	void CalElmNeig();
-	bool IsElmEdge(int eidx, int idx1, int idx2, int *pidx);
-	void GetBdryPt(int *npt, int **pt);
-	void GetBdryElm(int *nbdry, int **bdry);
-	void GetBdryElm(int *nbdry, int **bdry, int fidx);
-	int GetNumPoint();
+    void buildPntElm();
+    void buildElmNeig();
+
+    std::vector<int> MeshInfo::getBoundaryPoints() const;
+    std::vector<std::array<int, 2>> MeshInfo::getBoundaryEdges() const;
+    std::vector<std::array<int, 2>> MeshInfo::getBoundaryEdges(int fidx) const;
+
+    static uint64_t edgeKey(int a, int b)
+    {
+        if (a > b) {
+            std::swap(a, b);
+        }
+        return (static_cast<uint64_t>(static_cast<uint32_t>(a)) << 32) | static_cast<uint32_t>(b);
+    }
+
 private:
-	MeshType m_mtType;
-	int *m_pPntidx;
-	int *m_pPntElm;
-	Elm *m_pElm;
-	double *m_ppoint;
-	int m_nElm;
-	int m_nPt;
-	std::set<int> m_setBdryPt;
-	std::multimap<int, int> m_mpaBdryElm;
+    MeshType m_mtType;
+
+    int m_nPt;
+    int m_nElm;
+    std::vector<std::array<double, 3>> m_ppoint;
+    std::vector<Elm> m_pElm;
+
+    std::vector<std::vector<int>> m_pointToElms;
+
+    std::set<int> m_setBdryPt;
+    std::multimap<int, int> m_mpaBdryElm;
+
+
 };
 

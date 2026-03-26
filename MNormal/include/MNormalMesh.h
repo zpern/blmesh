@@ -5,7 +5,6 @@
 #include<string>
 #include <array>
 #include "complexnode.h"
-#include "ChamferBehavior.h"
 #include "./hexa_octree.hpp"   // Uses the previously defined binary tree.
 #include "./hexa_tag.h"        // Provides HexaTag and HexaTagHash.
 #include "./geometry_check.hpp"  // Assumes it contains the declaration for tri_tri_intersect.
@@ -15,40 +14,25 @@ class MNormalMesh {
 public:
 	MNormalMesh() {}
 
-	void SetBehavior(ChamferBehavior& behavior);
-
 	void ReadPlsBuf(std::string f, std::vector<std::array<double, 3>>& points);
-	void ReadPls(string filename="");
+	void FixedLength();
+	void CalculateMultiNormal();
+	void SmoothNormalsSimple(int itertion);
+	void BuildTopo(int faceCount);
 
-	void WriteNorm();
-
+	bool IntersectionCheck(const std::vector<std::array<int, 3>> &lower_ids,
+                                       const std::vector<std::array<double, 3>> &bottom_points,
+                                       int lower_num,
+                                       std::vector<double> &length);
     void pre_WriteVol(std::vector<std::array<double, 3>> &v,std::vector<std::vector<int>> &f,int &lower_num,int &add_point_num);
 	void WriteVol(std::vector<std::array<double, 3>>& v, std::vector<std::vector<int>>& f, int& lower_num,int& add_point_num);
 	void WriteMesh(std::string& f,std::vector<std::array<double, 3>>& points,double d);
 
-    void WriteMem(std::string& f,
-                      std::vector<std::array<double, 3>>& points);
-	void WriteVtk();
-	void WritePls(string filename="");
 
-	/**
-	 * @brief Calculate multiple normal visible graph of each vertex on surfacemesh, which is the core of mesh Chamfer.  
-	 * 
-	 */
-	void CalculateMultiNormal();
-    void SmoothNormalsSimple(int itertion);
-	void PrintVisibilityConeInfo();
-	/**
-	 * @brief stiching the complex node with ordinary node 
-	 * 
-	 */
-	void BuildTopo(int faceCount);
 	
-	/**
-	* @brief Generate only one layer of boundary layer mesh. 
-	* @note This function only can be call after virutal normal generation and virtual topology generation
-	*/
-	void GenerateFirstLayer(double step_len);
+    
+    
+
 public:
 	unsigned int number_of_origin_node;
 	unsigned int number_of_node;
@@ -64,10 +48,8 @@ public:
 	vector<ComplexNode> node_array;
 
 	int number_of_layer;
-    double step_of_length;
 	std::map<std::array<double,3>, double> point_to_length;
     std::vector<double> length;
-    bool fast_intersection = true;
     bool exist_prism =false;
     bool multiplySuccess = true;
     std::vector<int> avoid_spliteNode;
@@ -77,10 +59,6 @@ protected:
 	void CaculateFrontNormal();
 	void CalculateNodeNormal();
 	
-
-
-private:
-	ChamferBehavior behavior_;
 };
 void splite_by_faceID(std::vector<std::array<double, 3>>& point, std::vector<std::array<double, 3>>& point_multiply,
                       std::vector<std::array<double, 3>>& point_nonwall, std::string& f, std::string& f_multiply,

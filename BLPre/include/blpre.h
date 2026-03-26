@@ -7,26 +7,27 @@
 #include <string>
 #include <vector>
 using namespace std;
+
 struct blpreConfig {
     int n;
     double len;
     double Ro;
     std::vector<double> len_vec;
     std::vector<int> layer_vec;
-    vector<int> symm;
-    vector<int> wall;
+    bool use_multiple_normals;
+    int max_layer_diff;
+    double clearance;
+    vector<double> max_skewness;
+    vector<double> max_orth;
+
     vector<int> box;
+    vector<int> wall;
+    vector<int> symm;
     vector<int> match;
     vector<int> per;
     vector<int> adjacent;
-    vector<double> max_skewness;
-    vector<double> max_orth;
-    bool use_multiple_normals;
-    int max_layer_diff;
-    bool fast_intersection = true;
-    bool preMultiple = false;
-    double clearance;
 };
+
 struct ControlVolume {
     std::vector<std::array<double, 3>> v;
     std::vector<std::vector<int>> f;
@@ -34,18 +35,21 @@ struct ControlVolume {
     int lower_point_num;
     int add_point_num;
 };
+
+
 namespace PRE {
-static ControlVolume empty;
-std::tuple<std::string, double *, int *, int *, std::vector<double>> blpre(
-    std::string &f,
-    blpreConfig cf,
-    std::vector<std::array<double, 3>> points = std::vector<std::array<double, 3>>(),
-    ControlVolume &cv1 = empty,
-    ControlVolume &cv2 = empty);
-void multiply(blpreConfig cf,
-              std::string &f,
-              std::vector<std::array<double, 3>> &points,
-              ControlVolume &cv1 = empty,
-              ControlVolume &cv2 = empty);
+std::tuple<
+    std::string,
+    std::vector<std::array<double, 3>>,
+    std::vector<std::array<int, 4>>,
+    std::vector<int>,
+    std::vector<double>> 
+    blpre(blpreConfig cf,std::string &f,std::vector<std::array<double, 3>> points);
+
+std::tuple<std::string, double *, int *, int *, std::vector<double>>temptransform(std::tuple<std::string,
+                                                                                  std::vector<std::array<double, 3>>,
+                                                                                  std::vector<std::array<int, 4>>,
+                                                                                  std::vector<int>,
+                                                                                  std::vector<double>> &in);
 } // namespace PRE
 #endif

@@ -91,7 +91,8 @@ int main(int argc, char* argv[]) {
 	blcf.use_multiple_normals = false;
 	blcf.match = cf.matchfc;
 	blcf.per = cf.perfc;
-	auto ofile = PRE::blpre(smesh, blcf);
+	auto temp_ofile = PRE::blpre(blcf,smesh);
+    auto ofile = PRE::temptransform(temp_ofile);
 	use_multi_normal = false;
 	/*删除内存**/
 	ss.clear();

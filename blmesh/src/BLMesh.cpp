@@ -7363,6 +7363,7 @@ void BLMesh::CreateTriangles(BLFront *blFront, int &itrix)
 
 	return;
 }
+
 void BLMesh::FixHightRatio(BLNode *blNod, MBLNode *pNodes)
 {
 	const auto &node_array = blNod->GetNeigNods();
@@ -7393,7 +7394,7 @@ void BLMesh::SmoothHeightRatio(BLNode *blNod, MBLNode *pNodes)
 	{
 		length += ((BLVector(pNodes[i->GetNodIdx()].coord[0], pNodes[i->GetNodIdx()].coord[1], pNodes[i->GetNodIdx()].coord[2]) + i->GetHeight()) - COORD) * blNod->GetNormal();
 	}
-	double suppose_height = blNod->GetHeightLength() / (1 + blNod->GetHightRatio()) / (1 - blNod->GetFixedHightRatio());
+	double suppose_height = blNod->GetHeightLength() / (1 + blNod->GetHightRatio()) / (1 + blNod->GetFixedHightRatio());
 	double min_dos = 1.0;
 
 	for (auto i : node_array)

@@ -3,7 +3,10 @@ project(MeshChamfer)
 #best opt
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -g")
 #
-set(SOURCEFILE 
+set(SOURCEFILE
+
+
+include/MNormal_API.h 
 include/blvector.h
 include/sphericalCap.h
 include/complexnode.h
@@ -29,6 +32,7 @@ include/mostnormaloptimizer.h
 
 geom/geom_func.h
 
+src/MNormal_API.cpp
 src/combineoptimizer.cpp
 src/mergeoptimizer.cpp
 src/meshevaluation.cpp
@@ -69,7 +73,7 @@ ENDIF()
 message("building MeshChamfer")
 #
 link_directories(${PROJECT_SOURCE_DIR}/../tiger/lib)
-include_directories(./include ./src )
+include_directories(./include ./src ../BLPre/include)
 include_directories(./third/spdlog/include)
 include_directories(${CMAKE_SOURCE_DIR}/extern/spdlog/include)
 add_definitions(-D _CHECK_INTERSECTION)

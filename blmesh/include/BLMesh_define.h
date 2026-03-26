@@ -166,12 +166,12 @@ enum NormalGenMethod {
 };
 
 enum BoundaryType {
-    wall = 0,
-    farfield = 1,
+    farfield = 0,
+    wall = 1,
     symmetry = 2,
-    match = 4,
-    per = 5,
-    adjacent = 6
+    match = 3,
+    per = 4,
+    adjacent = 5
 };
 
 enum PotentialType {
