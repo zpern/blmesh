@@ -82,11 +82,25 @@ void BLMesh::DeleteOctree()
 		m_ocTree = nullptr;
 	}
 }
+void BLMesh::DeleteOctreeSymm()
+{
+
+	if (m_ocAgent_symm)
+	{
+		delete m_ocAgent_symm;
+		m_ocAgent_symm = nullptr;
+	}
+	if (m_ocTree_symm)
+	{
+		delete m_ocTree_symm;
+		m_ocTree_symm = nullptr;
+	}
+}
 BLMesh::~BLMesh(void)
 {
 
 	DeleteOctree();
-
+	DeleteOctreeSymm();
 	FreeMemoryInFrontAndNode();
 
 	if (m_pNodes)
@@ -435,11 +449,11 @@ int BLMesh::SetBoundary(INPUTFORMAT file) {
 				m_vecData.push_back(id);
 				l2g[id] = i;
 			}
-			else{
-				id = m_TriElm.AddElem(element);
-				m_vecData_symm.push_back(id);
-				l2g[id] = i;
-			}
+			//else{
+			//	id = m_TriElm.AddElem(element);
+			//	m_vecData_symm.push_back(id);
+			//	l2g[id] = i;
+			//}
 			
 			//intercnt++;
 		}
@@ -674,7 +688,7 @@ int BLMesh::SetBoundary(INPUTFORMAT file) {
 
 
     // cout << max_depth_;
-    m_ocAgent_symm = new OctreeAgent(m_TriElm, m_pNodes);
+ //   m_ocAgent_symm = new OctreeAgent(m_TriElm, m_pNodes);
 	//m_ocTree_symm = new OCT::Octree(m_ocAgent_symm, max_depth_);
 
 
@@ -1272,7 +1286,7 @@ int BLMesh::ReadBoundary(const INPUTFORMAT file, bool clear)
 	m_ocAgent = new OctreeAgent(m_TriElm, m_pNodes);
 	m_ocTree = new OCT::Octree(m_ocAgent, max_depth_);
 
-	m_ocAgent_symm = new OctreeAgent(m_TriElm, m_pNodes);
+	//m_ocAgent_symm = new OctreeAgent(m_TriElm, m_pNodes);
 	//m_ocTree_symm = new OCT::Octree(m_ocAgent, max_depth_);
 	for (int k = 0; k < 3; k++) {
 		box_max[k] += ave_front_size * 30;
@@ -3879,7 +3893,7 @@ void BLMesh::GenerateBLMesh()
 	PstprecsMergedElm();
 	m_ocTree->printTransferCost();
 	DeleteOctree();
-
+	DeleteOctreeSymm();
 	std::cout.setf(ios::left, ios::adjustfield);
 	std::cout.fill(' ');
 	//spdlog::info(std::setiosflags(ios::left) << std::setfill(' ') );
@@ -4471,13 +4485,11 @@ void BLMesh::CheckInsertSideSuface(BLFront *blFront)
 			break;
 		}
 		//if (!blNods[0]->GetBSys() && !blNods[1]->GetBSys() && !blNods[2]->GetBSys()) {
-		//	m_ocTree_symm->insertPreProcess(itri[k]);
 		//	if (m_ocTree_symm->chckIntersectPreProcess(itri[k]))
 		//	{
 		//		is_inserect = true;
 		//		break;
 		//	}
-		//	m_ocTree_symm->rmDataPreProcess(itri[k]);
 		//}
 	}
 
@@ -4533,7 +4545,7 @@ void BLMesh::CheckInsertSuface(BLFront *blFront)
 			is_inserect = true;
 #ifdef _DEBUG
 			cout << "=====================" << endl;
-			cout << "side inter 1";
+			cout << "side inter wall or far";
 #endif
 			for (i = 0; i < neigs; i++) {
 				inser_queue.push_back(neigFrts[i]);
@@ -4547,7 +4559,7 @@ void BLMesh::CheckInsertSuface(BLFront *blFront)
 //				is_inserect = true;
 //#ifdef _DEBUG
 //				cout << "=====================" << endl;
-//				cout << "side inter 2";
+//				cout << "side inter symm";
 //#endif
 //				for (i = 0; i < neigs; i++) {
 //					inser_queue.push_back(neigFrts[i]);
@@ -4905,19 +4917,19 @@ void BLMesh::PreCheckPrismValid(BLFront *blFront)
     // 1) 先做你原来的“中点”探测（保持到 1.3）
     blocked = probeBlocked(startpos, 0.05, 1.3);
 
-//    // 2) 再对三角形三个顶点分别做 0.7 的探测
-//    if (!blocked) {
-//        for (int i = 0; i < 3; ++i) {
-//            if (probeBlocked(triPos[i], 0.05, 0.7)) {
-//                blocked = true;
-//#ifdef _DEBUG
-//                cout << "forward point id = ";
-//				cout << blNods[i]->GetDecentID() << endl;
-//#endif
-//                break;
-//            }
-//        }
-//    }
+    // 2) 再对三角形三个顶点分别做 0.7 的探测
+    if (!blocked) {
+        for (int i = 0; i < 3; ++i) {
+            if (probeBlocked(triPos[i], 0.05, 0.7)) {
+                blocked = true;
+#ifdef _DEBUG
+                cout << "forward point id = ";
+				cout << blNods[i]->GetDecentID() << endl;
+#endif
+                break;
+            }
+        }
+    }
 
     if (blocked) {
         blFront->is_prism_valid = 0;

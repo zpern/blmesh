@@ -54,6 +54,7 @@ class BLMesh
 public:
 	BLMesh()=delete;
 	void DeleteOctree();
+	void DeleteOctreeSymm();
 	BLMesh(int totalayer, bool bmulti = false, double bisotropic = 0.0)
 		:m_blNxtFList(nullptr), m_blFrontList(nullptr),m_TriElm(), transfer_time(0)
 	{
