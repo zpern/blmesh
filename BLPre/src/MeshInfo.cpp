@@ -93,6 +93,7 @@ void MeshInfo::buildPntElm()
         }
     }
 }
+
 void MeshInfo::buildElmNeig()
 {
 
@@ -110,13 +111,13 @@ void MeshInfo::buildElmNeig()
             int a, b;
             if (dim == 3)
             {
-                a = m_pElm[i].conn[(k + 1) % 3];
-                b = m_pElm[i].conn[(k + 2) % 3];
+                a = m_pElm[i].conn[k % 3];
+                b = m_pElm[i].conn[(k +1) % 3];
             }
             else
             {
-                a = m_pElm[i].conn[(k + 1) % 2];
-                b = m_pElm[i].conn[k];
+                a = m_pElm[i].conn[k];
+                b = m_pElm[i].conn[(k + 1) % 2];
             }
 
             edge2inc[edgeKey(a, b)].push_back({i, k});
@@ -182,18 +183,20 @@ std::vector<int> MeshInfo::getBoundaryPoints() const
 
             if (dim == 2)
             {
-                boundaryPoints.insert(m_pElm[i].conn[(j + 1) % dim]);
+                boundaryPoints.insert(m_pElm[i].conn[j  % dim]);
             }
             else
             {
+                boundaryPoints.insert(m_pElm[i].conn[j  % dim]);
                 boundaryPoints.insert(m_pElm[i].conn[(j + 1) % dim]);
-                boundaryPoints.insert(m_pElm[i].conn[(j + 2) % dim]);
             }
         }
     }
 
     return std::vector<int>(boundaryPoints.begin(), boundaryPoints.end());
 }
+
+//获取每个面的几何边界
 std::vector<std::array<int, 2>> MeshInfo::getBoundaryEdges() const
 {
     const int dim = (m_mtType == MeshType::MESH_3D) ? DIM3 : DIM2;
@@ -206,8 +209,8 @@ std::vector<std::array<int, 2>> MeshInfo::getBoundaryEdges() const
             if (m_pElm[i].neig[j] != NEIG_NULL)
                 continue;
 
-            int a = m_pElm[i].conn[(j + 1) % dim];
-            int b = m_pElm[i].conn[(j + 2) % dim];
+            int a = m_pElm[i].conn[j  % dim];
+            int b = m_pElm[i].conn[(j + 1) % dim];
             if (a > b) std::swap(a, b);
 
             edgeSet.insert({a, b});
@@ -224,6 +227,8 @@ std::vector<std::array<int, 2>> MeshInfo::getBoundaryEdges() const
 
     return edges;
 }
+
+//获取指定几何面的边界
 std::vector<std::array<int, 2>> MeshInfo::getBoundaryEdges(int fidx) const
 {
     const int dim = (m_mtType == MeshType::MESH_3D) ? DIM3 : DIM2;
@@ -239,8 +244,8 @@ std::vector<std::array<int, 2>> MeshInfo::getBoundaryEdges(int fidx) const
             if (m_pElm[i].neig[j] != NEIG_NULL)
                 continue;
 
-            int a = m_pElm[i].conn[(j + 1) % dim];
-            int b = m_pElm[i].conn[(j + 2) % dim];
+            int a = m_pElm[i].conn[j  % dim];
+            int b = m_pElm[i].conn[(j + 1) % dim];
             if (a > b) std::swap(a, b);
 
             edgeSet.insert({a, b});

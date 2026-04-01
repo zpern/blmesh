@@ -675,7 +675,7 @@ int BLMesh::SetBoundary(INPUTFORMAT file) {
 
     // cout << max_depth_;
     m_ocAgent_symm = new OctreeAgent(m_TriElm, m_pNodes);
-	m_ocTree_symm = new OCT::Octree(m_ocAgent_symm, max_depth_);
+	//m_ocTree_symm = new OCT::Octree(m_ocAgent_symm, max_depth_);
 
 
 	for (int k = 0; k < 3; k++) {
@@ -692,7 +692,7 @@ int BLMesh::SetBoundary(INPUTFORMAT file) {
 	cf.min_volumn_eps = ave_front_size * cf.step_len*cf.step_len*1.0 / 6.0*0.1;
 
 	m_ocTree->buildOcTree(m_cbCube, m_vecData, max_obj_);
-	m_ocTree_symm->buildOcTree(m_cbCube, m_vecData_symm, max_obj_);
+	//m_ocTree_symm->buildOcTree(m_cbCube, m_vecData_symm, max_obj_);
 
 	model_centor = (m_cbCube.upper + m_cbCube.lower) / 2;
 	//m_ocTree->saveOCTreeVectorVTK("octree.vtk");
@@ -838,10 +838,10 @@ int BLMesh::SetBoundary(INPUTFORMAT file) {
 	{
 		//fscanf(fin, "%d ", &pidx);
 		*fin >> pidx;
-		m_pBdryPnt[i] = pidx - 1;
+		m_pBdryPnt[i] = pidx;
 
 		//set boundary point flag
-		BLNode *pNod = (BLNode*)m_pNodes[pidx - 1].pointer;
+		BLNode *pNod = (BLNode*)m_pNodes[pidx].pointer;
 		//assert(pNod != nullptr);
 		if (pNod)
 			pNod->SetBdryPt(true);
@@ -1273,7 +1273,7 @@ int BLMesh::ReadBoundary(const INPUTFORMAT file, bool clear)
 	m_ocTree = new OCT::Octree(m_ocAgent, max_depth_);
 
 	m_ocAgent_symm = new OctreeAgent(m_TriElm, m_pNodes);
-	m_ocTree_symm = new OCT::Octree(m_ocAgent, max_depth_);
+	//m_ocTree_symm = new OCT::Octree(m_ocAgent, max_depth_);
 	for (int k = 0; k < 3; k++) {
 		box_max[k] += ave_front_size * 30;
 		box_min[k] -= ave_front_size * 30;
@@ -1288,7 +1288,7 @@ int BLMesh::ReadBoundary(const INPUTFORMAT file, bool clear)
 	cf.min_volumn_eps = ave_front_size * cf.step_len*cf.step_len*1.0 / 6.0*0.1;
 
 	m_ocTree->buildOcTree(m_cbCube, m_vecData, max_obj_);
-	m_ocTree_symm->buildOcTree(m_cbCube, m_vecData_symm, max_obj_);
+	//m_ocTree_symm->buildOcTree(m_cbCube, m_vecData_symm, max_obj_);
 	//m_ocTree->saveOCTreeVectorVTK("octree.vtk");
 	//BFS
 	stack<TreeNode*> q;
@@ -4470,15 +4470,15 @@ void BLMesh::CheckInsertSideSuface(BLFront *blFront)
 			is_inserect = true;
 			break;
 		}
-		if (!blNods[0]->GetBSys() && !blNods[1]->GetBSys() && !blNods[2]->GetBSys()) {
-			m_ocTree_symm->insertPreProcess(itri[k]);
-			if (m_ocTree_symm->chckIntersectPreProcess(itri[k]))
-			{
-				is_inserect = true;
-				break;
-			}
-			m_ocTree_symm->rmDataPreProcess(itri[k]);
-		}
+		//if (!blNods[0]->GetBSys() && !blNods[1]->GetBSys() && !blNods[2]->GetBSys()) {
+		//	m_ocTree_symm->insertPreProcess(itri[k]);
+		//	if (m_ocTree_symm->chckIntersectPreProcess(itri[k]))
+		//	{
+		//		is_inserect = true;
+		//		break;
+		//	}
+		//	m_ocTree_symm->rmDataPreProcess(itri[k]);
+		//}
 	}
 
 	if (is_inserect)
@@ -4541,21 +4541,21 @@ void BLMesh::CheckInsertSuface(BLFront *blFront)
 			inser_queue.push_back(blFront);
 			return;
 		}
-		if (!blNods[0]->GetBSys() && !blNods[1]->GetBSys() && !blNods[2]->GetBSys()) {
-			if (m_ocTree_symm->check_intersection_in_set(blNods[k]->GetUpperNode()->GetNodIdx()))
-			{
-				is_inserect = true;
-#ifdef _DEBUG
-				cout << "=====================" << endl;
-				cout << "side inter 2";
-#endif
-				for (i = 0; i < neigs; i++) {
-					inser_queue.push_back(neigFrts[i]);
-				}
-				inser_queue.push_back(blFront);
-				return;
-			}
-		}
+//		if (!blNods[0]->GetBSys() && !blNods[1]->GetBSys() && !blNods[2]->GetBSys()) {
+//			if (m_ocTree_symm->check_intersection_in_set(blNods[k]->GetUpperNode()->GetNodIdx()))
+//			{
+//				is_inserect = true;
+//#ifdef _DEBUG
+//				cout << "=====================" << endl;
+//				cout << "side inter 2";
+//#endif
+//				for (i = 0; i < neigs; i++) {
+//					inser_queue.push_back(neigFrts[i]);
+//				}
+//				inser_queue.push_back(blFront);
+//				return;
+//			}
+//		}
 
 	}
 }
@@ -4897,7 +4897,7 @@ void BLMesh::PreCheckPrismValid(BLFront *blFront)
 
     // 封装一次探测：从 p + n*a 到 p + n*b
     auto probeBlocked = [&](const BLVector &p, double a, double b) -> bool {
-        return m_ocTree->chckIntersectWithLine(p + up_front_normal * a, p + up_front_normal * b) < 1 || m_ocTree_symm->chckIntersectWithLine(p + up_front_normal * a, p + up_front_normal * (b-0.3)) < 1;
+        return m_ocTree->chckIntersectWithLine(p + up_front_normal * a, p + up_front_normal * b) < 1 /*|| m_ocTree_symm->chckIntersectWithLine(p + up_front_normal * a, p + up_front_normal * (b-0.3)) < 1*/;
     };
 
     bool blocked = false;
@@ -4905,19 +4905,19 @@ void BLMesh::PreCheckPrismValid(BLFront *blFront)
     // 1) 先做你原来的“中点”探测（保持到 1.3）
     blocked = probeBlocked(startpos, 0.05, 1.3);
 
-    // 2) 再对三角形三个顶点分别做 0.7 的探测
-    if (!blocked) {
-        for (int i = 0; i < 3; ++i) {
-            if (probeBlocked(triPos[i], 0.05, 0.7)) {
-                blocked = true;
-#ifdef _DEBUG
-                cout << "forward point id = ";
-				cout << blNods[i]->GetDecentID() << endl;
-#endif
-                break;
-            }
-        }
-    }
+//    // 2) 再对三角形三个顶点分别做 0.7 的探测
+//    if (!blocked) {
+//        for (int i = 0; i < 3; ++i) {
+//            if (probeBlocked(triPos[i], 0.05, 0.7)) {
+//                blocked = true;
+//#ifdef _DEBUG
+//                cout << "forward point id = ";
+//				cout << blNods[i]->GetDecentID() << endl;
+//#endif
+//                break;
+//            }
+//        }
+//    }
 
     if (blocked) {
         blFront->is_prism_valid = 0;
@@ -6050,21 +6050,21 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 				cons[2] = conn[2];
 				tridx = itri[ntri++] = AddTriElem(3, cons);
 				m_ocTree->insertPreProcess(tridx);
-				m_ocTree_symm->insertPreProcess(tridx);
+				//m_ocTree_symm->insertPreProcess(tridx);
 
 				cons[0] = conn[1];
 				cons[1] = idx2;
 				cons[2] = idx;
 				tridx = itri[ntri++] = AddTriElem(3, cons);
 				m_ocTree->insertPreProcess(tridx);
-				m_ocTree_symm->insertPreProcess(tridx);
+				//m_ocTree_symm->insertPreProcess(tridx);
 
 				cons[0] = conn[2];
 				cons[1] = idx;
 				cons[2] = idx1;
 				tridx = itri[ntri++] = AddTriElem(3, cons);
 				m_ocTree->insertPreProcess(tridx);
-				m_ocTree_symm->insertPreProcess(tridx);
+				//m_ocTree_symm->insertPreProcess(tridx);
 			}
 		}
 
@@ -6166,21 +6166,21 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 							cons[2] = conn[2];
 							tridx = itri[ntri++] = AddTriElem(3, cons);
 							m_ocTree->insertPreProcess(tridx);
-							m_ocTree_symm->insertPreProcess(tridx);
+							//m_ocTree_symm->insertPreProcess(tridx);
 
 							cons[0] = conn[1];
 							cons[1] = idx2;
 							cons[2] = idx;
 							tridx = itri[ntri++] = AddTriElem(3, cons);
 							m_ocTree->insertPreProcess(tridx);
-							m_ocTree_symm->insertPreProcess(tridx);
+							//m_ocTree_symm->insertPreProcess(tridx);
 
 							cons[0] = conn[2];
 							cons[1] = idx;
 							cons[2] = idx1;
 							tridx = itri[ntri++] = AddTriElem(3, cons);
 							m_ocTree->insertPreProcess(tridx);
-							m_ocTree_symm->insertPreProcess(tridx);
+							//m_ocTree_symm->insertPreProcess(tridx);
 						}
 					}
 				}
@@ -6191,7 +6191,7 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 		for (int j = 0; j < ntri; j++)
 		{
 			if (!ret)
-				ret = m_ocTree->chckIntersectPreProcess(itri[j]) || m_ocTree_symm->chckIntersectPreProcess(itri[j]);
+				ret = m_ocTree->chckIntersectPreProcess(itri[j]) /*|| m_ocTree_symm->chckIntersectPreProcess(itri[j])*/;
 
 
 		}
@@ -6207,7 +6207,7 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 			for (int k = 0; k < ntri; k++)
 			{
 				m_ocTree->rmDataPreProcess(itri[k]);
-				m_ocTree_symm->rmDataPreProcess(itri[k]);
+				//m_ocTree_symm->rmDataPreProcess(itri[k]);
 			}
 
 			//m_ocTree->insert(ft->GetTriIdx(), m_ocTree->getRootNode(), m_cbCube);
@@ -7394,7 +7394,7 @@ void BLMesh::SmoothHeightRatio(BLNode *blNod, MBLNode *pNodes)
 	{
 		length += ((BLVector(pNodes[i->GetNodIdx()].coord[0], pNodes[i->GetNodIdx()].coord[1], pNodes[i->GetNodIdx()].coord[2]) + i->GetHeight()) - COORD) * blNod->GetNormal();
 	}
-	double suppose_height = blNod->GetHeightLength() / (1 + blNod->GetHightRatio()) / (1 + blNod->GetFixedHightRatio());
+	double suppose_height = blNod->GetHeightLength() / (1 + blNod->GetHightRatio()) / (1 - blNod->GetFixedHightRatio());
 	double min_dos = 1.0;
 
 	for (auto i : node_array)
@@ -10085,8 +10085,10 @@ void BLMesh::RmvUperNeigFrontsAndFreeNode(BLNode *blNod)
 			for (j = 0; j < nNeig; j++)
 			{
 				neiFts[j]->RmvNeigbourFronts(bluFt);
-				if(neiFts[j]->GetLowerFront())
-				scheck.insert(neiFts[j]->GetLowerFront());
+				if(neiFts[j]->GetLowerFront()){
+					BLFront* lower = neiFts[j]->GetLowerFront();
+                    lower->GetNodes(&nNod, blNods);
+				scheck.insert(neiFts[j]->GetLowerFront());}
 			}
 
 			//remove node information

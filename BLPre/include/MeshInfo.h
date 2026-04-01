@@ -10,7 +10,7 @@
 #define DIM2 2
 #define DIM3 3
 #define NEIG_NULL -1
-#define MAX_CONN 4
+#define MAX_CONN 3
 
 enum MeshType
 {

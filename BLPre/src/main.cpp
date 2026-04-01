@@ -238,18 +238,6 @@ char config[FILENAMESIZE];
 #define EXPIRED_LICENSE        2
 #define INCORRECT_SYSTEM_TIME  3
 #define _CONFIG_FILE
-struct ConfigArgc {
-    char filenam[1024]; // the project name
-    int layer_num;
-    double step_len;
-    double ratio;
-    std::vector<int> matchfc;
-    std::vector<int> boxfc;
-    std::vector<int> symfc;
-    std::vector<int> adjacent;
-    std::map<int, double> lnsize;
-    std::map<int, double> fcsize;
-};
 
 double *pt = NULL;
 int *elm = NULL, npt, nelm, *idx, *pelem;
@@ -295,7 +283,7 @@ std::tuple<
     std::vector<std::array<double, 2>> bc(nelm);
     std::vector<int> wbc(nelm);
 
-    // store symm
+    // print symm
     if (symm.size()) {
         cout << "symm face";
         for (auto i : symm) {
@@ -447,6 +435,7 @@ std::tuple<
         }
 
         nTtlSymBdry += nSymBdry[fcnt];
+
         ++fcnt;
     }
 
@@ -475,7 +464,7 @@ std::tuple<
     }
 
     for (i = 0; i < bdryPt.size(); i++) {
-        fout << bdryPt[i] + 1 << " ";
+        fout << bdryPt[i] << " ";
         if ((i + 1) % 10 == 0) {
             fout << endl;
         }
@@ -487,6 +476,7 @@ std::tuple<
 
     return std::make_tuple(fout.str(), pt, elm, wbc, sym_coord);
 }
+
 
 
 std::tuple<
