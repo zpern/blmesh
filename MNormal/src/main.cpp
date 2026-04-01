@@ -47,14 +47,9 @@ int main(int argc, char **argv)
 
     // read logo from file
 
-    ChamferBehavior behavior;
     CLI::App app{"MeshChamfer"};
     app.description(
         "A plane mesh is processed to make it suitable for multi-normal boundary mesh generation.");
-    app.add_option("-i",
-                   behavior.input_filename,
-                   "input filename. (string, required, supported format: vtk, mesh, pls, obj)")
-        ->required();
 
     /// prase the input command by CLI
     try {
@@ -65,16 +60,13 @@ int main(int argc, char **argv)
     cout << "================================================================" << endl;
     cout << GREEN << "Mesh Chamfer, a solution for mutiple normal generation." << RESET
          << std::endl;
-    cout << GREEN << "Input Name:  	" << RESET << behavior.input_filename << endl;
-    cout << GREEN << "Output Name:	" << RESET << behavior.getOutputName(".pls") << endl;
     cout << "================================================================" << endl;
 
     spdlog::info("Reading the model!");
 
     /// read input and generate initial visibility graph
     MNormalMesh chamfer; // create one chamfer
-    chamfer.SetBehavior(behavior);
-    chamfer.ReadPls();
+    // chamfer.ReadPls();
     spdlog::info("Done!");
 
     chamfer.CalculateMultiNormal();
@@ -82,10 +74,10 @@ int main(int argc, char **argv)
     chamfer.BuildTopo(faceCount);
 
     spdlog::info("Handling output mesh!");
-    chamfer.WritePls();
-    chamfer.WriteVtk();
-    chamfer.WriteNorm();
-    chamfer.GenerateFirstLayer(0.01);
+    // chamfer.WritePls();
+    // chamfer.WriteVtk();
+    // chamfer.WriteNorm();
+    // chamfer.GenerateFirstLayer(0.01);
 
     spdlog::info("Job Finished.");
 }
