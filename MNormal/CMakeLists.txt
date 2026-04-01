@@ -21,7 +21,6 @@ include/BoundaryTriangulation.h
 include/common.h
 include/Splitter.h
 include/VirtualSphereMeshStrategy.h
-include/ChamferBehavior.h
 include/AbstractOptimizer.h
 include/TopologyOptimizer.h
 include/PointOptimizer.h
