@@ -1,41 +1,39 @@
 #pragma once
+#include <array>
+#include <cstdint>
+#include <map>
+#include <set>
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
-#include <array>
-#include <set>
-#include <map>
 
-//#define NULL 0
-#define DIM2 2
-#define DIM3 3
+// #define NULL 0
+#define DIM2      2
+#define DIM3      3
 #define NEIG_NULL -1
-#define MAX_CONN 3
+#define MAX_CONN  3
 
-enum MeshType
-{
-	MESH_2D = 0,
-	MESH_3D = 1
+enum MeshType {
+    MESH_2D = 0,
+    MESH_3D = 1
 };
 
-struct Elm
-{
-	int nconn;
-	int conn[MAX_CONN];
-	int neig[MAX_CONN];
-	int igeom;
+struct Elm {
+    int nconn;
+    int conn[MAX_CONN];
+    int neig[MAX_CONN];
+    int igeom;
 };
 
-class MeshInfo
-{
+class MeshInfo {
 public:
     MeshInfo(MeshType mtType)
-        : m_mtType(mtType), m_nElm(0), m_nPt(0)
-    {
-    }
+        : m_mtType(mtType)
+        , m_nElm(0)
+        , m_nPt(0)
+    {}
 
     ~MeshInfo() = default;
-
 
     void Initialize(int nPt,
                     int nElm,
@@ -69,7 +67,4 @@ private:
 
     std::set<int> m_setBdryPt;
     std::multimap<int, int> m_mpaBdryElm;
-
-
 };
-
