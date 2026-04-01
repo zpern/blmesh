@@ -1,24 +1,23 @@
-﻿
+
+#include "MeshInfo.h"
+#include "blpre.h"
+#include <algorithm>
+#include <array>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <math.h>
+#include <set>
+#include <spdlog/spdlog.h>
+#include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
-#include <set>
 #include <vector>
-#include <algorithm>
-#include <iostream>
-#include <fstream>
-#include <spdlog/spdlog.h> 
- #include "MeshInfo.h"
-#include "../MNormal/include/MNormalMesh.h"
-#include "blpre.h"
-#include<iomanip>
-#include <sstream>
-#include <array>
 using namespace std;
 int *pntidx = NULL, *pntelm = NULL;
 
-#define min(a,b)    (((a) < (b)) ? (a) : (b))
+#define min(a, b) (((a) < (b)) ? (a) : (b))
 namespace PRE {
 void setpntelm(int npt, int nElm, int *pElm)
 {
@@ -242,14 +241,12 @@ char config[FILENAMESIZE];
 double *pt = NULL;
 int *elm = NULL, npt, nelm, *idx, *pelem;
 
-std::tuple<
-    std::string,
-    std::vector<std::array<double, 3>>,
-    std::vector<std::array<int, 4>>,
-    std::vector<int>,
-    std::vector<double>> blpre(blpreConfig blcf,
-                               std::string &f,
-                               std::vector<std::array<double, 3>> points)
+std::tuple<std::string,
+           std::vector<std::array<double, 3>>,
+           std::vector<std::array<int, 4>>,
+           std::vector<int>,
+           std::vector<double>>
+blpre(blpreConfig blcf, std::string &f, std::vector<std::array<double, 3>> points)
 {
     int n = blcf.n;
     double len = blcf.len;
@@ -326,8 +323,7 @@ std::tuple<
 
         if (iterBox != box.end()) {
             wbc[i] = 0;
-        } 
-        else if (iterSym != symm.end()) {
+        } else if (iterSym != symm.end()) {
             wbc[i] = 2;
 
             mapFaceElms.insert({fi, i});
@@ -335,14 +331,11 @@ std::tuple<
             if (iterPer != per_face.end()) {
                 wbc[i] = 5;
             }
-        } 
-        else if (iterMatch != match.end()) {
+        } else if (iterMatch != match.end()) {
             wbc[i] = 3;
-        } 
-        else if (iterAdjacent != adjacent_face.end()) {
+        } else if (iterAdjacent != adjacent_face.end()) {
             wbc[i] = 5;
-        } 
-        else {
+        } else {
             wbc[i] = 1;
         }
     }
@@ -359,7 +352,8 @@ std::tuple<
 
     // 对称面信息 需要和blmesh中setboundary一起修改，都是无用工
     std::vector<int> nSymBdry(symm.size(), 0);
-    std::vector<std::vector<int>> pSymBdry(symm.size()); // 每个对称面存成扁平数组：[p0,p1,p0,p1,...]
+    std::vector<std::vector<int>> pSymBdry(
+        symm.size()); // 每个对称面存成扁平数组：[p0,p1,p0,p1,...]
     std::vector<int> pSymFidx(symm.size(), -1);
     std::vector<int> symaxis(symm.size(), 3);
     std::vector<double> symcoord(symm.size(), 0.0);
@@ -442,7 +436,8 @@ std::tuple<
     std::vector<double> sym_coord;
     sym_coord.reserve(symm.size());
 
-    fout << nelm << " " << npt << " " << symm.size() << " " << nTtlSymBdry << " " << bdryPt.size() << endl;
+    fout << nelm << " " << npt << " " << symm.size() << " " << nTtlSymBdry << " " << bdryPt.size()
+         << endl;
 
     nmptit = nmpts.begin();
     int i = 0;
@@ -477,29 +472,22 @@ std::tuple<
     return std::make_tuple(fout.str(), pt, elm, wbc, sym_coord);
 }
 
-
-
-std::tuple<
-    std::string,
-    double*,
-    int*,
-    int*,
-    std::vector<double>> temptransform(std::tuple<
-                                       std::string,
-                                       std::vector<std::array<double, 3>>,
-                                       std::vector<std::array<int, 4>>,
-                                       std::vector<int>,
-                                       std::vector<double>>& in)
+std::tuple<std::string, double *, int *, int *, std::vector<double>> temptransform(
+    std::tuple<std::string,
+               std::vector<std::array<double, 3>>,
+               std::vector<std::array<int, 4>>,
+               std::vector<int>,
+               std::vector<double>> &in)
 {
-    const auto& outstr    = std::get<0>(in);
-    const auto& pt        = std::get<1>(in);
-    const auto& elm       = std::get<2>(in);
-    const auto& wbc       = std::get<3>(in);
-    const auto& sym_coord = std::get<4>(in);
+    const auto &outstr = std::get<0>(in);
+    const auto &pt = std::get<1>(in);
+    const auto &elm = std::get<2>(in);
+    const auto &wbc = std::get<3>(in);
+    const auto &sym_coord = std::get<4>(in);
 
-    double* pt_raw = nullptr;
-    int* elm_raw = nullptr;
-    int* wbc_raw = nullptr;
+    double *pt_raw = nullptr;
+    int *elm_raw = nullptr;
+    int *wbc_raw = nullptr;
 
     try {
         // pt: vector<array<double,3>> -> double*
@@ -524,8 +512,7 @@ std::tuple<
         for (size_t i = 0; i < wbc.size(); ++i) {
             wbc_raw[i] = wbc[i];
         }
-    }
-    catch (...) {
+    } catch (...) {
         delete[] pt_raw;
         delete[] elm_raw;
         delete[] wbc_raw;
@@ -534,5 +521,4 @@ std::tuple<
 
     return std::make_tuple(outstr, pt_raw, elm_raw, wbc_raw, sym_coord);
 }
-}
-
+} // namespace PRE
