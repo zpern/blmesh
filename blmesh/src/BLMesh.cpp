@@ -229,7 +229,7 @@ double BLMesh::GetAvergeLayer()
   *  @see    ReadBoundary(string filename)
 
   */
-#pragma optimize("",off);
+
 int BLMesh::SetBoundary(INPUTFORMAT file) {
 
 
@@ -940,7 +940,7 @@ int BLMesh::SetBoundary(INPUTFORMAT file) {
 	}
 	return 0;
 }
-#pragma optimize("",on);
+
 int BLMesh::ReadBoundary(const INPUTFORMAT file, bool clear)
 {
 
