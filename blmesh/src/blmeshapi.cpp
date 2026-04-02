@@ -67,6 +67,7 @@ void main(int argc, char* argv[]) {
     cf.max_skewness = blconfig.max_skewness;
     cf.max_orth = blconfig.max_orth;
     cf.max_layer_diff = blconfig.max_layer_diff;
+    cf.max_ratio_diff = blconfig.max_ratio_diff;
     cf.iscompresslen = false;
     cf.clearance = blconfig.clearance;
 #ifdef _DEBUG

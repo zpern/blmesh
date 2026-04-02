@@ -6160,7 +6160,8 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 								thick *= pow(cf.ratio2 / cf.ratio1, min(ptr->GetLayerNum(), cf.layer_ratio) - layer);
 							}
 							double thick_total = thick;
-							while (thick_total < blFront->GetMinFrontSize() * MAX_DIFF_RATIO)
+                            while (thick_total <
+                                   blFront->GetMinFrontSize()* cf.max_ratio_diff);
 							{
 								if (layer + k - 1 < cf.layer_ratio)
 									thick *= cf.ratio1;

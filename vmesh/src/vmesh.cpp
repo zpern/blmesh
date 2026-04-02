@@ -494,6 +494,7 @@ namespace TiGER {
 		int			nLN,			                               /* 边界层层数 **/
 		std::vector<int> layer_vec,                                /* 边界层层数数组 **/
 		int			max_layer_diff,                                /* 相邻网格边界层层数差*/
+		double      max_ratio_diff,                                /* 边界层相邻层金字塔高度尺寸比 **/
 		double		dLen,			                               /* 边界层第一层厚度 **/
 		std::vector<double> length_vec,                            /* 边界层第一层厚度数组 **/
 		double		dRto,			                               /* 边界层厚度增长因子 **/
@@ -561,6 +562,7 @@ namespace TiGER {
 			ftest << "dRto: " << dRto << endl;
 			ftest << "max_prism_skewness: " << max_skewness[0] << endl;
 			ftest << "max_pyramid_skewness: " << max_skewness[1] << endl;
+            ftest << "max_ratio_diff: " << max_ratio_diff << endl;
 			ftest << "bisostop: " << bisostop << endl;
 			ftest << "boundary_info: " << endl;
 			for (auto i : pnFT) {
@@ -572,7 +574,7 @@ namespace TiGER {
 				ftest << i + 1 << " " << pdSNC[3 * i + 0] << " " << pdSNC[3 * i + 1] << " " << pdSNC[3 * i + 2] << endl;
 			}
 			for (int i = 0; i < nSF; i++) {
-				ftest << i + 1 << " " << pnSFFm[3 * i + 1] << " " << pnSFFm[3 * i + 0] << " " << pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
+				ftest << i + 1 << " " << pnSFFm[3 * i + 0] << " " << pnSFFm[3 * i + 1] << " " << pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
 			}
 
 			ftest.close();
@@ -589,6 +591,7 @@ namespace TiGER {
         blconfig.max_skewness = max_skewness;
         blconfig.max_orth = max_orth;
         blconfig.max_layer_diff = max_layer_diff;
+        blconfig.max_ratio_diff = max_ratio_diff;
         blconfig.clearance = clearance;
         blconfig.box = bcs[0];
         blconfig.wall = bcs[1];

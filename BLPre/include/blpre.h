@@ -16,6 +16,7 @@ struct blpreConfig {
     std::vector<int> layer_vec;
     bool use_multiple_normals;
     int max_layer_diff;
+    double max_ratio_diff;
     double clearance;
     vector<double> max_skewness;
     vector<double> max_orth;

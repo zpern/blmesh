@@ -16,7 +16,10 @@
 #include "blpre.h"
 //#define MEMORY_DEBUG //on - check memory leak  default off
 //#define VIRTUAL_MESH
-//#define USE_MEMORY_POOL //on-use memory pool ,but still has bug
+#ifdef _WIN32
+#define USE_MEMORY_POOL //on-use memory pool ,but still has bug
+#endif
+    
 #define APIFUNC
 //#define OUTPUT_SPERATELY
 #define CHECK_SKEWNWSS
@@ -50,7 +53,7 @@
 #define VERSION "2.0"
 
 //multi-pyramid option
-#define MAX_DIFF_RATIO 0.25 //define the max height of pyramid height/prism length
+
 #define MIN_LAYER 5
 
 
