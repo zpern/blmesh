@@ -329,7 +329,7 @@ blpre(blpreConfig blcf, std::string &f, std::vector<std::array<double, 3>> point
             mapFaceElms.insert({fi, i});
 
             if (iterPer != per_face.end()) {
-                wbc[i] = 5;
+                wbc[i] = 4;
             }
         } else if (iterMatch != match.end()) {
             wbc[i] = 3;

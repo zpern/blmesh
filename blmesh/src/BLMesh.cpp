@@ -85,16 +85,16 @@ void BLMesh::DeleteOctree()
 void BLMesh::DeleteOctreeSymm()
 {
 
-	if (m_ocAgent_symm)
-	{
-		delete m_ocAgent_symm;
-		m_ocAgent_symm = nullptr;
-	}
-	if (m_ocTree_symm)
-	{
-		delete m_ocTree_symm;
-		m_ocTree_symm = nullptr;
-	}
+	//if (m_ocAgent_symm)
+	//{
+	//	delete m_ocAgent_symm;
+	//	m_ocAgent_symm = nullptr;
+	//}
+	//if (m_ocTree_symm)
+	//{
+	//	delete m_ocTree_symm;
+	//	m_ocTree_symm = nullptr;
+	//}
 }
 BLMesh::~BLMesh(void)
 {
@@ -229,7 +229,7 @@ double BLMesh::GetAvergeLayer()
   *  @see    ReadBoundary(string filename)
 
   */
-
+#pragma optimize("",off);
 int BLMesh::SetBoundary(INPUTFORMAT file) {
 
 
@@ -940,7 +940,7 @@ int BLMesh::SetBoundary(INPUTFORMAT file) {
 	}
 	return 0;
 }
-
+#pragma optimize("",on);
 int BLMesh::ReadBoundary(const INPUTFORMAT file, bool clear)
 {
 
@@ -2789,7 +2789,7 @@ int BLMesh::AddNode(BLVector pnt, double space)
 		//intersection
 		if (m_ocAgent)
 			m_ocAgent->setNod(m_pNodes);
-			m_ocAgent_symm->setNod(m_pNodes);
+			//m_ocAgent_symm->setNod(m_pNodes);
 			//end of intersection
 #endif
 	}
