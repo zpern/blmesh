@@ -447,6 +447,7 @@ public:
 	std::unordered_set<int> insert_container;
 	std::unordered_set<int> rm_container;
 	std::unordered_set<BLFront*> scheck;/// ???
+	std::unordered_set<BLFront*> deleted_fronts_;
 	std::unordered_set<int> new_inserted;
 	deque<BLFront*> inser_queue;
 	void insertSymFace(pair<int, int> p);

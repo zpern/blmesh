@@ -4544,8 +4544,7 @@ void BLMesh::CheckInsertSuface(BLFront *blFront)
 		{
 			is_inserect = true;
 #ifdef _DEBUG
-			cout << "=====================" << endl;
-			cout << "side inter wall or far";
+			cout << "side inter wall or far"<<endl;
 #endif
 			for (i = 0; i < neigs; i++) {
 				inser_queue.push_back(neigFrts[i]);
@@ -5961,42 +5960,47 @@ bool BLMesh::CheckPyramidOrth(double coordinates[][3], double neighcenter[3])
 }
 bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 {
-	int nNods, i, j, tridx, ntri, itri[9], nlNods;
-	BLNode *blNods[MAX_FRONT_NODES], *blNod;
-	int nflt, nnods, inei, conn[MAX_NCONN];
-	BLFront *blFrnts[DIM3], *blLowerFrt = nullptr;
-	BLNode *blnds[MAX_FRONT_NODES], *blLoNods[MAX_FRONT_NODES];
-	bool bstop = false, bcrepramid, ret = false;
-
+    int nNods, ntri=0;
+	int nlowNods;
+    int nnods;                                    // 邻接面点数
+    int inei;                                     // 当前正在使用的点i
+    int tridx, itri[9];
+    int conn[MAX_NCONN];
+	BLNode *blNods[MAX_FRONT_NODES], *blLowNods[MAX_FRONT_NODES], *blLownNods[MAX_FRONT_NODES];
+	BLNode *blNod;
+	BLFront *blLowFrt = nullptr;
+    bool bstop, bcrepramid;
+	bool ret = false;
+	
+	//Get nods and front
 	blFront->GetNodes(&nNods, blNods);
+	blLowFrt = blFront->GetLowerFront(); //下一层的front
 
-	ntri = 0;
-	//check neighbor fronts stopping flag
-	blLowerFrt = blFront->GetLowerFront(); //下一层的front
-	if (blLowerFrt != nullptr)
+	if (blLowFrt != nullptr)
 	{
 		int idx1, idx2,idx3,idx = 0;
-
-		auto &blFrnts = (blLowerFrt)->m_arrNeigFronts;
-		blLowerFrt->GetNodes(&nlNods, blLoNods);
+		auto &blLowNeigFrnts = (blLowFrt)->m_arrNeigFronts;
+		blLowFrt->GetNodes(&nlowNods, blLowNods);
 		bool used[3] = {false};
-		for (i = 0; i < blLowerFrt->m_nNeiFront; i++)
+
+		for (int i = 0; i < blLowFrt->m_nNeiFront; i++)
 		{
 			bcrepramid = false;
 			bstop = false;
+			BLFront *neig_front = blLowNeigFrnts[i];
 
-			BLFront *neig_front = blFrnts[i];
-
-			NeighIdx(blLowerFrt, neig_front, &inei);
+			//寻找neig不包含的那个点
+			NeighIdx(blLowFrt, neig_front, &inei);
 			used[inei] = true;
+
 			idx1 = blNods[(inei + 1) % DIM3]->GetLowerNode()->GetNodIdx();
 			idx2 = blNods[(inei + 2) % DIM3]->GetLowerNode()->GetNodIdx();
-			idx3 = blNods[(inei + 2) % DIM3]->GetLowerNode()->GetNodIdx();
-			neig_front->GetNodes(&nnods, blnds);
-
+			idx3 = blNods[(inei + 3) % DIM3]->GetLowerNode()->GetNodIdx();
+			
+			neig_front->GetNodes(&nnods, blLownNods);
 			for (int j = 0; j < nnods; j++)
 			{
-				blNod = blnds[j];
+				blNod = blLownNods[j];
 				if (blNod->GetNodIdx() != idx1 && blNod->GetNodIdx() != idx2)
 					idx = blNod->GetNodIdx();
 
@@ -6011,32 +6015,32 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 			if (bcrepramid)
 			{
 				//create a new mesh element
-				conn[0] = idx1;
-				conn[1] = blNods[(inei + 2) % DIM3]->GetNodIdx();
-				conn[2] = blNods[(inei + 1) % DIM3]->GetNodIdx();
-				conn[3] = idx2;
-				conn[4] = idx;
-				conn[5] = idx3;
-				conn[6] = blNods[(inei + 3) % DIM3]->GetNodIdx();
+                conn[0] = idx;                                          //下层邻接面不相交点
+                conn[1] = idx1;                                         //邻接1号点
+                conn[2] = idx2;                                         //邻接2号点 
+                conn[3] = idx3;                                         //下层本面不相交点
+                conn[4] = blNods[(inei + 1) % DIM3]->GetNodIdx();       //上层本面1号点
+                conn[5] = blNods[(inei + 2) % DIM3]->GetNodIdx();       //上层本面2号点
+                conn[6] = blNods[(inei + 3) % DIM3]->GetNodIdx();       //上层本面不相交点
 #ifdef CHECK_VOLUMN
 				//volumn
 				double coordp[5][3];
                 double neighCenter[3] = {0};
 				for (int k = 0; k < 3; k++)
 				{
-					coordp[0][k] = m_pNodes[conn[0]].coord[k];
-					coordp[1][k] = m_pNodes[conn[2]].coord[k];
-					coordp[2][k] = m_pNodes[conn[1]].coord[k];
-					coordp[3][k] = m_pNodes[conn[3]].coord[k];
-					coordp[4][k] = m_pNodes[conn[4]].coord[k];
+					coordp[0][k] = m_pNodes[conn[1]].coord[k];
+					coordp[1][k] = m_pNodes[conn[4]].coord[k];
+					coordp[2][k] = m_pNodes[conn[5]].coord[k];
+					coordp[3][k] = m_pNodes[conn[2]].coord[k];
+					coordp[4][k] = m_pNodes[conn[0]].coord[k];
 				}
 				for (int k = 0; k < 3; k++) {
-                    neighCenter[k] +=  m_pNodes[conn[0]].coord[k];
-					neighCenter[k] +=  m_pNodes[conn[1]].coord[k];
+                    neighCenter[k] +=  m_pNodes[conn[1]].coord[k];
 					neighCenter[k] +=  m_pNodes[conn[2]].coord[k];
 					neighCenter[k] +=  m_pNodes[conn[3]].coord[k];
+					neighCenter[k] +=  m_pNodes[conn[4]].coord[k];
 					neighCenter[k] +=  m_pNodes[conn[5]].coord[k];
-					neighCenter[k] +=  m_pNodes[conn[6]].coord[k];
+					neighCenter[k] +=  m_pNodes[conn[5]].coord[k];
                     neighCenter[k] /= 6;
 				}
 
@@ -6049,31 +6053,28 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 #endif // DEBUG
 				}
 
-				if (!CheckPyramidSkewness(coordp))
+				if (!CheckPyramidSkewness(coordp) || !CheckPyramidOrth(coordp,neighCenter))
 					ret = true;
-                if (!CheckPyramidOrth(coordp,neighCenter)) {
-                    ret = true;
-                }
 #endif
 
-				int cons[3], ii;
-				cons[0] = conn[1];
-				cons[1] = idx;
-				cons[2] = conn[2];
+				int cons[3];
+				cons[0] = conn[0];
+                cons[1] = conn[1];
+				cons[2] = conn[4];
 				tridx = itri[ntri++] = AddTriElem(3, cons);
 				m_ocTree->insertPreProcess(tridx);
 				//m_ocTree_symm->insertPreProcess(tridx);
 
-				cons[0] = conn[1];
-				cons[1] = idx2;
-				cons[2] = idx;
+				cons[0] = conn[0];
+				cons[1] = conn[2];
+				cons[2] = conn[5];
 				tridx = itri[ntri++] = AddTriElem(3, cons);
 				m_ocTree->insertPreProcess(tridx);
 				//m_ocTree_symm->insertPreProcess(tridx);
 
-				cons[0] = conn[2];
-				cons[1] = idx;
-				cons[2] = idx1;
+				cons[0] = conn[0];
+				cons[1] = conn[4];
+				cons[2] = conn[5];
 				tridx = itri[ntri++] = AddTriElem(3, cons);
 				m_ocTree->insertPreProcess(tridx);
 				//m_ocTree_symm->insertPreProcess(tridx);
@@ -6082,6 +6083,7 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 
 		if (cf.max_layer_diff!= 1)
 		{
+			int i;
 			for (i = 0; i < 3; i++)
 			{
 				if (blNods[i]->GetBSys())
@@ -6099,20 +6101,20 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 						used[inei] = true;
 						idx1 = blNods[(inei + 1) % DIM3]->GetLowerNode()->GetNodIdx();
 						idx2 = blNods[(inei + 2) % DIM3]->GetLowerNode()->GetNodIdx();
-						idx3 = blNods[(inei + 2) % DIM3]->GetLowerNode()->GetNodIdx();
-						idx = blLowerFrt->ps.node_idx[inei];
-						int layer = blLowerFrt->ps.exposed_layer[inei];
+						idx3 = blNods[(inei + 3) % DIM3]->GetLowerNode()->GetNodIdx();
+						idx = blLowFrt->ps.node_idx[inei];
+						int layer = blLowFrt->ps.exposed_layer[inei];
 						int sum = 0;
 
 						if (bcrepramid)
 						{
 							//create a new mesh element
-							conn[0] = idx1;
-							conn[1] = blNods[(inei + 2) % DIM3]->GetNodIdx();
-							conn[2] = blNods[(inei + 1) % DIM3]->GetNodIdx();
-							conn[3] = idx2;
-							conn[4] = idx;
-                            conn[5] = idx3;
+							conn[0] = idx;
+							conn[1] = idx1;
+							conn[2] = idx2;
+							conn[3] = idx3;
+							conn[4] = blNods[(inei + 1) % DIM3]->GetNodIdx();
+                            conn[5] = blNods[(inei + 2) % DIM3]->GetNodIdx();
                             conn[6] = blNods[(inei + 3) % DIM3]->GetNodIdx();
 #ifdef CHECK_VOLUMN
 							//volumn
@@ -6120,17 +6122,17 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 							double neighCenter[3] = {0};
 							for (int k = 0; k < 3; k++)
 							{
-								coordp[0][k] = m_pNodes[conn[0]].coord[k];
-								coordp[1][k] = m_pNodes[conn[2]].coord[k];
-								coordp[2][k] = m_pNodes[conn[1]].coord[k];
-								coordp[3][k] = m_pNodes[conn[3]].coord[k];
-								coordp[4][k] = m_pNodes[conn[4]].coord[k];
+								coordp[0][k] = m_pNodes[conn[1]].coord[k];
+								coordp[1][k] = m_pNodes[conn[4]].coord[k];
+								coordp[2][k] = m_pNodes[conn[5]].coord[k];
+								coordp[3][k] = m_pNodes[conn[2]].coord[k];
+								coordp[4][k] = m_pNodes[conn[0]].coord[k];
 							}
                             for (int k = 0; k < 3; k++) {
-                                neighCenter[k] += m_pNodes[conn[0]].coord[k];
                                 neighCenter[k] += m_pNodes[conn[1]].coord[k];
                                 neighCenter[k] += m_pNodes[conn[2]].coord[k];
                                 neighCenter[k] += m_pNodes[conn[3]].coord[k];
+                                neighCenter[k] += m_pNodes[conn[4]].coord[k];
                                 neighCenter[k] += m_pNodes[conn[5]].coord[k];
                                 neighCenter[k] += m_pNodes[conn[6]].coord[k];
                                 neighCenter[k] /= 6;
@@ -6144,11 +6146,9 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 								cout << "pyramid volumn=" << volumn << endl;
 #endif // DEBUG
 							}
-							//if (!CheckPyramidSkewness(coordp))
-							//	ret = true;
-                            //if (!CheckPyramidOrth(coordp, neighCenter)) {
-                            //    ret = true;
-                            //}
+							if (!CheckPyramidSkewness(coordp) || !CheckPyramidOrth(coordp, neighCenter))
+								ret = true;
+
 #endif
 							//通过两个策略控制 1. 最大层差 2.层差和横向的比值
 							int k = 1;
@@ -6160,8 +6160,7 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 								thick *= pow(cf.ratio2 / cf.ratio1, min(ptr->GetLayerNum(), cf.layer_ratio) - layer);
 							}
 							double thick_total = thick;
-                            while (thick_total <
-                                   blFront->GetMinFrontSize()* cf.max_ratio_diff);
+                            while (thick_total < blFront->GetMinFrontSize()* cf.max_ratio_diff)
 							{
 								if (layer + k - 1 < cf.layer_ratio)
 									thick *= cf.ratio1;
@@ -6173,24 +6172,25 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 							//cout << min(k, cf.max_layer_diff)<<" "<<k<<":";
 							if (blFront->GetLayerNum() > layer + min(k, cf.max_layer_diff))
 								ret = true;
-							int cons[3], ii;
-							cons[0] = conn[1];
-							cons[1] = idx;
+
+							int cons[3];
+							cons[0] = conn[0];
+							cons[1] = conn[1];
+							cons[2] = conn[4];
+							tridx = itri[ntri++] = AddTriElem(3, cons);
+							m_ocTree->insertPreProcess(tridx);
+							//m_ocTree_symm->insertPreProcess(tridx);
+
+							cons[0] = conn[0];
+							cons[1] = conn[4];
+                            cons[2] = conn[5];
+							tridx = itri[ntri++] = AddTriElem(3, cons);
+							m_ocTree->insertPreProcess(tridx);
+							//m_ocTree_symm->insertPreProcess(tridx);
+
+							cons[0] = conn[0];
+							cons[1] = conn[5];
 							cons[2] = conn[2];
-							tridx = itri[ntri++] = AddTriElem(3, cons);
-							m_ocTree->insertPreProcess(tridx);
-							//m_ocTree_symm->insertPreProcess(tridx);
-
-							cons[0] = conn[1];
-							cons[1] = idx2;
-							cons[2] = idx;
-							tridx = itri[ntri++] = AddTriElem(3, cons);
-							m_ocTree->insertPreProcess(tridx);
-							//m_ocTree_symm->insertPreProcess(tridx);
-
-							cons[0] = conn[2];
-							cons[1] = idx;
-							cons[2] = idx1;
 							tridx = itri[ntri++] = AddTriElem(3, cons);
 							m_ocTree->insertPreProcess(tridx);
 							//m_ocTree_symm->insertPreProcess(tridx);
@@ -6198,6 +6198,7 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 					}
 				}
 		}
+
 #ifdef _DEBUG
 		m_ocTree->num_inter += ntri;
 #endif
@@ -6205,16 +6206,14 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 		{
 			if (!ret)
 				ret = m_ocTree->chckIntersectPreProcess(itri[j]) /*|| m_ocTree_symm->chckIntersectPreProcess(itri[j])*/;
-
-
 		}
+
 		if (ret) //intersections happen
 		{
-
 			for (int k = 1; k < DIM3; k++)
 			{
-				RmvUperNeigFrontsAndFreeNode(blLoNods[(inei + k) % DIM3]);
-				StopPropagateNode(blLoNods[(inei + k) % DIM3]);
+				RmvUperNeigFrontsAndFreeNode(blLowNods[(inei + k) % DIM3]);
+				StopPropagateNode(blLowNods[(inei + k) % DIM3]);
 			}
 
 			for (int k = 0; k < ntri; k++)
@@ -6639,16 +6638,16 @@ void BLMesh::UpdateSymmetry()
 			int idx1 = nei[i]->GetNodIdx();
 			int idx2 = nei[(i + 1) % 3]->GetNodIdx();
 			int idx3 = nei[(i + 2) % 3]->GetNodIdx();
-						const auto& isymfc1 = m_pNodes[idx1].isymfc;
-			const auto& isymfc2 = m_pNodes[idx2].isymfc;
+			//			const auto& isymfc1 = m_pNodes[idx1].isymfc;
+			//const auto& isymfc2 = m_pNodes[idx2].isymfc;
 
 
-			//// 获取 isymfc 的两个节点的 set
-			//auto& isymfc1 = m_pNodes[idx1].isymfc;
-			//auto& isymfc2 = m_pNodes[idx2].isymfc;
+			// 获取 isymfc 的两个节点的 set
+			auto& isymfc1 = m_pNodes[idx1].isymfc;
+			auto& isymfc2 = m_pNodes[idx2].isymfc;
 
-   //         std::sort(isymfc1.begin(), isymfc1.end());
-   //         std::sort(isymfc2.begin(), isymfc2.end());
+            std::sort(isymfc1.begin(), isymfc1.end());
+            std::sort(isymfc2.begin(), isymfc2.end());
 
 			// 使用 set_intersection 检查是否有公共单元
             std::set<int> intersection;
@@ -6694,10 +6693,10 @@ void BLMesh::CreateTransitionElements()
 	BLFront *blFront;
 	bool bInter = false;
 
-#ifdef _CHECK_INTERSECTION
-	//check intersection
+#ifdef GEN_PYRAMID
+
+	//take out blFront
 	m_blFrontList->RestoreFront();
-    int a = m_blFrontList->Count();
 	queue<BLFront *> createPyramid_queue;
 	while (m_blFrontList->HasNextFront())
 	{
@@ -6837,6 +6836,8 @@ void BLMesh::CreateTransitionElements()
 	//	}
 	//} while (bInter);
 #endif
+
+
 	//generate pyramid
 	m_blFrontList->RestoreFront();
 	while (m_blFrontList->HasNextFront())
@@ -10070,17 +10071,14 @@ void BLMesh::GetFacIdx(int *bndry, int i, int *i1, int *i2, int *i3)
 
 void BLMesh::RmvUperNeigFrontsAndFreeNode(BLNode *blNod)
 {
-	int nblFrts, i, j;
-
-	BLFront *blFrts[MAX_NCONN * 2], *bluFt;
-
-
-	blNod->GetNeigFronts(blFrts, &nblFrts);
-
-	
-
+	int i, j;
+    int nblFrts; /*邻近面数量 **/
+    BLFront *blFrts[MAX_NCONN * 2] /*邻近面 **/, *bluFt; /*邻近面的上层面 **/
 	std::vector<BLNode *> nodes;
-
+    
+	//get neigh fronts
+	blNod->GetNeigFronts(blFrts, &nblFrts);
+	
 	for (i = 0; i < nblFrts; i++)
 	{
 		bool used[3] = {false}; //mark
@@ -10101,7 +10099,8 @@ void BLMesh::RmvUperNeigFrontsAndFreeNode(BLNode *blNod)
 				if(neiFts[j]->GetLowerFront()){
 					BLFront* lower = neiFts[j]->GetLowerFront();
                     lower->GetNodes(&nNod, blNods);
-				scheck.insert(neiFts[j]->GetLowerFront());}
+					scheck.insert(neiFts[j]->GetLowerFront());
+				}
 			}
 
 			//remove node information
@@ -10215,10 +10214,12 @@ void BLMesh::RmvUperNeigFrontsAndFreeNode(BLNode *blNod)
 			}
 		}
 	}
+
 	for (i = 0; i < nblFrts; i++)
 	{
 		scheck.erase(blFrts[i]);
 	}
+
 	for (auto &i : nodes)
 	{
 		if (i->GetLowerNode())

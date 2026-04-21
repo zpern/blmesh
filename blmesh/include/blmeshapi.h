@@ -16,9 +16,9 @@
 #include "blpre.h"
 //#define MEMORY_DEBUG //on - check memory leak  default off
 //#define VIRTUAL_MESH
-#ifdef _WIN32
+//#ifdef _WIN32
 #define USE_MEMORY_POOL //on-use memory pool ,but still has bug
-#endif
+//#endif
     
 #define APIFUNC
 //#define OUTPUT_SPERATELY
