@@ -641,7 +641,7 @@ float uniformfloatrand()
 /*  Don't change this routine unless you fully understand it.                */
 /*                                                                           */
 /*****************************************************************************/
-
+#pragma optimize("",off)
 //For thread security, exactinit() must be invoked unparallelly.
 REAL exactinit ()
 {
@@ -695,7 +695,7 @@ REAL exactinit ()
 	}
 	return epsilon; /* Added by H. Si 30 Juli, 2004. */
 }
-
+#pragma optimize("",on)
 /*****************************************************************************/
 /*                                                                           */
 /*  grow_expansion()   Add a scalar to an expansion.                         */
@@ -2303,7 +2303,7 @@ REAL permanent;
 
   return finnow[finlength - 1];
 }
-
+#pragma optimize("",off);
 REAL orient3d(pa, pb, pc, pd)
 REAL *pa;
 REAL *pb;
@@ -2348,7 +2348,7 @@ REAL *pd;
 
   return orient3dadapt(pa, pb, pc, pd, permanent);
 }
-
+#pragma optimize("",on);
 /*****************************************************************************/
 /*                                                                           */
 /*  incirclefast()   Approximate 2D incircle test.  Nonrobust.               */

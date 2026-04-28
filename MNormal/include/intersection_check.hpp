@@ -134,6 +134,7 @@ inline IntersecChecker::IntersecChecker() {
 }
 
 inline void IntersecChecker::init(const BoundingBox box) {
+    GEOM_FUNC::exactinit();
     tree_ = std::make_unique<HEXA::BinaryTree<Simplex>>(box);
     tree_->kMaxAllowedTreeHeight = 12;
     tree_->kMaxAllowedNodeDataSize = 80;
@@ -281,7 +282,6 @@ inline void IntersecChecker::removeElement(const HexaTag& tag) {
         std::cerr << "Element with the given tag does not exist.\n";
     }
 }
-
 // Checks if the given element (polygon specified by point indices) intersects any existing element.
 inline bool IntersecChecker::checkIntersect(const std::vector<int>& point_ids) const {
     if (point_ids.size() != 3 && point_ids.size() != 4) {
@@ -351,8 +351,6 @@ inline bool IntersecChecker::checkIntersect(const std::vector<int>& point_ids) c
                 double linep[2][3]; double facep[3][3];
                 int intTyp; int intCod;
                 double intPnt[3]; bool bEpsilon=false;
-
-                
                 if (same_count == 1) {
                     for (int k = 0; k < 3; k++) {
                         linep[0][k] = p[(inter1 + 1) % 3][k];

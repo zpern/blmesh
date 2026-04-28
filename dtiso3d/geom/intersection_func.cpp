@@ -2081,6 +2081,7 @@ int lin_tri_intersect2d(double linep[2][2], double facep[3][2], int *intTyp, int
  * FAC 相交于1个面
  * intPnt返回交点的值
  * -----------------------------------------------------------------------------------*/
+
 int lin_tri_intersect3d(double linep[2][3], double facep[3][3], int *intTyp, int *intCod, double intPnt[3], bool bEpsilon)
 {
 	double i1Ort, i2Ort;
@@ -2172,7 +2173,7 @@ int lin_tri_intersect3d(double linep[2][3], double facep[3][3], int *intTyp, int
 		{/* 面片退化了，不处理 */
 //			assert(false);
 		//	spdlog::info("Error in lin_tri_intersect3d(...). Degenerate triangle.\n");
-			isInt = 1;
+			isInt = 0;
 			*intTyp = LTI_INTERSECT_DEG_FACE;
 		}
 	}

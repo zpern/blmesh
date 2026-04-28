@@ -161,64 +161,64 @@ namespace TiGER {
 		v.boundary_mesh = nullptr;
 		delete[]surface.ppnSFFmO;
 
-		if (cv.f.size()) {
-			int old_point_num = *pnMN;
-			double* nppdMNC = new double[(*pnMN + cv.lower_point_num) * 3];
-			for (int i = 0; i < *pnMN * 3; i++) {
-				nppdMNC[i] = *ppdMNC[i];
-			}
-			for (int i = 0; i < cv.lower_point_num; i++) {
-				for (int k = 0; k < 3; k++) {
-					nppdMNC[*pnMN * 3 + 3 * i + k] = cv.v[i][k];
-				}
-			}
-			*pnMN = *pnMN + cv.lower_point_num;
-			//delete* ppdMNC[];
-			ppdMNC = &nppdMNC;
-			int* nppnMEFm = new int[6 * (*pnME) + 6 * cv.f.size()];
-			int cnt = 0;
-			for (int i = 0; i < *pnMN; i++) {
-				int k = 0;
-				if (*ppnMETp[i] == 11) {
-					k = 4;
-				}
-				if (*ppnMETp[i] == 13) {
-					k = 6;
-				}
-				if (*ppnMETp[i] == 14) {
-					k = 5;
-				}
-				for (int j = 0; j < k; j++) {
-					nppnMEFm[cnt] = *ppnMEFm[cnt];
-					cnt++;
-				}
-			}
+		//if (cv.f.size()) {
+		//	int old_point_num = *pnMN;
+		//	double* nppdMNC = new double[(*pnMN + cv.lower_point_num) * 3];
+		//	for (int i = 0; i < *pnMN * 3; i++) {
+		//		nppdMNC[i] = *ppdMNC[i];
+		//	}
+		//	for (int i = 0; i < cv.lower_point_num; i++) {
+		//		for (int k = 0; k < 3; k++) {
+		//			nppdMNC[*pnMN * 3 + 3 * i + k] = cv.v[i][k];
+		//		}
+		//	}
+		//	*pnMN = *pnMN + cv.lower_point_num;
+		//	//delete* ppdMNC[];
+		//	ppdMNC = &nppdMNC;
+		//	int* nppnMEFm = new int[6 * (*pnME) + 6 * cv.f.size()];
+		//	int cnt = 0;
+		//	for (int i = 0; i < *pnMN; i++) {
+		//		int k = 0;
+		//		if (*ppnMETp[i] == 11) {
+		//			k = 4;
+		//		}
+		//		if (*ppnMETp[i] == 13) {
+		//			k = 6;
+		//		}
+		//		if (*ppnMETp[i] == 14) {
+		//			k = 5;
+		//		}
+		//		for (int j = 0; j < k; j++) {
+		//			nppnMEFm[cnt] = *ppnMEFm[cnt];
+		//			cnt++;
+		//		}
+		//	}
 
-			for (int i = 0; i < cv.f.size(); i++) {
-				int k = cv.f[i].size();
-				for (int j = 0; j < k; j++) {
-					if (cv.f[i][k] > cv.lower_point_num)
-						nppnMEFm[cnt] = cv.f[i][k] - cv.lower_point_num;
-					else
-						nppnMEFm[cnt] = cv.f[i][k] + old_point_num;
-					cnt++;
-				}
-			}
-			int* nppnMETp = new int[*pnME + cv.f.size()];
-			for (int i = 0; i < *pnME; i++) {
-				nppnMETp[i] = *ppnMETp[i];
-			}
-			for (int i = 0; i < cv.f.size(); i++) {
-				int k = cv.f[i].size();
-				if (k == 4) { nppnMETp[*pnME + i] = 11; }
-				if (k == 5) { nppnMETp[*pnME + i] = 14; }
-				if (k == 6) { nppnMETp[*pnME + i] = 13; }
-			}
+		//	for (int i = 0; i < cv.f.size(); i++) {
+		//		int k = cv.f[i].size();
+		//		for (int j = 0; j < k; j++) {
+		//			if (cv.f[i][k] > cv.lower_point_num)
+		//				nppnMEFm[cnt] = cv.f[i][k] - cv.lower_point_num;
+		//			else
+		//				nppnMEFm[cnt] = cv.f[i][k] + old_point_num;
+		//			cnt++;
+		//		}
+		//	}
+		//	int* nppnMETp = new int[*pnME + cv.f.size()];
+		//	for (int i = 0; i < *pnME; i++) {
+		//		nppnMETp[i] = *ppnMETp[i];
+		//	}
+		//	for (int i = 0; i < cv.f.size(); i++) {
+		//		int k = cv.f[i].size();
+		//		if (k == 4) { nppnMETp[*pnME + i] = 11; }
+		//		if (k == 5) { nppnMETp[*pnME + i] = 14; }
+		//		if (k == 6) { nppnMETp[*pnME + i] = 13; }
+		//	}
 
-			*pnME = *pnMN + cv.f.size();
-			ppnMEFm = &nppnMEFm;
-			ppnMETp = &nppnMETp;
-		}
+		//	*pnME = *pnMN + cv.f.size();
+		//	ppnMEFm = &nppnMEFm;
+		//	ppnMETp = &nppnMETp;
+		//}
 
 		return 0;
 
@@ -420,64 +420,64 @@ namespace TiGER {
 
 		///merge cv
 		///...
-		if (cv.f.size()) {
-			int old_point_num = *pnMN;
-			double* nppdMNC = new double[(*pnMN + cv.lower_point_num) * 3];
-			for (int i = 0; i < *pnMN * 3; i++) {
-				nppdMNC[i] = *ppdMNC[i];
-			}
-			for (int i = 0; i < cv.lower_point_num; i++) {
-				for (int k = 0; k < 3; k++) {
-					nppdMNC[*pnMN * 3 + 3 * i + k] = cv.v[i][k];
-				}
-			}
-			*pnMN = *pnMN + cv.lower_point_num;
-			//delete* ppdMNC[];
-			ppdMNC = &nppdMNC;
-			int* nppnMEFm = new int[6 * (*pnME) + 6 * cv.f.size()];
-			int cnt = 0;
-			for (int i = 0; i < *pnMN; i++) {
-				int k = 0;
-				if (*ppnMETp[i] == 11) {
-					k = 4;
-				}
-				if (*ppnMETp[i] == 13) {
-					k = 6;
-				}
-				if (*ppnMETp[i] == 14) {
-					k = 5;
-				}
-				for (int j = 0; j < k; j++) {
-					nppnMEFm[cnt] = *ppnMEFm[cnt];
-					cnt++;
-				}
-			}
+		//if (cv.f.size()) {
+		//	int old_point_num = *pnMN;
+		//	double* nppdMNC = new double[(*pnMN + ) * 3];
+		//	for (int i = 0; i < *pnMN * 3; i++) {
+		//		nppdMNC[i] = *ppdMNC[i];
+		//	}
+		//	for (int i = 0; i < ; i++) {
+		//		for (int k = 0; k < 3; k++) {
+		//			nppdMNC[*pnMN * 3 + 3 * i + k] = cv.v[i][k];
+		//		}
+		//	}
+		//	*pnMN = *pnMN + cv.lower_point_num;
+		//	//delete* ppdMNC[];
+		//	ppdMNC = &nppdMNC;
+		//	int* nppnMEFm = new int[6 * (*pnME) + 6 * cv.f.size()];
+		//	int cnt = 0;
+		//	for (int i = 0; i < *pnMN; i++) {
+		//		int k = 0;
+		//		if (*ppnMETp[i] == 11) {
+		//			k = 4;
+		//		}
+		//		if (*ppnMETp[i] == 13) {
+		//			k = 6;
+		//		}
+		//		if (*ppnMETp[i] == 14) {
+		//			k = 5;
+		//		}
+		//		for (int j = 0; j < k; j++) {
+		//			nppnMEFm[cnt] = *ppnMEFm[cnt];
+		//			cnt++;
+		//		}
+		//	}
 
-			for (int i = 0; i < cv.f.size(); i++) {
-				int k = cv.f[i].size();
-				for (int j = 0; j < k; j++) {
-					if (cv.f[i][k] > cv.lower_point_num)
-						nppnMEFm[cnt] = cv.f[i][k] - cv.lower_point_num;
-					else
-						nppnMEFm[cnt] = cv.f[i][k] + old_point_num;
-					cnt++;
-				}
-			}
-			int* nppnMETp = new int[*pnME + cv.f.size()];
-			for (int i = 0; i < *pnME; i++) {
-				nppnMETp[i] = *ppnMETp[i];
-			}
-			for (int i = 0; i < cv.f.size(); i++) {
-				int k = cv.f[i].size();
-				if (k == 4) { nppnMETp[*pnME + i] = 11; }
-				if (k == 5) { nppnMETp[*pnME + i] = 14; }
-				if (k == 6) { nppnMETp[*pnME + i] = 13; }
-			}
+		//	for (int i = 0; i < cv.f.size(); i++) {
+		//		int k = cv.f[i].size();
+		//		for (int j = 0; j < k; j++) {
+		//			if (cv.f[i][k] > cv.lower_point_num)
+		//				nppnMEFm[cnt] = cv.f[i][k] - cv.lower_point_num;
+		//			else
+		//				nppnMEFm[cnt] = cv.f[i][k] + old_point_num;
+		//			cnt++;
+		//		}
+		//	}
+		//	int* nppnMETp = new int[*pnME + cv.f.size()];
+		//	for (int i = 0; i < *pnME; i++) {
+		//		nppnMETp[i] = *ppnMETp[i];
+		//	}
+		//	for (int i = 0; i < cv.f.size(); i++) {
+		//		int k = cv.f[i].size();
+		//		if (k == 4) { nppnMETp[*pnME + i] = 11; }
+		//		if (k == 5) { nppnMETp[*pnME + i] = 14; }
+		//		if (k == 6) { nppnMETp[*pnME + i] = 13; }
+		//	}
 
-			*pnME = *pnMN + cv.f.size();
-			ppnMEFm = &nppnMEFm;
-			ppnMETp = &nppnMETp;
-		}
+		//	*pnME = *pnMN + cv.f.size();
+		//	ppnMEFm = &nppnMEFm;
+		//	ppnMETp = &nppnMETp;
+		//}
 		return 0;
 
 	}
@@ -564,11 +564,12 @@ namespace TiGER {
 			ftest << "max_pyramid_skewness: " << max_skewness[1] << endl;
             ftest << "max_ratio_diff: " << max_ratio_diff << endl;
 			ftest << "bisostop: " << bisostop << endl;
+			ftest << "b_use_multiple_normals: " << b_use_multiple_normals << endl;
 			ftest << "boundary_info: " << endl;
 			for (auto i : pnFT) {
 				ftest << i.first << " " << i.second << " " << std::endl;;
 			}
-			ftest << "b_use_multiple_normals: " << b_use_multiple_normals << endl;
+			ftest << "PointsAndCells: " << endl;
 			ftest << nSF << " " << nSN << " " << endl;
 			for (int i = 0; i < nSN; i++) {
 				ftest << i + 1 << " " << pdSNC[3 * i + 0] << " " << pdSNC[3 * i + 1] << " " << pdSNC[3 * i + 2] << endl;
@@ -607,7 +608,7 @@ namespace TiGER {
 
         if (blconfig.use_multiple_normals) {
             blconfig.n = 1;
-            MNormal::generateFirstLayer(blconfig, input, points, cv1);
+            MNormal::generateFirstLayer(blconfig, input, points, cv1,true);
 			blconfig.n = nLN;
         }
 
@@ -670,7 +671,7 @@ namespace TiGER {
             }
         };
 
-		// 合并 cv1 和 cv2
+		// 合并 cv1 
         if (!cv1.f.empty()) {
             merge_cv(cv1);
         }
@@ -754,8 +755,8 @@ namespace TiGER {
 		
 	int API_Gen_Boundary_FullLayer_Mesh(
         /* ------------------------- 输入参数 --------------------------**/
-        int multiple_numlayer,                          /* 多法向层数 **/
-        double multiple_steplength,                     /* 多法向步长 **/
+        int nLN,										/* 多法向层数 **/
+        double dLen,									/* 多法向步长 **/
         std::vector<double> len_vec,                    /* 多法向步长数组 **/
         bool preMultiple,                               /*是否对多法向角点做预处理**/
         bool fast_intersection,                         /*是否启用快速相交检测**/
@@ -809,39 +810,37 @@ namespace TiGER {
                 std::array<double, 3>{pdSNC[3 * i + 0], pdSNC[3 * i + 1], pdSNC[3 * i + 2]});
         }
         for (int i = 0; i < nSF; i++) {
-            *fout << i + 1 << " " << pnSFFm[3 * i + 0] << " " << pnSFFm[3 * i + 1] << " "
-                  << pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
+            *fout << i + 1 << " " << pnSFFm[3 * i + 0] << " " << pnSFFm[3 * i + 1] << " "<< pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
         }
         string input(fout->str());
 
-            // 输出调试文件
+        // 输出调试文件
         if (b_output_io_file) {
             ofstream ftest("BoundaryMeshing.txt");
             ftest.setf(ios::fixed, ios::floatfield); // 设定为 fixed 模式，以小数点表示浮点数
             ftest.precision(17);
-            ftest << "nLN: " << multiple_numlayer << endl;
-            ftest << "dLen: " << multiple_steplength << endl;
+            ftest << "nLN: " << nLN << endl;
+            ftest << "dLen: " << dLen << endl;
             ftest << "boundary_info: " << endl;
             for (auto i : pnFT) {
                 ftest << i.first << " " << i.second << " " << std::endl;
                 ;
             }
+			ftest << "PointsAndCells"<< endl;
             ftest << nSF << " " << nSN << " " << endl;
             for (int i = 0; i < nSN; i++) {
-                ftest << i + 1 << " " << pdSNC[3 * i + 0] << " " << pdSNC[3 * i + 1] << " "
-                      << pdSNC[3 * i + 2] << endl;
+                ftest << i + 1 << " " << pdSNC[3 * i + 0] << " " << pdSNC[3 * i + 1] << " "<< pdSNC[3 * i + 2] << endl;
             }
             for (int i = 0; i < nSF; i++) {
-                ftest << i + 1 << " " << pnSFFm[3 * i + 1] << " " << pnSFFm[3 * i + 0] << " "
-                      << pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
+                ftest << i + 1 << " " << pnSFFm[3 * i + 0] << " " << pnSFFm[3 * i + 1] << " "<< pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
             }
             ftest.close();
         }
 
         // 准备生成参数
         blpreConfig blconfig;
-        blconfig.n = multiple_numlayer;
-        blconfig.len = multiple_steplength;
+        blconfig.n = nLN;
+        blconfig.len = dLen;
         blconfig.len_vec = len_vec;
         blconfig.box = bcs[0];
         blconfig.wall = bcs[1];
@@ -852,7 +851,8 @@ namespace TiGER {
 
         ControlVolume cv1;
         ControlVolume cv2;
-        //MNormal::generateFullLayer(blconfig, input, points, cv1, cv2);
+        //MNormal::generateFirstLayer(blconfig, input,points, cv1);
+        MNormal::generateFullLayer(blconfig, input, points, cv1, cv2);
         delete fout;
 
         std::map<std::array<double, 3>, int> coord_to_id;
@@ -871,6 +871,12 @@ namespace TiGER {
             return id;
         };
 
+
+		// ---- 顶面节点（points）----
+        for (auto &p : points) {
+            insert_point({p[0], p[1], p[2]});
+        }
+
         // ---- 体节点（来自 cv1 / cv2）----
         auto collect_cv_nodes = [&](const ControlVolume &cv) {
             for (auto &p : cv.v) {
@@ -885,10 +891,7 @@ namespace TiGER {
             collect_cv_nodes(cv2);
         }
 
-        // ---- 顶面节点（points）----
-        for (auto &p : points) {
-            insert_point({p[0], p[1], p[2]});
-        }
+
 
         *pnMN = static_cast<int>(global_points.size());
         *ppdMNC = new double[3 * (*pnMN)];
@@ -929,7 +932,6 @@ namespace TiGER {
 
         // ---- 输出 ----
         *pnME = static_cast<int>(ME_tp.size());
-
         *ppnMEFm = new int[ME_fm.size()];
         *ppnMETp = new int[ME_tp.size()];
 
@@ -955,7 +957,7 @@ namespace TiGER {
             for (int i = 0; i < nelm; ++i) {
                 int id0, id1, id2, face;
                 iss >> id >> id0 >> id1 >> id2 >> face; // 注意你 input 的顺序
-                f_vec.push_back({id0 - 1, id1 - 1, id2 - 1});
+                f_vec.push_back({id0,id1,id2});
             }
         }
 
@@ -978,7 +980,7 @@ namespace TiGER {
 
         *ppnsizing = new double[*pnSN0];
         for (int i = 0; i < *pnSN0; ++i) {
-            (*ppnsizing)[i] = multiple_steplength;
+            (*ppnsizing)[i] = dLen;
         }
 
         return 0;
