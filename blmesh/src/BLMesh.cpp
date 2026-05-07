@@ -6040,7 +6040,7 @@ bool BLMesh::ChckIntersectforTransit(BLFront *blFront)
 					neighCenter[k] +=  m_pNodes[conn[3]].coord[k];
 					neighCenter[k] +=  m_pNodes[conn[4]].coord[k];
 					neighCenter[k] +=  m_pNodes[conn[5]].coord[k];
-					neighCenter[k] +=  m_pNodes[conn[5]].coord[k];
+					neighCenter[k] +=  m_pNodes[conn[6]].coord[k];
                     neighCenter[k] /= 6;
 				}
 

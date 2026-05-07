@@ -13,6 +13,7 @@ struct blpreConfig {
     double len;
     double Ro;
     std::vector<double> len_vec;
+    std::vector<double> point_length_vec;
     std::vector<int> layer_vec;
     bool use_multiple_normals;
     int max_layer_diff;

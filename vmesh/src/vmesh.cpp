@@ -569,7 +569,7 @@ namespace TiGER {
 			for (auto i : pnFT) {
 				ftest << i.first << " " << i.second << " " << std::endl;;
 			}
-			ftest << "PointsAndCells: " << endl;
+			ftest << "PointsAndCells" << endl;
 			ftest << nSF << " " << nSN << " " << endl;
 			for (int i = 0; i < nSN; i++) {
 				ftest << i + 1 << " " << pdSNC[3 * i + 0] << " " << pdSNC[3 * i + 1] << " " << pdSNC[3 * i + 2] << endl;
@@ -841,7 +841,7 @@ namespace TiGER {
         blpreConfig blconfig;
         blconfig.n = nLN;
         blconfig.len = dLen;
-        blconfig.len_vec = len_vec;
+        blconfig.point_length_vec = len_vec;
         blconfig.box = bcs[0];
         blconfig.wall = bcs[1];
         blconfig.symm = bcs[2];

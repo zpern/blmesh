@@ -95,7 +95,7 @@ bool MNormalMesh::IsBadPrismByScaledJacobian(const BLVector &p0,
     std::vector<double> MNormalMesh::InitLengthField(const GenContext &ctx) const;
     bool MNormalMesh::ResolveLengthField(const GenContext &ctx,
                                          std::vector<double> &length,
-                                         CandidateVolume &final_candidate,bool IsPrism = false,bool isALM = false) const;
+                                         CandidateVolume &final_candidate,bool isALM = false) const;
     GenContext BuildPreGenContext() const;
     void MNormalMesh::SmoothLengthField(std::vector<double> &length) const;
     std::vector<std::array<double, 3>> MNormalMesh::BuildLayerPoints(

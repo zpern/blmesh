@@ -30,7 +30,7 @@
 
 // Balance between efficiency and robustness
 #define MAX_INTERATION 4 
-#define SKEWNESS_THREADHOLD 0.85//only optimize node whose single skewness above this value
+#define SKEWNESS_THREADHOLD 0.80//only optimize node whose single skewness above this value
 #define PLANE_SKEWNESS -0.1 // only ridge whose minimal cos(dihedral angle) less than this value will be count for iteration 
 #define CONVEX_SKEWNESS 0.2
 #define MAX_PLAIN_RIDGE 1

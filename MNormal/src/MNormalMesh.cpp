@@ -372,6 +372,9 @@ void MNormalMesh::CalculateMultiNormal()
     //////////////////////////////////////////////////////////////////////////
     double d = 0;
     for (auto i = node_array.begin(); i != node_array.end(); i++) {
+        if (i->node_id_ == 5070) {
+            std::cout << "xy";
+        }
         d = max(d, i->original_skewness_);
         // 如果节点在 avoid_spliteNode 中，则跳过该节点
         if (std::find(avoid_spliteNode.begin(), avoid_spliteNode.end(), i->node_id_) !=
@@ -407,6 +410,7 @@ void MNormalMesh::CalculateMultiNormal()
     spdlog::info("The time comsuption of splitting={:03.2f} sec.",
                  (end_time - start_time) * 1.0 / CLOCKS_PER_SEC);
 }
+
 void MNormalMesh::BuildTopo(int faceCount)
 {
     int new_attribute = faceCount + 1;
@@ -907,7 +911,7 @@ void MNormalMesh::Generate_preVol(std::vector<std::array<double, 3>> &v,
     RebuildPointNeighbors();       
 
     CandidateVolume candidate;
-    bool ok = ResolveLengthField(ctx, length, candidate,false,isALM);
+    bool ok = ResolveLengthField(ctx, length, candidate,isALM);
     if (!ok) {
         multiplySuccess = false;
         return;
@@ -926,7 +930,7 @@ void MNormalMesh::Generate_Vol(std::vector<std::array<double, 3>> &v,
     RebuildPointNeighbors();       // 基于新 connector 建邻接
 
     CandidateVolume candidate;
-    bool ok = ResolveLengthField(ctx, length, candidate,true);
+    bool ok = ResolveLengthField(ctx, length, candidate);
     
     if (!ok) {
         multiplySuccess = false;
@@ -1045,10 +1049,11 @@ void MNormalMesh::RebuildPointNeighbors()
     }
 }
 
+#pragma optimize("",off);
 /*相交检测与步长压缩 **/
 bool MNormalMesh::ResolveLengthField(const GenContext &ctx,
                                      std::vector<double> &length,
-                                     CandidateVolume &final_candidate,bool IsPrism,bool isALM) const
+                                     CandidateVolume &final_candidate,bool isALM) const
 {
     const int kMaxIter = 20;
     bool zero_step_retry_done = false;
@@ -1057,7 +1062,7 @@ bool MNormalMesh::ResolveLengthField(const GenContext &ctx,
 
     for (int iter = 0;; ++iter) {
         CandidateVolume candidate;
-        if (!IsPrism) {
+        if (!firstLayer) {
              candidate = BuildCandidateVolume(ctx, length);
         } else {
              candidate = BuildPrismVolume(ctx, length);
@@ -1069,7 +1074,6 @@ bool MNormalMesh::ResolveLengthField(const GenContext &ctx,
         std::set<int> bad_points = inter_result.bad_points;
         //bad_points.insert(jac_result.bad_points.begin(), jac_result.bad_points.end());
 
-#ifdef _DEBUG
         // ===== 调试用：把 bad_points 对应的坐标单独收集出来 =====
         struct DebugCoord {
             double x;
@@ -1088,8 +1092,7 @@ bool MNormalMesh::ResolveLengthField(const GenContext &ctx,
         }
 
         spdlog::info("Loop {}, bad point size = {}", iter, bad_point_debug.size());
-#endif
-
+        
         if (bad_points.empty()) { 
             final_candidate = std::move(candidate); 
             return true; 
@@ -1100,6 +1103,31 @@ bool MNormalMesh::ResolveLengthField(const GenContext &ctx,
             SmoothLengthField(length); // 每次回缩后都做一次光滑
         } else if (!zero_step_retry_done) {
             ZeroLengthField(length, bad_points);
+#ifdef  _DEBUG
+
+
+
+    // ===== 打印被置零的 bad_points =====
+    spdlog::info("========== ZeroLengthField bad_points ==========");
+    spdlog::info("bad_points size = {}", bad_points.size());
+
+    for (int pid : bad_points) {
+        if (pid >= 0 && pid < static_cast<int>(coordinate.size())) {
+            spdlog::info(
+                "bad point id = {}, coord = ({:.16e}, {:.16e}, {:.16e}), length = {:.16e}",
+                pid,
+                coordinate[pid].x,
+                coordinate[pid].y,
+                coordinate[pid].z,
+                length[pid]
+            );
+        } else {
+            spdlog::warn("bad point id = {} is out of coordinate range", pid);
+        }
+    }
+
+    spdlog::info("===============================================");
+#endif      //  _DEBUG
             SmoothLengthField(length); // 置零后也光滑一次
             
             if (isALM) {
@@ -1116,7 +1144,7 @@ bool MNormalMesh::ResolveLengthField(const GenContext &ctx,
         }
     }
 }
-
+#pragma optimize("",on);
 
 
 /*法向光滑化 **/

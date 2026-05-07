@@ -19,14 +19,14 @@ void generateFirstLayer(blpreConfig& blcf,
     double len = blcf.len;
     std::map<std::array<double, 3>, double> point_to_length;
 
-    if (blcf.len_vec.empty()) {
+    if (blcf.point_length_vec.empty()) {
         for (int i = 0; i < points.size(); i++) {
             point_to_length[points[i]] = len;
         }
     }
     else{
         for (int i = 0; i < points.size(); i++) {
-            point_to_length[points[i]] = blcf.len_vec[i];
+            point_to_length[points[i]] = blcf.point_length_vec[i];
         }
     }
     vector<int> box = blcf.box;
@@ -97,7 +97,7 @@ void generateFirstLayer(blpreConfig& blcf,
             }
         }
 
-        blcf.len_vec = std::move(points_length);
+        blcf.point_length_vec = std::move(points_length);
     }
     spdlog::info("Job Finished.");
 }
@@ -114,14 +114,14 @@ void generateFullLayer(blpreConfig blcf,
     double len = blcf.len;
     std::map<std::array<double, 3>, double> point_to_length;
 
-    if (blcf.len_vec.empty()) {
+    if (blcf.point_length_vec.empty()) {
         for (int i = 0; i < points.size(); i++) {
             point_to_length[points[i]] = len;
         }
     }
     else{
         for (int i = 0; i < points.size(); i++) {
-            point_to_length[points[i]] = blcf.len_vec[i];
+            point_to_length[points[i]] = blcf.point_length_vec[i];
         }
     }
     vector<int> box = blcf.box;
