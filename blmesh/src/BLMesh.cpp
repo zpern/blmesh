@@ -57,7 +57,7 @@
 
 #define _GEOM_NORMAL
 #define _VECTOR_FIELD
-#define OLD
+//#define OLD
 //for test(need to be deleted later)
 int printflag;
 int tempcalculate =0;
@@ -3012,6 +3012,10 @@ void BLMesh::GenerateBLMesh()
 	double ave_height_first_layer = 0;
 	tmts = clock();
 
+
+	if (!cf.layer_num_vec.empty()) {
+        m_nTotalLayer = *std::max_element(cf.layer_num_vec.begin(), cf.layer_num_vec.end());
+    }
 	while (iLayer < m_nTotalLayer)
 	{
 		if (checkterminate()) {
@@ -4834,7 +4838,7 @@ void BLMesh::PreCheckPrismValid(BLFront *blFront)
 		{				
 			blFront->is_prism_valid = 0;
 #ifdef _DEBUG
-			cout << "upper face normal opposite" << endl;;
+			cout << "upper face normal opposite ";
 			cout << "id= " << blNod->GetDecentID() << endl;
 #endif
 			return;
@@ -4847,8 +4851,8 @@ void BLMesh::PreCheckPrismValid(BLFront *blFront)
 
 		blFront->is_prism_valid = 0;
 #ifdef _DEBUG
-		cout << "upper face degenerate"<< endl;
-		cout << "id= " << blNods[0]->GetDecentID() << endl;
+		cout << "upper face degenerate ";
+		cout << "id = " << blNods[0]->GetDecentID() << endl;
 #endif
 		return;
 	}
@@ -4862,8 +4866,8 @@ void BLMesh::PreCheckPrismValid(BLFront *blFront)
 		{
 			blFront->is_prism_valid = 0;
 #ifdef _DEBUG
-			cout << "node normal deviates form face normal" << endl;
-			cout << "id= " << blNods[i]->GetDecentID() << endl;
+			cout << "node normal deviates form face normal ";
+			cout << "id = " << blNods[i]->GetDecentID() << endl;
 #endif
 			return;
 		}
@@ -4875,11 +4879,11 @@ void BLMesh::PreCheckPrismValid(BLFront *blFront)
 		blFront->is_prism_valid = 0;
 #ifdef _DEBUG
         if (!CheckPrismVolumn(2 * nconn, conn)) 
-			cout << "volume  id=";
+			cout << "volume id=";
 		if (!CheckPrismSkewness(2 * nconn, conn))
-			cout << "skewness  id=";
+			cout << "skewness id=";
         if (!CheckPrismOrth(blFront, false)) 
-			cout << "orth  id=";
+			cout << "orth id=";
 
 		cout << blNods[0]->GetDecentID() << endl;
 

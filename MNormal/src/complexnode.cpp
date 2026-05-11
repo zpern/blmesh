@@ -18,8 +18,10 @@ double ComplexNode::CaculateVisableAngle(BLVector normal)
 
 void ComplexNode::SplitNode()
 {
-	if (neighbour_node_.size() < 2)
-		throw std::runtime_error("Error neighbour node");
+    if (neighbour_node_.size() < 2) {
+        spdlog::info("Error neighbour node id = {}", node_id_);
+        throw std::runtime_error("Error neighbour node");
+    }
 	
 	set<int> splitters;
 	map<int, double> angles;

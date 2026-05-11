@@ -2,7 +2,7 @@
 #include <spdlog/spdlog.h> 
  #include <set>
 using namespace std;
-#define OLD
+//#define OLD
 
 SimpleNormalSmoothStrategy::SimpleNormalSmoothStrategy(BLNode **node, MBLNode* pnodes,int num_front):NormalSmoothStrategy(node,pnodes, num_front)
 {

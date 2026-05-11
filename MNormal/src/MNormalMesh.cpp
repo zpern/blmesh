@@ -372,9 +372,6 @@ void MNormalMesh::CalculateMultiNormal()
     //////////////////////////////////////////////////////////////////////////
     double d = 0;
     for (auto i = node_array.begin(); i != node_array.end(); i++) {
-        if (i->node_id_ == 5070) {
-            std::cout << "xy";
-        }
         d = max(d, i->original_skewness_);
         // 如果节点在 avoid_spliteNode 中，则跳过该节点
         if (std::find(avoid_spliteNode.begin(), avoid_spliteNode.end(), i->node_id_) !=
