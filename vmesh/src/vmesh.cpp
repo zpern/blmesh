@@ -481,7 +481,7 @@ namespace TiGER {
 		return 0;
 
 	}
-
+#pragma optimize("",off);
 	int API_Gen_Boundary_ALM_Mesh(
 		/* ------------------------- 输入参数 --------------------------**/
 		double* pdSNC,						                       /* 曲面网格节点坐标，coord[3*i], coord[3*i+1], coord[3*i+2]为第i个节点x,y,z坐标 **/
@@ -601,6 +601,7 @@ namespace TiGER {
 		blconfig.per = bcs[4];
 		blconfig.adjacent = bcs[5];
 
+
 		ControlVolume cv1;
 
 
@@ -611,6 +612,10 @@ namespace TiGER {
             MNormal::generateFirstLayer(blconfig, input, points, cv1,true);
 			blconfig.n = nLN;
         }
+
+				if (!blconfig.layer_vec.empty()) {
+			blconfig.n = *std::max_element(blconfig.layer_vec.begin(),blconfig.layer_vec.end());
+		}
 
 		temp_bdyfile = PRE::blpre(blconfig,input,points);
         auto bdyfile = PRE::temptransform(temp_bdyfile);
@@ -752,7 +757,7 @@ namespace TiGER {
 		return 0;
 
 	}
-		
+		#pragma optimize("",off);
 	int API_Gen_Boundary_FullLayer_Mesh(
         /* ------------------------- 输入参数 --------------------------**/
         int nLN,										/* 多法向层数 **/

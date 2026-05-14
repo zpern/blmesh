@@ -2994,7 +2994,7 @@ bool BLMesh::IsSymBdryDelete(int i)
  * @author yhf
  * @note Big function                                                                                                  
  */                                                                                                                    
-
+#pragma optimize("",off);
 void BLMesh::GenerateBLMesh()
 {
 	int iLayer = 0, i, nNods, iNod, iNodNew, cnt = 0, nFrtNods;
@@ -3013,9 +3013,6 @@ void BLMesh::GenerateBLMesh()
 	tmts = clock();
 
 
-	if (!cf.layer_num_vec.empty()) {
-        m_nTotalLayer = *std::max_element(cf.layer_num_vec.begin(), cf.layer_num_vec.end());
-    }
 	while (iLayer < m_nTotalLayer)
 	{
 		if (checkterminate()) {
@@ -3913,7 +3910,7 @@ void BLMesh::GenerateBLMesh()
 
 	//free memory (due to fix)
 }
-
+#pragma optimize("",on);
 int BLMesh::ElmBdryPtCnt(int eidx)
 {
 	int i, j, dim = DIM3, pidx[DIM3], cnt;
