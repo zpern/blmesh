@@ -1,6 +1,5 @@
 #ifndef _SINGLETON_H_
 #define _SINGLETON_H_
-#define _CRT_NO_TIME_T
 #include <cassert>
 
 template<typename T> class Singleton
