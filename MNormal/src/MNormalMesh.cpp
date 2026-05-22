@@ -7,11 +7,12 @@
 #include <exception>
 #include <fstream>
 #include <map>
-#include <omp.h> // OpenMP ²¢ÐÐÖ§³Ö
+#include <omp.h>
 #include <queue>
 #include <sstream>
 #include <stack>
 #include <unordered_set>
+#include <utility>
 using std::array;
 using std::ifstream;
 using std::map;
@@ -20,18 +21,29 @@ using std::stringstream;
 // #define check_intersection
 #define check_intersection2
 
+// ï¿½ï¿½ surface id ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý£ï¿½ï¿½ï¿½Òªï¿½à·¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ wall ï¿½æ£¬ï¿½Ô¼ï¿½ï¿½ï¿½ï¿½ï¿½Ô­×´ï¿½ï¿½ nonwall ï¿½æ¡£
 void splite_by_faceID(std::vector<std::array<double, 3>> &points,
-                                   std::vector<std::array<double, 3>> &points_multiply,
-                                   std::vector<std::array<double, 3>> &points_nonwall,
-                                   std::string &f,
-                                   std::string &f_multiply,
-                                   std::string &f_nonwall,
-                                   std::vector<int> surfaceID)
+                      std::vector<std::array<double, 3>> &points_multiply,
+                      std::vector<std::array<double, 3>> &points_nonwall,
+                      std::string &f,
+                      std::string &f_multiply,
+                      std::string &f_nonwall,
+                      std::vector<int> surfaceID,
+                      std::vector<int> *point_multiply_to_original,
+                      std::vector<int> *point_nonwall_to_original)
 {
     std::istringstream iss(f);
     std::ostringstream oss_multiply, oss_nonwall;
     std::string line;
 
+    if (point_multiply_to_original) {
+        point_multiply_to_original->clear();
+    }
+    if (point_nonwall_to_original) {
+        point_nonwall_to_original->clear();
+    }
+
+    // Ô­Ê¼ï¿½ï¿½ id ï¿½ï¿½ï¿½ï¿½Öºï¿½Ö²ï¿½ï¿½ï¿½ id ï¿½ï¿½Ó³ï¿½ä£¬ï¿½ï¿½Ö¤Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     std::map<int, int> used_ids_multiply;
     std::map<int, int> used_ids_nonwall;
 
@@ -41,7 +53,7 @@ void splite_by_faceID(std::vector<std::array<double, 3>> &points,
     int faceid_multiply = 0;
     int faceid_nonwall = 0;
 
-    std::getline(iss, line); // ÓÃÀ´Ìø¹ý header ÐÐ
+    std::getline(iss, line);
 
     while (std::getline(iss, line)) {
         std::istringstream linestream(line);
@@ -51,27 +63,31 @@ void splite_by_faceID(std::vector<std::array<double, 3>> &points,
         std::array<int, 3> ids = {id1, id2, id3};
         std::array<int, 3> face;
 
-        bool is_multiply =
-            std::find(surfaceID.begin(), surfaceID.end(), surfaceid) != surfaceID.end();
+        // surfaceID ï¿½Ðµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ multiply ï¿½ï¿½Ö§ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ nonwall ï¿½ï¿½Ö§ï¿½ï¿½
+        bool is_multiply = std::find(surfaceID.begin(), surfaceID.end(), surfaceid) != surfaceID.end();
 
         auto &used_ids = is_multiply ? used_ids_multiply : used_ids_nonwall;
         auto &out_points = is_multiply ? points_multiply : points_nonwall;
         auto &out_stream = is_multiply ? oss_multiply : oss_nonwall;
+        auto *out_original_ids = is_multiply ? point_multiply_to_original : point_nonwall_to_original;
         int &pointid = is_multiply ? pointid_multiply : pointid_nonwall;
         int &out_faceid = is_multiply ? faceid_multiply : faceid_nonwall;
 
         for (int i = 0; i < 3; ++i) {
             if (!used_ids.count(ids[i])) {
-                face[i] = pointid;
-                used_ids[ids[i]] = pointid++;
+                face[i] = pointid++;
+                used_ids[ids[i]] = face[i];
                 out_points.push_back(points[ids[i]]);
+                // ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½Öºï¿½Ö²ï¿½ï¿½ï¿½ id -> ï¿½ï¿½ï¿½Ç°ï¿½ï¿½ idï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×·ï¿½ï¿½Ô­Ê¼ï¿½ã¡£
+                if (out_original_ids) {
+                    out_original_ids->push_back(ids[i]);
+                }
             } else {
                 face[i] = used_ids[ids[i]];
             }
         }
 
-        out_stream << ++out_faceid << " " << face[0] << " " << face[1] << " " << face[2] << " "
-                   << surfaceid << "\n";
+        out_stream << ++out_faceid << " " << face[0] << " " << face[1] << " " << face[2] << " " << surfaceid << "\n";
     }
     std::ostringstream header_multiply, header_nonwall;
     header_multiply << faceid_multiply << " " << pointid_multiply << " 0 0 0 0\n";
@@ -81,54 +97,104 @@ void splite_by_faceID(std::vector<std::array<double, 3>> &points,
     f_nonwall = header_nonwall.str() + oss_nonwall.str();
 }
 
-
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ wall ï¿½ï¿½ï¿½ï¿½ nonwall ï¿½ï¿½ï¿½ï¿½ï¿½ÂºÏ²ï¿½ï¿½ï¿½Í¬Ê±Î¬ï¿½ï¿½ï¿½Âµï¿½Åµï¿½Ô­Ê¼ï¿½ï¿½Å¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¹ï¿½Ïµï¿½ï¿½
 void combine_by_faceID(std::vector<std::array<double, 3>> &points,
-                                    std::vector<std::array<double, 3>> points_multiply,
-                                    std::vector<std::array<double, 3>> points_nonwall,
-                                    std::string &f,
-                                    std::string f_multiply,
-                                    std::string f_nonwall)
+                       const std::vector<std::array<double, 3>> &points_multiply,
+                       const std::vector<std::array<double, 3>> &points_nonwall,
+                       std::string &f,
+                       std::string f_multiply,
+                       std::string f_nonwall,
+                       const std::vector<int> *point_multiply_to_original,
+                       const std::vector<int> *point_nonwall_to_original,
+                       std::vector<int> *point_to_original,
+                       const std::vector<double> *point_multiply_length,
+                       const std::vector<double> *point_nonwall_length,
+                       std::vector<double> *point_length)
 {
-    std::map<std::array<double, 3>, int> point_to_new_id;
+    // È¥ï¿½Øµï¿½Ê¹ï¿½ï¿½ original_id + ï¿½ï¿½ï¿½ê£¬ï¿½ï¿½ï¿½â²»Í¬Ô­Ê¼ï¿½ï¿½ï¿½ï¿½Øºï¿½ï¿½ï¿½ï¿½ê±»ï¿½ï¿½ï¿½ï¿½Ï²ï¿½ï¿½ï¿½
+    std::map<std::pair<int, std::array<double, 3>>, int> point_to_new_id;
     std::vector<std::array<double, 3>> new_points;
     std::ostringstream oss;
 
-    // Ìí¼Óµã£¬²¢¼ÇÂ¼ÐÂ±àºÅ£¨È¥ÖØ£©
-    auto add_point = [&](const std::array<double, 3> &pt) -> int {
-        if (point_to_new_id.find(pt) != point_to_new_id.end()) {
-            return point_to_new_id[pt];
+    if (point_to_original) {
+        point_to_original->clear();
+    }
+    if (point_length) {
+        point_length->clear();
+    }
+
+    // ï¿½ï¿½ï¿½ÓºÏ²ï¿½ï¿½ï¿½Äµã£¬ï¿½ï¿½Í¬ï¿½ï¿½Ð´ï¿½ï¿½Ô­Ê¼ id ï¿½Í²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½é¡£
+    auto add_point = [&](const std::array<double, 3> &pt, int original_id, double length_value) -> int {
+        auto key = std::make_pair(original_id, pt);
+        auto it = point_to_new_id.find(key);
+        if (it != point_to_new_id.end()) {
+            return it->second;
         }
         int id = new_points.size();
-        point_to_new_id[pt] = id;
+        point_to_new_id[key] = id;
         new_points.push_back(pt);
+        if (point_to_original) {
+            point_to_original->push_back(original_id);
+        }
+        if (point_length) {
+            point_length->push_back(length_value);
+        }
         return id;
     };
 
-    // ´¦ÀíÒ»¸öÃæÊý¾Ý×Ö·û´®£¬×ª»»Ãæ±àºÅ
-    auto process_faces = [&](const std::string &face_data,
-                             const std::vector<std::array<double, 3>> &source_points,
-                             int &face_id_counter) {
+    int skipped_degenerate_faces = 0;
+
+    auto process_faces = [&](const std::string &face_data, const std::vector<std::array<double, 3>> &source_points,
+                             const std::vector<int> *source_to_original, const std::vector<double> *source_length, int &face_id_counter) {
         std::istringstream iss(face_data);
         std::string line;
-        std::getline(iss, line); // ÓÃÀ´Ìø¹ý header ÐÐ
+        std::getline(iss, line);
 
         while (std::getline(iss, line)) {
             std::istringstream linestream(line);
             int fid, p1, p2, p3, sid;
             linestream >> fid >> p1 >> p2 >> p3 >> sid;
 
-            int new_p1 = add_point(source_points[p1]);
-            int new_p2 = add_point(source_points[p2]);
-            int new_p3 = add_point(source_points[p3]);
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô½ï¿½ï¿½Ê±Ö±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½â»µï¿½ï¿½ï¿½Ý¼ï¿½ï¿½ï¿½ï¿½ï¿½È¾ï¿½ï¿½ï¿½ï¿½æ¡£
+            if (p1 < 0 || p2 < 0 || p3 < 0 || p1 >= static_cast<int>(source_points.size()) ||
+                p2 >= static_cast<int>(source_points.size()) || p3 >= static_cast<int>(source_points.size())) {
+                continue;
+            }
 
-            oss << ++face_id_counter << " " << new_p1 << " " << new_p2 << " " << new_p3 << " "
-                << sid << "\n";
+            const auto &pt1 = source_points[p1];
+            const auto &pt2 = source_points[p2];
+            const auto &pt3 = source_points[p3];
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ü»Øµï¿½Í¬Ò»ï¿½ï¿½ï¿½ê£¬ï¿½ï¿½ï¿½ï¿½ï¿½Ë»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+            if (pt1 == pt2 || pt1 == pt3 || pt2 == pt3) {
+                ++skipped_degenerate_faces;
+                continue;
+            }
+
+            auto original_id = [&](int p) { return source_to_original && p < source_to_original->size() ? (*source_to_original)[p] : p; };
+            auto length_value = [&](int p) { return source_length && p < source_length->size() ? (*source_length)[p] : 0.0; };
+
+            int new_p1 = add_point(pt1, original_id(p1), length_value(p1));
+            int new_p2 = add_point(pt2, original_id(p2), length_value(p2));
+            int new_p3 = add_point(pt3, original_id(p3), length_value(p3));
+
+            // ï¿½ï¿½Ê¹Ô­ï¿½ï¿½ï¿½ê²»Í¬ï¿½ï¿½ï¿½Ï²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¬Ò²Ëµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë»ï¿½ï¿½ï¿½ï¿½ï¿½ÒªÉ¾ï¿½ï¿½ï¿½ï¿½
+            if (new_p1 == new_p2 || new_p1 == new_p3 || new_p2 == new_p3) {
+                ++skipped_degenerate_faces;
+                continue;
+            }
+
+            oss << ++face_id_counter << " " << new_p1 << " " << new_p2 << " " << new_p3 << " " << sid << "\n";
         }
     };
 
     int face_id = 0;
-    process_faces(f_multiply, points_multiply, face_id);
-    process_faces(f_nonwall, points_nonwall, face_id);
+    process_faces(f_multiply, points_multiply, point_multiply_to_original, point_multiply_length, face_id);
+    process_faces(f_nonwall, points_nonwall, point_nonwall_to_original, point_nonwall_length, face_id);
+
+    // Í³ï¿½ï¿½ï¿½Ë»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ debug ï¿½Ð¶ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ã±»ï¿½ï¿½ï¿½ã¡£
+    if (skipped_degenerate_faces > 0) {
+        spdlog::info("combine_by_faceID skipped degenerate faces = {}", skipped_degenerate_faces);
+    }
 
     std::ostringstream header;
     header << face_id << " " << new_points.size() << " 0 0 0 0\n";
@@ -136,13 +202,9 @@ void combine_by_faceID(std::vector<std::array<double, 3>> &points,
     f = header.str() + oss.str();
     points = new_points;
 }
-static double Det3x3(double a00, double a01, double a02,
-                     double a10, double a11, double a12,
-                     double a20, double a21, double a22)
+static double Det3x3(double a00, double a01, double a02, double a10, double a11, double a12, double a20, double a21, double a22)
 {
-    return a00 * (a11 * a22 - a12 * a21)
-         - a01 * (a10 * a22 - a12 * a20)
-         + a02 * (a10 * a21 - a11 * a20);
+    return a00 * (a11 * a22 - a12 * a21) - a01 * (a10 * a22 - a12 * a20) + a02 * (a10 * a21 - a11 * a20);
 }
 int MNormalMesh::Idx(int base, int lower_num, int layer) const
 {
@@ -152,13 +214,14 @@ int MNormalMesh::Idx(int base, int lower_num, int layer) const
     return base + lower_num + layer * coordinate.size();
 }
 
-auto toBLVector = [](const std::array<double, 3>& p) -> BLVector {
+auto toBLVector = [](const std::array<double, 3> &p) -> BLVector {
     BLVector v;
     v.x = p[0];
     v.y = p[1];
     v.z = p[2];
     return v;
 };
+// ï¿½ï¿½ï¿½ï¿½Æ¬ï¿½Ö·ï¿½ï¿½ï¿½ï¿½Íµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ MNormalMesh ï¿½ï¿½ï¿½Ú²ï¿½ï¿½ï¿½ï¿½Ë½á¹¹ï¿½ï¿½
 void MNormalMesh::ReadPlsBuf(std::string f, std::vector<std::array<double, 3>> &points)
 {
     std::istringstream fin(f);
@@ -181,6 +244,8 @@ void MNormalMesh::ReadPlsBuf(std::string f, std::vector<std::array<double, 3>> &
     point_normals.resize(number_of_point);
     coordinate.resize(number_of_point);
     real_node_id_.resize(number_of_point);
+    node_original_id_.resize(number_of_point);
+    // Ä¬ï¿½Ïµï¿½Ç°ï¿½ï¿½ï¿½ï¿½ï¿½Ô­Ê¼ï¿½ã£»API ï¿½ï¿½ï¿½ï¿½Òª×·ï¿½Ý¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½á¸²ï¿½ï¿½ï¿½ï¿½ï¿½Å±ï¿½ï¿½ï¿½
 
     for (int i = 0; i < number_of_point; i++) {
         node_array[i].coordinate.x = points[i][0];
@@ -191,6 +256,7 @@ void MNormalMesh::ReadPlsBuf(std::string f, std::vector<std::array<double, 3>> &
         }
         node_array[i].node_id_ = i;
         real_node_id_[i] = i; // of course they are themself
+        node_original_id_[i] = i;
     }
 
     connector.resize(number_of_element);
@@ -217,17 +283,14 @@ void MNormalMesh::ReadPlsBuf(std::string f, std::vector<std::array<double, 3>> &
             }
         }
 
-        // Ñ°ÕÒÆðÊ¼µã
         unordered_map<int, int> count_map;
         int start = graph[i][0][0];
         int pos = start;
 
-        // Í³¼Æ j[0] ³öÏÖµÄ´ÎÊý
         for (const auto &j : graph[i]) {
             count_map[j[0]]++;
         }
 
-        // Í³¼Æj[1]Óëj[0]³öÏÖµÄ´ÎÊý
         for (const auto &j : graph[i]) {
             if (count_map.find(j[1]) != count_map.end()) {
                 count_map[j[1]]++;
@@ -275,9 +338,7 @@ void MNormalMesh::CaculateFrontNormal()
         ans.swap(node.neighbour_front_index_);
         for (int i = 0; i < node.neighbour_node_.size(); i++) {
             int j = (i + 1) % node.neighbour_node_.size();
-            std::array<int, 3> neighbour{node.neighbour_node_[i]->node_id_,
-                                         node.neighbour_node_[j]->node_id_,
-                                         node.node_id_};
+            std::array<int, 3> neighbour{node.neighbour_node_[i]->node_id_, node.neighbour_node_[j]->node_id_, node.node_id_};
             std::sort(neighbour.begin(), neighbour.end());
             for (auto k : ans) {
                 std::array<int, 3> my_order{connector[k][0], connector[k][1], connector[k][2]};
@@ -296,8 +357,7 @@ void MNormalMesh::CalculateNodeNormal()
         if (node.neighbour_front_direction_.empty()) {
             throw std::runtime_error("please fill the front normal first");
         }
-        node.single_normal_ =
-            GEEOMETRY_FUNCTION::getMostNormal(node.neighbour_front_direction_).normalized();
+        node.single_normal_ = GEEOMETRY_FUNCTION::getMostNormal(node.neighbour_front_direction_).normalized();
         node.visible_angle_ = node.CaculateVisableAngle(node.single_normal_);
         node.original_skewness_ = (acos(node.visible_angle_)) / (PI / 2);
         if (node.visible_angle_ < 0) {
@@ -308,7 +368,6 @@ void MNormalMesh::CalculateNodeNormal()
     }
 }
 
-/* ³õÊ¼»¯²½³¤ to adapt ALM**/
 void MNormalMesh::FixedLength()
 {
     for (int i = 0; i < node_array.size(); i++) {
@@ -359,7 +418,6 @@ void MNormalMesh::FixedLength()
     }
 }
 
-/* ¼ÆËã¶à·¨Ïò **/
 void MNormalMesh::CalculateMultiNormal()
 {
     clock_t start_time = clock();
@@ -373,10 +431,8 @@ void MNormalMesh::CalculateMultiNormal()
     double d = 0;
     for (auto i = node_array.begin(); i != node_array.end(); i++) {
         d = max(d, i->original_skewness_);
-        // Èç¹û½ÚµãÔÚ avoid_spliteNode ÖÐ£¬ÔòÌø¹ý¸Ã½Úµã
-        if (std::find(avoid_spliteNode.begin(), avoid_spliteNode.end(), i->node_id_) !=
-            avoid_spliteNode.end()) {
-            continue; // Ìø¹ýµ±Ç°½Úµã
+        if (std::find(avoid_spliteNode.begin(), avoid_spliteNode.end(), i->node_id_) != avoid_spliteNode.end()) {
+            continue;
         }
         if (firstLayer) {
             if (i->original_skewness_ > 1) { // naca 0.14459
@@ -404,8 +460,7 @@ void MNormalMesh::CalculateMultiNormal()
     spdlog::info("/////////////////////////////////");
 
     spdlog::info("The number of Complex node={0}.", number_of_complex_nodes);
-    spdlog::info("The time comsuption of splitting={:03.2f} sec.",
-                 (end_time - start_time) * 1.0 / CLOCKS_PER_SEC);
+    spdlog::info("The time comsuption of splitting={:03.2f} sec.", (end_time - start_time) * 1.0 / CLOCKS_PER_SEC);
 }
 
 void MNormalMesh::BuildTopo(int faceCount)
@@ -414,7 +469,6 @@ void MNormalMesh::BuildTopo(int faceCount)
     std::map<int, std::map<int, std::vector<int>>> complex_edges;
 
     // ==============================
-    // Step 1: ³õÊ¼»¯ËùÓÐ¾Ö²¿½Úµã
     // ==============================
     for (auto i = node_array.begin(); i != node_array.end(); i++) {
         auto &local_mesh = i->getFinalMesh();
@@ -436,8 +490,7 @@ void MNormalMesh::BuildTopo(int faceCount)
 
             int count = -1;
             for (int k = 0; k < local_mesh.virtual_point_lists_.size(); k++) {
-                if (local_mesh.valid.find(k) == local_mesh.valid.end() ||
-                    local_mesh.virtual_point_lists_[k].isFarNode()) {
+                if (local_mesh.valid.find(k) == local_mesh.valid.end() || local_mesh.virtual_point_lists_[k].isFarNode()) {
                     continue;
                 }
 
@@ -446,11 +499,9 @@ void MNormalMesh::BuildTopo(int faceCount)
                 local_mesh.virtual_point_lists_[k].setGlobalIndex(point_index_map[count]);
 
                 if ((!local_mesh.virtual_point_lists_[k].getGlobalNeighbourTriIndex().empty()) ||
-                    (local_mesh.valid.find(ONE_INSERT) != local_mesh.valid.end() &&
-                     k == local_mesh.virtual_point_lists_.size() - 1)) {
+                    (local_mesh.valid.find(ONE_INSERT) != local_mesh.valid.end() && k == local_mesh.virtual_point_lists_.size() - 1)) {
                     coordinate[point_index_map[count]] = coordinate[point_index_map[count]];
-                    point_normals[point_index_map[count]] =
-                        local_mesh.virtual_point_lists_[k].getCoord();
+                    point_normals[point_index_map[count]] = local_mesh.virtual_point_lists_[k].getCoord();
 
                     if (local_mesh.virtual_point_lists_[k].getCoord().magnitude2() < 0.9 ||
                         local_mesh.virtual_point_lists_[k].getCoord().magnitude2() > 1.1) {
@@ -479,8 +530,7 @@ void MNormalMesh::BuildTopo(int faceCount)
     };
 
     std::map<std::array<int, 2>, pos> complex_edges_pair;
-    std::map<std::array<int, 2>, int>
-        global_far_node_map; // store global point idx for each virtual edge
+    std::map<std::array<int, 2>, int> global_far_node_map; // store global point idx for each virtual edge
 
     for (auto i = node_array.begin(); i != node_array.end(); i++) {
         auto &local_mesh = i->getFinalMesh();
@@ -489,28 +539,25 @@ void MNormalMesh::BuildTopo(int faceCount)
             for (int k1 = 0; k1 < local_mesh.boundary_edges_.size(); k1++) {
                 int k = local_mesh.boundary_edges_[k1][0];
 
-                if (local_mesh.valid.find(k) == local_mesh.valid.end() ||
-                    !local_mesh.virtual_point_lists_[k].isFarNode()) { // far point
+                if (local_mesh.valid.find(k) == local_mesh.valid.end() || !local_mesh.virtual_point_lists_[k].isFarNode()) { // far point
                     continue;
                 }
 
                 int index = local_mesh.virtual_point_lists_[k].getGlobalIndex();
 
-                // --- Í³Ò»Ë³Ðò£¬Ð¡½ÚµãÔÚÇ°£¬´ó½ÚµãÔÚºó ---
                 int u = std::min(i->node_id_, index);
                 int v = std::max(i->node_id_, index);
 
                 if (node_array[index].getFinalMesh().getExtraPointCount()) {
-                    complex_edges_pair[{u, v}] = pos();  // ¸´ÔÓ±ß
+                    complex_edges_pair[{u, v}] = pos();
                 } else {
-                    global_far_node_map[{u, v}] = index; // ÆÕÍ¨±ß
+                    global_far_node_map[{u, v}] = index;
                 }
             }
         }
     }
 
     // ==============================
-    // Step 3: Ã¶¾ÙËùÓÐ¿ÉÄÜÁ¬½ÓÄ£Ê½
     // ==============================
     static std::vector<std::vector<int>> connection[2][2] = {std::vector<std::vector<int>>()};
     static bool create = false;
@@ -538,7 +585,6 @@ void MNormalMesh::BuildTopo(int faceCount)
     }
 
     // ==============================
-    // Step 4: ±éÀúËùÓÐ¸´ÔÓ±ß¶Ô
     // ==============================
     for (auto edge : complex_edges_pair) {
         int s = edge.first[0];
@@ -550,8 +596,7 @@ void MNormalMesh::BuildTopo(int faceCount)
         std::vector<std::pair<int, int>> active_triangles_left;
         for (int i = 0; i < meshs.triangle_lists_.size(); i++) {
             for (int j = 0; j < 3; j++) {
-                if (meshs.virtual_point_lists_[meshs.triangle_lists_[i].point_index_[j]]
-                        .getGlobalIndex() == e) {
+                if (meshs.virtual_point_lists_[meshs.triangle_lists_[i].point_index_[j]].getGlobalIndex() == e) {
                     active_triangles_left.push_back({i, j});
                 }
             }
@@ -561,8 +606,7 @@ void MNormalMesh::BuildTopo(int faceCount)
         std::vector<std::pair<int, int>> active_triangles_right;
         for (int i = 0; i < meshe.triangle_lists_.size(); i++) {
             for (int j = 0; j < 3; j++) {
-                if (meshe.virtual_point_lists_[meshe.triangle_lists_[i].point_index_[j]]
-                        .getGlobalIndex() == s) {
+                if (meshe.virtual_point_lists_[meshe.triangle_lists_[i].point_index_[j]].getGlobalIndex() == s) {
                     active_triangles_right.push_back({i, j});
                 }
             }
@@ -570,19 +614,15 @@ void MNormalMesh::BuildTopo(int faceCount)
 
         // --- Sort triangles if 2 on each side ---
         if (active_triangles_left.size() == 2) {
-            if (meshs.triangle_lists_[active_triangles_left[0].first]
-                    .point_index_[(active_triangles_left[0].second + 1) % 3] ==
-                meshs.triangle_lists_[active_triangles_left[1].first]
-                    .point_index_[(active_triangles_left[1].second + 2) % 3]) {
+            if (meshs.triangle_lists_[active_triangles_left[0].first].point_index_[(active_triangles_left[0].second + 1) % 3] ==
+                meshs.triangle_lists_[active_triangles_left[1].first].point_index_[(active_triangles_left[1].second + 2) % 3]) {
                 std::swap(active_triangles_left[0], active_triangles_left[1]);
             }
         }
 
         if (active_triangles_right.size() == 2) {
-            if (meshe.triangle_lists_[active_triangles_right[0].first]
-                    .point_index_[(active_triangles_right[0].second + 1) % 3] ==
-                meshe.triangle_lists_[active_triangles_right[1].first]
-                    .point_index_[(active_triangles_right[1].second + 2) % 3]) {
+            if (meshe.triangle_lists_[active_triangles_right[0].first].point_index_[(active_triangles_right[0].second + 1) % 3] ==
+                meshe.triangle_lists_[active_triangles_right[1].first].point_index_[(active_triangles_right[1].second + 2) % 3]) {
                 std::swap(active_triangles_right[0], active_triangles_right[1]);
             }
         }
@@ -635,7 +675,6 @@ void MNormalMesh::BuildTopo(int faceCount)
                 int foundS = -1;
                 int foundE = -1;
 
-                // ²éÕÒ s ÖÐµÄÈÎÒâÒ»¸öÖµ
                 for (int x : arr) {
                     if (std::find(spoints.begin(), spoints.end(), x) != spoints.end()) {
                         foundS = x;
@@ -643,7 +682,6 @@ void MNormalMesh::BuildTopo(int faceCount)
                     }
                 }
 
-                // ²éÕÒ e ÖÐµÄÈÎÒâÒ»¸öÖµ
                 for (int x : arr) {
                     if (std::find(epoints.begin(), epoints.end(), x) != epoints.end()) {
                         foundE = x;
@@ -664,8 +702,7 @@ void MNormalMesh::BuildTopo(int faceCount)
                         if (meshs.virtual_point_lists_[tri.point_index_[j]].getGlobalIndex() == e) {
                             new_tri[j] = results[0].second;
                         } else {
-                            new_tri[j] =
-                                meshs.virtual_point_lists_[tri.point_index_[j]].getGlobalIndex();
+                            new_tri[j] = meshs.virtual_point_lists_[tri.point_index_[j]].getGlobalIndex();
                         }
                     }
                     tri.added_flag = true;
@@ -681,8 +718,7 @@ void MNormalMesh::BuildTopo(int faceCount)
                         if (meshe.virtual_point_lists_[tri.point_index_[j]].getGlobalIndex() == s) {
                             new_tri[j] = results[0].first;
                         } else {
-                            new_tri[j] =
-                                meshe.virtual_point_lists_[tri.point_index_[j]].getGlobalIndex();
+                            new_tri[j] = meshe.virtual_point_lists_[tri.point_index_[j]].getGlobalIndex();
                         }
                     }
                     tri.added_flag = true;
@@ -693,8 +729,7 @@ void MNormalMesh::BuildTopo(int faceCount)
         } else {
 
             // --- Determine combination ---
-            auto combination =
-                connection[active_triangles_left.size() - 1][active_triangles_right.size() - 1];
+            auto combination = connection[active_triangles_left.size() - 1][active_triangles_right.size() - 1];
             std::vector<int> best_combination;
             double min_cost = 100;
 
@@ -706,48 +741,18 @@ void MNormalMesh::BuildTopo(int faceCount)
 
                 for (int i = 0; i < c.size(); i++) {
                     if (c[i] > 0) {
-                        auto conn = meshs.triangle_lists_[active_triangles_left[c[i] - 1].first]
-                                        .point_index_;
-                        BLVector n1 =
-                            meshs
-                                .virtual_point_lists_
-                                    [conn[(active_triangles_left[c[i] - 1].second + 1) % 3]]
-                                .getCoord() -
-                            meshs
-                                .virtual_point_lists_
-                                    [conn[(active_triangles_left[c[i] - 1].second + 0) % 3]]
-                                .getCoord();
-                        BLVector n2 =
-                            meshs
-                                .virtual_point_lists_
-                                    [conn[(active_triangles_left[c[i] - 1].second + 2) % 3]]
-                                .getCoord() -
-                            meshs
-                                .virtual_point_lists_
-                                    [conn[(active_triangles_left[c[i] - 1].second + 1) % 3]]
-                                .getCoord();
+                        auto conn = meshs.triangle_lists_[active_triangles_left[c[i] - 1].first].point_index_;
+                        BLVector n1 = meshs.virtual_point_lists_[conn[(active_triangles_left[c[i] - 1].second + 1) % 3]].getCoord() -
+                                      meshs.virtual_point_lists_[conn[(active_triangles_left[c[i] - 1].second + 0) % 3]].getCoord();
+                        BLVector n2 = meshs.virtual_point_lists_[conn[(active_triangles_left[c[i] - 1].second + 2) % 3]].getCoord() -
+                                      meshs.virtual_point_lists_[conn[(active_triangles_left[c[i] - 1].second + 1) % 3]].getCoord();
                         normals.push_back((n1 ^ n2).normalized());
                     } else {
-                        auto conn = meshe.triangle_lists_[active_triangles_right[-c[i] - 1].first]
-                                        .point_index_;
-                        BLVector n1 =
-                            meshe
-                                .virtual_point_lists_
-                                    [conn[(active_triangles_right[-c[i] - 1].second + 1) % 3]]
-                                .getCoord() -
-                            meshe
-                                .virtual_point_lists_
-                                    [conn[(active_triangles_right[-c[i] - 1].second + 0) % 3]]
-                                .getCoord();
-                        BLVector n2 =
-                            meshe
-                                .virtual_point_lists_
-                                    [conn[(active_triangles_right[-c[i] - 1].second + 2) % 3]]
-                                .getCoord() -
-                            meshe
-                                .virtual_point_lists_
-                                    [conn[(active_triangles_right[-c[i] - 1].second + 1) % 3]]
-                                .getCoord();
+                        auto conn = meshe.triangle_lists_[active_triangles_right[-c[i] - 1].first].point_index_;
+                        BLVector n1 = meshe.virtual_point_lists_[conn[(active_triangles_right[-c[i] - 1].second + 1) % 3]].getCoord() -
+                                      meshe.virtual_point_lists_[conn[(active_triangles_right[-c[i] - 1].second + 0) % 3]].getCoord();
+                        BLVector n2 = meshe.virtual_point_lists_[conn[(active_triangles_right[-c[i] - 1].second + 2) % 3]].getCoord() -
+                                      meshe.virtual_point_lists_[conn[(active_triangles_right[-c[i] - 1].second + 1) % 3]].getCoord();
                         normals.push_back((n1 ^ n2).normalized());
                     }
                 }
@@ -771,31 +776,23 @@ void MNormalMesh::BuildTopo(int faceCount)
 
             for (int i = 0; i < active_triangles_left.size(); i++) {
                 auto conn = meshs.triangle_lists_[active_triangles_left[i].first].point_index_;
-                api_point_left.push(
-                    meshs.virtual_point_lists_[conn[(active_triangles_left[i].second + 1) % 3]]
-                        .getGlobalIndex());
+                api_point_left.push(meshs.virtual_point_lists_[conn[(active_triangles_left[i].second + 1) % 3]].getGlobalIndex());
             }
 
-            api_point_left.push(
-                meshs
-                    .virtual_point_lists_
-                        [meshs.triangle_lists_[active_triangles_left.back().first]
-                             .point_index_[(active_triangles_left.back().second + 2) % 3]]
-                    .getGlobalIndex());
+            api_point_left.push(meshs
+                                    .virtual_point_lists_[meshs.triangle_lists_[active_triangles_left.back().first]
+                                                              .point_index_[(active_triangles_left.back().second + 2) % 3]]
+                                    .getGlobalIndex());
 
             for (int i = 0; i < active_triangles_right.size(); i++) {
                 auto conn = meshe.triangle_lists_[active_triangles_right[i].first].point_index_;
-                api_point_right.push(
-                    meshe.virtual_point_lists_[conn[(active_triangles_right[i].second + 1) % 3]]
-                        .getGlobalIndex());
+                api_point_right.push(meshe.virtual_point_lists_[conn[(active_triangles_right[i].second + 1) % 3]].getGlobalIndex());
             }
 
-            api_point_right.push(
-                meshe
-                    .virtual_point_lists_
-                        [meshe.triangle_lists_[active_triangles_right.back().first]
-                             .point_index_[(active_triangles_right.back().second + 2) % 3]]
-                    .getGlobalIndex());
+            api_point_right.push(meshe
+                                     .virtual_point_lists_[meshe.triangle_lists_[active_triangles_right.back().first]
+                                                               .point_index_[(active_triangles_right.back().second + 2) % 3]]
+                                     .getGlobalIndex());
 
             std::pair<int, int> last_changed{0, 0};
 
@@ -814,18 +811,12 @@ void MNormalMesh::BuildTopo(int faceCount)
                     int api_point_index = api_point_right.top();
 
                     for (int j = 0; j < 3; j++) {
-                        if (meshs
-                                .virtual_point_lists_
-                                    [meshs.triangle_lists_[active_triangles_left[index].first]
-                                         .point_index_[j]]
+                        if (meshs.virtual_point_lists_[meshs.triangle_lists_[active_triangles_left[index].first].point_index_[j]]
                                 .getGlobalIndex() == e) {
                             new_tri[j] = api_point_index;
                         } else {
                             new_tri[j] =
-                                meshs
-                                    .virtual_point_lists_
-                                        [meshs.triangle_lists_[active_triangles_left[index].first]
-                                             .point_index_[j]]
+                                meshs.virtual_point_lists_[meshs.triangle_lists_[active_triangles_left[index].first].point_index_[j]]
                                     .getGlobalIndex();
                         }
                     }
@@ -843,18 +834,12 @@ void MNormalMesh::BuildTopo(int faceCount)
                     int api_point_index = api_point_left.front();
 
                     for (int j = 0; j < 3; j++) {
-                        if (meshe
-                                .virtual_point_lists_
-                                    [meshe.triangle_lists_[active_triangles_right[index].first]
-                                         .point_index_[j]]
+                        if (meshe.virtual_point_lists_[meshe.triangle_lists_[active_triangles_right[index].first].point_index_[j]]
                                 .getGlobalIndex() == s) {
                             new_tri[j] = api_point_index;
                         } else {
                             new_tri[j] =
-                                meshe
-                                    .virtual_point_lists_
-                                        [meshe.triangle_lists_[active_triangles_right[index].first]
-                                             .point_index_[j]]
+                                meshe.virtual_point_lists_[meshe.triangle_lists_[active_triangles_right[index].first].point_index_[j]]
                                     .getGlobalIndex();
                         }
                     }
@@ -881,8 +866,7 @@ void MNormalMesh::BuildTopo(int faceCount)
 
                 std::array<int, 3> new_tri;
                 for (int j = 0; j < 3; j++) {
-                    new_tri[j] =
-                        local_mesh.virtual_point_lists_[k.point_index_[j]].getGlobalIndex();
+                    new_tri[j] = local_mesh.virtual_point_lists_[k.point_index_[j]].getGlobalIndex();
                 }
                 connector.push_back(new_tri);
                 attribute.push_back(new_attribute);
@@ -891,24 +875,20 @@ void MNormalMesh::BuildTopo(int faceCount)
     }
 }
 
-/*¶à·¨ÏòµÚÒ»²ãÉú³É **/
-void MNormalMesh::Generate_preVol(std::vector<std::array<double, 3>> &v,
-                                  std::vector<std::vector<int>> &f,bool isALM)
+void MNormalMesh::Generate_preVol(std::vector<std::array<double, 3>> &v, std::vector<std::vector<int>> &f, bool isALM)
 {
     GenContext ctx = BuildPreGenContext();
 
-    //³õÊ¼»¯²½³¤²¢½«·Ç¶à·¨Ïòµã²½³¤ÉèÎª0
     length = InitLengthField(ctx);
     for (int i = 0; i < length.size(); ++i) {
         if (ctx.duplicate_lower_ids.find(i) == ctx.duplicate_lower_ids.end()) {
             length[i] = 0.0;
         }
     }
-    // »ùÓÚÐÂ connector ½¨ÁÚ½Ó
-    RebuildPointNeighbors();       
+    RebuildPointNeighbors();
 
     CandidateVolume candidate;
-    bool ok = ResolveLengthField(ctx, length, candidate,isALM);
+    bool ok = ResolveLengthField(ctx, length, candidate, isALM);
     if (!ok) {
         multiplySuccess = false;
         return;
@@ -917,28 +897,25 @@ void MNormalMesh::Generate_preVol(std::vector<std::array<double, 3>> &v,
     CommitCandidate(ctx, candidate, v, f);
 }
 
-/*¶à·¨ÏòÈ«²ãÉú³É **/
-void MNormalMesh::Generate_Vol(std::vector<std::array<double, 3>> &v,
-                                  std::vector<std::vector<int>> &f)
+void MNormalMesh::Generate_Vol(std::vector<std::array<double, 3>> &v, std::vector<std::vector<int>> &f)
 {
     GenContext ctx = BuildPreGenContext();
 
     length = InitLengthField(ctx);
-    RebuildPointNeighbors();       // »ùÓÚÐÂ connector ½¨ÁÚ½Ó
+    RebuildPointNeighbors();
 
     CandidateVolume candidate;
     bool ok = ResolveLengthField(ctx, length, candidate);
-    
+
     if (!ok) {
         multiplySuccess = false;
         spdlog::info("full_layer failed");
         return;
     }
-    
+
     CommitCandidate(ctx, candidate, v, f);
 }
 
-/*½¨Á¢×¼±¸Êý¾Ý **/
 MNormalMesh::GenContext MNormalMesh::BuildPreGenContext() const
 {
     GenContext ctx;
@@ -951,9 +928,7 @@ MNormalMesh::GenContext MNormalMesh::BuildPreGenContext() const
         std::array<int, 3> &ids = ctx.lower_ids[i];
         for (int k = 0; k < 3; ++k) {
             int coord_idx = connector[i][k];
-            std::array<double, 3> pt = {coordinate[coord_idx].x,
-                                        coordinate[coord_idx].y,
-                                        coordinate[coord_idx].z};
+            std::array<double, 3> pt = {coordinate[coord_idx].x, coordinate[coord_idx].y, coordinate[coord_idx].z};
 
             auto it = coord_to_id.find(pt);
             if (it == coord_to_id.end()) {
@@ -972,7 +947,6 @@ MNormalMesh::GenContext MNormalMesh::BuildPreGenContext() const
         ctx.bottom_points[kv.second] = kv.first;
     }
 
-    // ÊÕ¼¯ÖØ¸´µã
     for (int i = 0; i < ctx.lower_ids.size(); ++i) {
         const auto &ids = ctx.lower_ids[i];
         const auto &conn = connector[i];
@@ -994,7 +968,6 @@ MNormalMesh::GenContext MNormalMesh::BuildPreGenContext() const
     return ctx;
 }
 
-/*¶à·¨Ïòºó³õÊ¼»¯²½³¤**/
 std::vector<double> MNormalMesh::InitLengthField(const GenContext &ctx) const
 {
     std::vector<double> length(coordinate.size(), 0.0);
@@ -1011,12 +984,11 @@ std::vector<double> MNormalMesh::InitLengthField(const GenContext &ctx) const
     return length;
 }
 
-/*¶à·¨ÏòºóÖØÐÂ½¨Á¢ÁÚ½Ó¹ØÏµ **/
 void MNormalMesh::RebuildPointNeighbors()
 {
     std::vector<std::set<int>> tmp(coordinate.size());
 
-    for (const auto& tri : connector) {
+    for (const auto &tri : connector) {
         int a = tri[0];
         int b = tri[1];
         int c = tri[2];
@@ -1046,11 +1018,8 @@ void MNormalMesh::RebuildPointNeighbors()
     }
 }
 
-#pragma optimize("",off);
-/*Ïà½»¼ì²âÓë²½³¤Ñ¹Ëõ **/
-bool MNormalMesh::ResolveLengthField(const GenContext &ctx,
-                                     std::vector<double> &length,
-                                     CandidateVolume &final_candidate,bool isALM) const
+#pragma optimize("", off);
+bool MNormalMesh::ResolveLengthField(const GenContext &ctx, std::vector<double> &length, CandidateVolume &final_candidate, bool isALM) const
 {
     const int kMaxIter = 20;
     bool zero_step_retry_done = false;
@@ -1060,18 +1029,17 @@ bool MNormalMesh::ResolveLengthField(const GenContext &ctx,
     for (int iter = 0;; ++iter) {
         CandidateVolume candidate;
         if (!firstLayer) {
-             candidate = BuildCandidateVolume(ctx, length);
+            candidate = BuildCandidateVolume(ctx, length);
         } else {
-             candidate = BuildPrismVolume(ctx, length);
+            candidate = BuildPrismVolume(ctx, length);
         }
 
         CheckResult inter_result = CheckSurfaceIntersection(ctx, length);
-        //CheckResult jac_result = CheckCellJacobian(candidate);
+        // CheckResult jac_result = CheckCellJacobian(candidate);
 
         std::set<int> bad_points = inter_result.bad_points;
-        //bad_points.insert(jac_result.bad_points.begin(), jac_result.bad_points.end());
+        // bad_points.insert(jac_result.bad_points.begin(), jac_result.bad_points.end());
 
-        // ===== µ÷ÊÔÓÃ£º°Ñ bad_points ¶ÔÓ¦µÄ×ø±êµ¥¶ÀÊÕ¼¯³öÀ´ =====
         struct DebugCoord {
             double x;
             double y;
@@ -1083,50 +1051,44 @@ bool MNormalMesh::ResolveLengthField(const GenContext &ctx,
 
         for (int pid : bad_points) {
             if (pid >= 0 && pid < coordinate.size()) {
-                bad_point_debug.push_back(
-                    {coordinate[pid].x, coordinate[pid].y, coordinate[pid].z});
+                bad_point_debug.push_back({coordinate[pid].x, coordinate[pid].y, coordinate[pid].z});
             }
         }
 
         spdlog::info("Loop {}, bad point size = {}", iter, bad_point_debug.size());
-        
-        if (bad_points.empty()) { 
-            final_candidate = std::move(candidate); 
-            return true; 
+
+        if (bad_points.empty()) {
+            final_candidate = std::move(candidate);
+            return true;
         }
 
         if (iter < kMaxIter) {
             ShrinkLengthField(length, bad_points, 0.8);
-            SmoothLengthField(length); // Ã¿´Î»ØËõºó¶¼×öÒ»´Î¹â»¬
+            SmoothLengthField(length);
         } else if (!zero_step_retry_done) {
             ZeroLengthField(length, bad_points);
-#ifdef  _DEBUG
+#ifdef _DEBUG
 
+            spdlog::info("========== ZeroLengthField bad_points ==========");
+            spdlog::info("bad_points size = {}", bad_points.size());
 
+            for (int pid : bad_points) {
+                if (pid >= 0 && pid < static_cast<int>(coordinate.size())) {
+                    int original_pid = pid;
+                    if (pid < static_cast<int>(node_original_id_.size()) && node_original_id_[pid] >= 0) {
+                        original_pid = node_original_id_[pid];
+                    }
+                    spdlog::info("bad point original id = {}, current id = {}, coord = ({:.16e}, {:.16e}, {:.16e}), length = {:.16e}",
+                                 original_pid, pid, coordinate[pid].x, coordinate[pid].y, coordinate[pid].z, length[pid]);
+                } else {
+                    spdlog::warn("bad point id = {} is out of coordinate range", pid);
+                }
+            }
 
-    // ===== ´òÓ¡±»ÖÃÁãµÄ bad_points =====
-    spdlog::info("========== ZeroLengthField bad_points ==========");
-    spdlog::info("bad_points size = {}", bad_points.size());
+            spdlog::info("===============================================");
+#endif //  _DEBUG
+            SmoothLengthField(length);
 
-    for (int pid : bad_points) {
-        if (pid >= 0 && pid < static_cast<int>(coordinate.size())) {
-            spdlog::info(
-                "bad point id = {}, coord = ({:.16e}, {:.16e}, {:.16e}), length = {:.16e}",
-                pid,
-                coordinate[pid].x,
-                coordinate[pid].y,
-                coordinate[pid].z,
-                length[pid]
-            );
-        } else {
-            spdlog::warn("bad point id = {} is out of coordinate range", pid);
-        }
-    }
-
-    spdlog::info("===============================================");
-#endif      //  _DEBUG
-            SmoothLengthField(length); // ÖÃÁãºóÒ²¹â»¬Ò»´Î
-            
             if (isALM) {
                 spdlog::info("use singal normal");
                 return false;
@@ -1134,31 +1096,26 @@ bool MNormalMesh::ResolveLengthField(const GenContext &ctx,
                 spdlog::info("len has been 0");
                 zero_step_retry_done = true;
             }
-            
-            
+
         } else {
             return false;
         }
     }
 }
-#pragma optimize("",on);
+#pragma optimize("", on);
 
-
-/*·¨Ïò¹â»¬»¯ **/
 void MNormalMesh::SmoothNormalsField(int iterations)
 {
     std::vector<BLVector> new_normals(coordinate.size());
 
     for (int it = 0; it < iterations; ++it) {
         for (size_t idx = 0; idx < coordinate.size(); ++idx) {
-            BLVector avg_normal = point_normals[idx]; // µ±Ç°µã·¨Ïò
+            BLVector avg_normal = point_normals[idx];
             int count = 1;
 
-            // ±éÀúÁ¬½Óµ½µ±Ç°µãµÄËùÓÐÈý½ÇÐÎ
             for (auto &tri : connector) {
                 for (int j = 0; j < 3; ++j) {
                     if (tri[j] == idx) {
-                        // ÀÛ¼ÓÈý½ÇÐÎÆäËû¶¥µãµÄ·¨Ïò
                         for (int k = 0; k < 3; ++k) {
                             if (k != j) {
                                 avg_normal += 0.1 * point_normals[tri[k]];
@@ -1174,13 +1131,11 @@ void MNormalMesh::SmoothNormalsField(int iterations)
             new_normals[idx] = avg_normal;
         }
 
-        // ¸üÐÂ·¨Ïò
         point_normals = new_normals;
     }
 }
 
-/*²½³¤¹â»¬»¯ **/
-void MNormalMesh::SmoothLengthField(std::vector<double>& length) const
+void MNormalMesh::SmoothLengthField(std::vector<double> &length) const
 {
     if (length.size() != point_neighbors_.size()) {
         throw std::runtime_error("length size does not match point_neighbors_ size");
@@ -1216,20 +1171,15 @@ void MNormalMesh::SmoothLengthField(std::vector<double>& length) const
     }
 }
 
-/* ½¨Á¢µÚÒ»²ãÌåµ¥Ôª **/
-MNormalMesh::CandidateVolume MNormalMesh::BuildCandidateVolume(
-    const GenContext &ctx,
-    const std::vector<double> &length) const
+MNormalMesh::CandidateVolume MNormalMesh::BuildCandidateVolume(const GenContext &ctx, const std::vector<double> &length) const
 {
     CandidateVolume candidate;
     candidate.vertices = BuildLayerPoints(ctx, length);
 
     auto has_distinct_4 = [&](int i1, int i2, int i3, int i4) {
-        std::set<std::array<double, 3>> s = {candidate.vertices[i1],
-                                             candidate.vertices[i2],
-                                             candidate.vertices[i3],
+        std::set<std::array<double, 3>> s = {candidate.vertices[i1], candidate.vertices[i2], candidate.vertices[i3],
                                              candidate.vertices[i4]};
-        return s.size() == 4; // true ±íÊ¾ËÄ¸öµã¶¼²»ÖØ¸´
+        return s.size() == 4;
     };
 
     auto addTet = [&](int a, int b, int c, int d, int tri_id, int p0, int p1, int p2, int layer) {
@@ -1242,25 +1192,15 @@ MNormalMesh::CandidateVolume MNormalMesh::BuildCandidateVolume(
         candidate.cells.push_back(std::move(cell));
     };
 
-    // ===== ÇÐ¸î·½°¸£ºµ±Ç°±£³ÖºÍÄãÔ­ pre_GenerateVol Ò»ÖÂ£¬Ö»×öµÚÒ»²ã =====
     for (int i = 0; i < connector.size(); ++i) {
         const auto &tri = connector[i];
         const auto &lower = ctx.lower_ids[i];
 
-        // Èý·¨Ïò·ÖÁÑÇé¿ö
         if (lower[0] == lower[1] && lower[2] == lower[1]) {
-            addTet(lower[0],
-                   Idx(tri[0], ctx.lower_num),
-                   Idx(tri[1], ctx.lower_num),
-                   Idx(tri[2], ctx.lower_num),
-                   i,
-                   tri[0],
-                   tri[1],
-                   tri[2],
+            addTet(lower[0], Idx(tri[0], ctx.lower_num), Idx(tri[1], ctx.lower_num), Idx(tri[2], ctx.lower_num), i, tri[0], tri[1], tri[2],
                    0);
         }
 
-        // ÎÞ·¨Ïò·ÖÁÑÇé¿ö
         else if (lower[0] != lower[1] && lower[2] != lower[1] && lower[2] != lower[0]) {
 
             int k1 = -1, k2 = -1, k3 = -1;
@@ -1287,51 +1227,21 @@ MNormalMesh::CandidateVolume MNormalMesh::BuildCandidateVolume(
             if (count == 3) {
                 continue;
             } else {
-                if (has_distinct_4(lower[k1],
-                                   lower[k2],
-                                   Idx(tri[k2], ctx.lower_num),
-                                   Idx(tri[k3], ctx.lower_num))) {
-                    addTet(lower[k1],
-                           lower[k2],
-                           Idx(tri[k2], ctx.lower_num),
-                           Idx(tri[k3], ctx.lower_num),
-                           i,
-                           tri[0],
-                           tri[1],
-                           tri[2],
-                           0);
+                if (has_distinct_4(lower[k1], lower[k2], Idx(tri[k2], ctx.lower_num), Idx(tri[k3], ctx.lower_num))) {
+                    addTet(lower[k1], lower[k2], Idx(tri[k2], ctx.lower_num), Idx(tri[k3], ctx.lower_num), i, tri[0], tri[1], tri[2], 0);
                 }
 
-                if (has_distinct_4(lower[k1],
-                                   Idx(tri[k1], ctx.lower_num),
-                                   Idx(tri[k2], ctx.lower_num),
-                                   Idx(tri[k3], ctx.lower_num))) {
-                    addTet(lower[k1],
-                           Idx(tri[k1], ctx.lower_num),
-                           Idx(tri[k2], ctx.lower_num),
-                           Idx(tri[k3], ctx.lower_num),
-                           i,
-                           tri[0],
-                           tri[1],
-                           tri[2],
-                           0);
+                if (has_distinct_4(lower[k1], Idx(tri[k1], ctx.lower_num), Idx(tri[k2], ctx.lower_num), Idx(tri[k3], ctx.lower_num))) {
+                    addTet(lower[k1], Idx(tri[k1], ctx.lower_num), Idx(tri[k2], ctx.lower_num), Idx(tri[k3], ctx.lower_num), i, tri[0],
+                           tri[1], tri[2], 0);
                 }
 
                 if (has_distinct_4(lower[k1], lower[k2], lower[k3], Idx(tri[k3], ctx.lower_num))) {
-                    addTet(lower[k1],
-                           lower[k2],
-                           lower[k3],
-                           Idx(tri[k3], ctx.lower_num),
-                           i,
-                           tri[0],
-                           tri[1],
-                           tri[2],
-                           0);
+                    addTet(lower[k1], lower[k2], lower[k3], Idx(tri[k3], ctx.lower_num), i, tri[0], tri[1], tri[2], 0);
                 }
             }
         }
 
-        // ·¨Ïò¶þ·ÖÇé¿ö
         else {
             int k1 = -1, k2 = -1, k3 = -1;
             for (int j = 0; j < 3; ++j) {
@@ -1344,54 +1254,25 @@ MNormalMesh::CandidateVolume MNormalMesh::BuildCandidateVolume(
             }
 
             if (lower[k1] < lower[k3]) {
-                addTet(lower[k1],
-                       Idx(tri[k1], ctx.lower_num),
-                       Idx(tri[k2], ctx.lower_num),
-                       Idx(tri[k3], ctx.lower_num),
-                       i,
-                       tri[0],
-                       tri[1],
-                       tri[2],
-                       0);
+                addTet(lower[k1], Idx(tri[k1], ctx.lower_num), Idx(tri[k2], ctx.lower_num), Idx(tri[k3], ctx.lower_num), i, tri[0], tri[1],
+                       tri[2], 0);
             } else {
-                addTet(lower[k3],
-                       Idx(tri[k1], ctx.lower_num),
-                       Idx(tri[k2], ctx.lower_num),
-                       Idx(tri[k3], ctx.lower_num),
-                       i,
-                       tri[0],
-                       tri[1],
-                       tri[2],
-                       0);
+                addTet(lower[k3], Idx(tri[k1], ctx.lower_num), Idx(tri[k2], ctx.lower_num), Idx(tri[k3], ctx.lower_num), i, tri[0], tri[1],
+                       tri[2], 0);
 
-                addTet(lower[k1],
-                       Idx(tri[k1], ctx.lower_num),
-                       Idx(tri[k2], ctx.lower_num),
-                       lower[k3],
-                       i,
-                       tri[0],
-                       tri[1],
-                       tri[2],
-                       0);
+                addTet(lower[k1], Idx(tri[k1], ctx.lower_num), Idx(tri[k2], ctx.lower_num), lower[k3], i, tri[0], tri[1], tri[2], 0);
             }
         }
     }
 
     return candidate;
 }
-/* ½¨Á¢È«²ãÈýÀâÖùµ¥Ôª **/
-MNormalMesh::CandidateVolume MNormalMesh::BuildPrismVolume(
-    const GenContext &ctx,
-    const std::vector<double> &length) const
+MNormalMesh::CandidateVolume MNormalMesh::BuildPrismVolume(const GenContext &ctx, const std::vector<double> &length) const
 {
     CandidateVolume candidate;
     candidate.vertices = BuildLayerPoints(ctx, length);
 
-    auto addPrism = [&](int a, int b, int c,
-                        int d, int e, int f,
-                        int tri_id,
-                        int p0, int p1, int p2,
-                        int layer) {
+    auto addPrism = [&](int a, int b, int c, int d, int e, int f, int tri_id, int p0, int p1, int p2, int layer) {
         TempCell cell;
         cell.type = CellType::PRISM;
         cell.verts = {a, b, c, d, e, f};
@@ -1401,36 +1282,22 @@ MNormalMesh::CandidateVolume MNormalMesh::BuildPrismVolume(
         candidate.cells.push_back(std::move(cell));
     };
 
-    // Ã¿¸ö surface triangle ÔÚÏàÁÚÁ½²ãÖ®¼äÉú³ÉÒ»¸öÈýÀâÖù
     for (int j = -1; j < number_of_layer - 1; ++j) {
         for (int i = 0; i < connector.size(); ++i) {
             const auto &tri = connector[i];
 
-            addPrism(
-                Idx(tri[0], ctx.lower_num, j),
-                Idx(tri[1], ctx.lower_num, j),
-                Idx(tri[2], ctx.lower_num, j),
+            addPrism(Idx(tri[0], ctx.lower_num, j), Idx(tri[1], ctx.lower_num, j), Idx(tri[2], ctx.lower_num, j),
 
-                Idx(tri[0], ctx.lower_num, j + 1),
-                Idx(tri[1], ctx.lower_num, j + 1),
-                Idx(tri[2], ctx.lower_num, j + 1),
+                     Idx(tri[0], ctx.lower_num, j + 1), Idx(tri[1], ctx.lower_num, j + 1), Idx(tri[2], ctx.lower_num, j + 1),
 
-                i,
-                tri[0],
-                tri[1],
-                tri[2],
-                j + 1
-            );
+                     i, tri[0], tri[1], tri[2], j + 1);
         }
     }
 
     return candidate;
 }
 
-/*½¨Á¢²ã×´µã¼¯ **/
-std::vector<std::array<double, 3>> MNormalMesh::BuildLayerPoints(
-    const GenContext &ctx,
-    const std::vector<double> &length) const
+std::vector<std::array<double, 3>> MNormalMesh::BuildLayerPoints(const GenContext &ctx, const std::vector<double> &length) const
 {
     std::vector<std::array<double, 3>> v;
     v.resize(ctx.lower_num + number_of_layer * coordinate.size());
@@ -1441,27 +1308,23 @@ std::vector<std::array<double, 3>> MNormalMesh::BuildLayerPoints(
 
     for (int j = 1; j <= number_of_layer; ++j) {
         for (int i = 0; i < coordinate.size(); ++i) {
-            v[Idx(i, ctx.lower_num, j - 1)] = {
-                coordinate[i].x + j * length[i] * point_normals[i].x,
-                coordinate[i].y + j * length[i] * point_normals[i].y,
-                coordinate[i].z + j * length[i] * point_normals[i].z};
+            v[Idx(i, ctx.lower_num, j - 1)] = {coordinate[i].x + j * length[i] * point_normals[i].x,
+                                               coordinate[i].y + j * length[i] * point_normals[i].y,
+                                               coordinate[i].z + j * length[i] * point_normals[i].z};
         }
     }
 
     return v;
 }
-#pragma 
-MNormalMesh::CheckResult MNormalMesh::CheckSurfaceIntersection(const GenContext &ctx,const std::vector<double> &length) const
+#pragma
+MNormalMesh::CheckResult MNormalMesh::CheckSurfaceIntersection(const GenContext &ctx, const std::vector<double> &length) const
 {
     CheckResult result;
     result.ok = true;
 
     auto buildBoundingBox = [&]() {
-        BoundingBox box({std::numeric_limits<double>::max(),
-                         std::numeric_limits<double>::max(),
-                         std::numeric_limits<double>::max(),
-                         std::numeric_limits<double>::lowest(),
-                         std::numeric_limits<double>::lowest(),
+        BoundingBox box({std::numeric_limits<double>::max(), std::numeric_limits<double>::max(), std::numeric_limits<double>::max(),
+                         std::numeric_limits<double>::lowest(), std::numeric_limits<double>::lowest(),
                          std::numeric_limits<double>::lowest()});
 
         for (int i = 0; i < coordinate.size(); ++i) {
@@ -1478,28 +1341,22 @@ MNormalMesh::CheckResult MNormalMesh::CheckSurfaceIntersection(const GenContext 
     IntersecChecker checker_;
     checker_.init(buildBoundingBox());
 
-    // 1. ¼Óµ×²ãµã
     std::vector<BLVector> base_pts;
     base_pts.reserve(ctx.lower_num);
     for (int i = 0; i < ctx.lower_num; ++i) {
-        base_pts.emplace_back(ctx.bottom_points[i][0],
-                              ctx.bottom_points[i][1],
-                              ctx.bottom_points[i][2]);
+        base_pts.emplace_back(ctx.bottom_points[i][0], ctx.bottom_points[i][1], ctx.bottom_points[i][2]);
     }
     checker_.addPoint(base_pts);
 
-    // 2. ¼Óµ×²ãÈý½ÇÆ¬
     std::vector<std::pair<HexaTag, std::vector<int>>> elements;
     for (int i = 0; i < connector.size(); ++i) {
         const auto &ids = ctx.lower_ids[i];
         if (ids[0] != ids[1] && ids[1] != ids[2] && ids[0] != ids[2]) {
-            elements.emplace_back(HexaTag(i, 0, TRI_BOTTOM),
-                                  std::vector<int>{ids[0], ids[1], ids[2]});
+            elements.emplace_back(HexaTag(i, 0, TRI_BOTTOM), std::vector<int>{ids[0], ids[1], ids[2]});
         }
     }
     checker_.addElements(elements);
 
-    // 3. ¼Ó¶¥²ãºòÑ¡µã
     std::vector<BLVector> grown_coordinate(coordinate.size());
     for (int i = 0; i < coordinate.size(); ++i) {
         grown_coordinate[i] = {coordinate[i].x + number_of_layer * length[i] * point_normals[i].x,
@@ -1508,21 +1365,15 @@ MNormalMesh::CheckResult MNormalMesh::CheckSurfaceIntersection(const GenContext 
     }
     checker_.addPoint(grown_coordinate);
 
-    // 4. ¼Ó¶¥²ãÈý½ÇÆ¬
     for (int i = 0; i < connector.size(); ++i) {
         const auto &tri = connector[i];
         checker_.addElement(HexaTag(i, 1, TRI_TOP),
-                            std::vector<int>{Idx(tri[0], ctx.lower_num),
-                                             Idx(tri[1], ctx.lower_num),
-                                             Idx(tri[2], ctx.lower_num)});
+                            std::vector<int>{Idx(tri[0], ctx.lower_num), Idx(tri[1], ctx.lower_num), Idx(tri[2], ctx.lower_num)});
     }
 
-    // 5. Öð¸ö¼ì²é
     for (int i = 0; i < connector.size(); ++i) {
         const auto &tri = connector[i];
-        std::vector<int> candidate = {Idx(tri[0], ctx.lower_num),
-                                      Idx(tri[1], ctx.lower_num),
-                                      Idx(tri[2], ctx.lower_num)};
+        std::vector<int> candidate = {Idx(tri[0], ctx.lower_num), Idx(tri[1], ctx.lower_num), Idx(tri[2], ctx.lower_num)};
         if (checker_.checkIntersect(candidate)) {
             result.ok = false;
             result.bad_faces.push_back(i);
@@ -1535,52 +1386,50 @@ MNormalMesh::CheckResult MNormalMesh::CheckSurfaceIntersection(const GenContext 
     return result;
 }
 
-MNormalMesh::CheckResult MNormalMesh::CheckCellJacobian(const CandidateVolume& candidate) const
+MNormalMesh::CheckResult MNormalMesh::CheckCellJacobian(const CandidateVolume &candidate) const
 {
     CheckResult result;
     result.ok = true;
 
-    const double tet_eps    = 1e-12;
+    const double tet_eps = 1e-12;
     const double prism_vol_eps = 1e-12;
     const double prism_jac_eps = 1e-12;
 
     for (int i = 0; i < candidate.cells.size(); ++i) {
-        const auto& cell = candidate.cells[i];
+        const auto &cell = candidate.cells[i];
         bool bad = false;
 
         if (cell.type == CellType::TET) {
             if (cell.verts.size() != 4) {
                 bad = true;
             } else {
-                const auto& a = candidate.vertices[cell.verts[0]];
-                const auto& b = candidate.vertices[cell.verts[1]];
-                const auto& c = candidate.vertices[cell.verts[2]];
-                const auto& d = candidate.vertices[cell.verts[3]];
+                const auto &a = candidate.vertices[cell.verts[0]];
+                const auto &b = candidate.vertices[cell.verts[1]];
+                const auto &c = candidate.vertices[cell.verts[2]];
+                const auto &d = candidate.vertices[cell.verts[3]];
 
                 double vol = SignedTetVolume(a, b, c, d);
                 if (std::abs(vol) <= tet_eps) {
                     bad = true;
                 }
             }
+        } else if (cell.type == CellType::PRISM) {
+            if (cell.verts.size() != 6) {
+                bad = true;
+            } else {
+
+                const BLVector p0 = toBLVector(candidate.vertices[cell.verts[0]]);
+                const BLVector p1 = toBLVector(candidate.vertices[cell.verts[1]]);
+                const BLVector p2 = toBLVector(candidate.vertices[cell.verts[2]]);
+                const BLVector p3 = toBLVector(candidate.vertices[cell.verts[3]]);
+                const BLVector p4 = toBLVector(candidate.vertices[cell.verts[4]]);
+                const BLVector p5 = toBLVector(candidate.vertices[cell.verts[5]]);
+
+                if (IsBadPrismByScaledJacobian(p0, p1, p2, p3, p4, p5)) {
+                    bad = true;
+                }
+            }
         }
-        else if (cell.type == CellType::PRISM) {
-    if (cell.verts.size() != 6) {
-        bad = true;
-    } else {
-
-        const BLVector p0 = toBLVector(candidate.vertices[cell.verts[0]]);
-        const BLVector p1 = toBLVector(candidate.vertices[cell.verts[1]]);
-        const BLVector p2 = toBLVector(candidate.vertices[cell.verts[2]]);
-        const BLVector p3 = toBLVector(candidate.vertices[cell.verts[3]]);
-        const BLVector p4 = toBLVector(candidate.vertices[cell.verts[4]]);
-        const BLVector p5 = toBLVector(candidate.vertices[cell.verts[5]]);
-
-
-        if (IsBadPrismByScaledJacobian(p0, p1, p2, p3, p4, p5)) {
-            bad = true;
-        }
-    }
-}
 
         if (bad) {
             result.ok = false;
@@ -1594,10 +1443,10 @@ MNormalMesh::CheckResult MNormalMesh::CheckCellJacobian(const CandidateVolume& c
     return result;
 }
 
-double MNormalMesh::SignedTetVolume(const std::array<double, 3>& a,
-                                    const std::array<double, 3>& b,
-                                    const std::array<double, 3>& c,
-                                    const std::array<double, 3>& d) const
+double MNormalMesh::SignedTetVolume(const std::array<double, 3> &a,
+                                    const std::array<double, 3> &b,
+                                    const std::array<double, 3> &c,
+                                    const std::array<double, 3> &d) const
 {
     double ax = b[0] - a[0];
     double ay = b[1] - a[1];
@@ -1611,61 +1460,40 @@ double MNormalMesh::SignedTetVolume(const std::array<double, 3>& a,
     double cy = d[1] - a[1];
     double cz = d[2] - a[2];
 
-    double det = Det3x3(ax, ay, az,
-                        bx, by, bz,
-                        cx, cy, cz);
+    double det = Det3x3(ax, ay, az, bx, by, bz, cx, cy, cz);
 
     return det / 6.0;
 }
 
-bool MNormalMesh::IsBadPrismByScaledJacobian(const BLVector& p0,
-                                const BLVector& p1,
-                                const BLVector& p2,
-                                const BLVector& p3,
-                                const BLVector& p4,
-                                const BLVector& p5) const 
+bool MNormalMesh::IsBadPrismByScaledJacobian(const BLVector &p0,
+                                             const BLVector &p1,
+                                             const BLVector &p2,
+                                             const BLVector &p3,
+                                             const BLVector &p4,
+                                             const BLVector &p5) const
 {
     const double det_eps = 1e-14;
     const double scaled_eps = 1e-6;
 
-    auto eval = [&](double r, double s, double t,
-                    double& detJ, double& scaledJ) {
+    auto eval = [&](double r, double s, double t, double &detJ, double &scaledJ) {
         const double a = 0.5 * (1.0 - t);
         const double b = 0.5 * (1.0 + t);
 
         // dN/dr
-        BLVector xr =
-            p0 * (-a) +
-            p1 * ( a) +
-            p2 * (0.0) +
-            p3 * (-b) +
-            p4 * ( b) +
-            p5 * (0.0);
+        BLVector xr = p0 * (-a) + p1 * (a) + p2 * (0.0) + p3 * (-b) + p4 * (b) + p5 * (0.0);
 
         // dN/ds
-        BLVector xs =
-            p0 * (-a) +
-            p1 * (0.0) +
-            p2 * ( a) +
-            p3 * (-b) +
-            p4 * (0.0) +
-            p5 * ( b);
+        BLVector xs = p0 * (-a) + p1 * (0.0) + p2 * (a) + p3 * (-b) + p4 * (0.0) + p5 * (b);
 
         // dN/dt
         BLVector xt =
-            p0 * (-0.5 * (1.0 - r - s)) +
-            p1 * (-0.5 * r) +
-            p2 * (-0.5 * s) +
-            p3 * ( 0.5 * (1.0 - r - s)) +
-            p4 * ( 0.5 * r) +
-            p5 * ( 0.5 * s);
+            p0 * (-0.5 * (1.0 - r - s)) + p1 * (-0.5 * r) + p2 * (-0.5 * s) + p3 * (0.5 * (1.0 - r - s)) + p4 * (0.5 * r) + p5 * (0.5 * s);
 
         BLVector area_vec = xr ^ xs;
 
         detJ = area_vec * xt;
 
-        double denom = std::sqrt(area_vec.magnitude2()) *
-                       std::sqrt(xt.magnitude2());
+        double denom = std::sqrt(area_vec.magnitude2()) * std::sqrt(xt.magnitude2());
 
         if (denom <= 1e-30) {
             scaledJ = 0.0;
@@ -1674,7 +1502,6 @@ bool MNormalMesh::IsBadPrismByScaledJacobian(const BLVector& p0,
         }
     };
 
-    // ÓÃÖÐÐÄµãÈ·¶¨ÕûÌå·ûºÅ¡£ÕâÑù¼´Ê¹ prism ÕûÌåµãÐò·´ÁË£¬Ò²²»»áÖ±½ÓÎóÅÐ¡£
     double det0 = 0.0;
     double sj0 = 0.0;
     eval(1.0 / 3.0, 1.0 / 3.0, 0.0, det0, sj0);
@@ -1685,7 +1512,6 @@ bool MNormalMesh::IsBadPrismByScaledJacobian(const BLVector& p0,
 
     double sign = det0 > 0.0 ? 1.0 : -1.0;
 
-    // Í³Ò»²ÉÑù£¬²»·ÖÀàÐÍÌÖÂÛ
     const int N = 4;
     const double ts[] = {-1.0, -0.5, 0.0, 0.5, 1.0};
 
@@ -1699,12 +1525,10 @@ bool MNormalMesh::IsBadPrismByScaledJacobian(const BLVector& p0,
                 double scaledJ = 0.0;
                 eval(r, s, t, detJ, scaledJ);
 
-                // detJ ±äºÅ£¬ËµÃ÷µ¥ÔªÄÚ²¿·¢Éú·­×ª»òÕÛµþ
                 if (sign * detJ <= det_eps) {
                     return true;
                 }
 
-                // scaled Jacobian Ì«Ð¡£¬ËµÃ÷¾Ö²¿Ñ¹±â»òÑÏÖØ»û±ä
                 if (std::abs(scaledJ) <= scaled_eps) {
                     return true;
                 }
@@ -1726,10 +1550,8 @@ void MNormalMesh::CommitCandidate(const GenContext &ctx,
         f.push_back(cell.verts);
     }
 }
-/*Êä³öÐÂµÄsurfacemesh **/
 void MNormalMesh::WriteSurMesh(std::string &f, std::vector<std::array<double, 3>> &points)
 {
-
     points.resize(coordinate.size());
     for (int k = 0; k < coordinate.size(); k++) {
         for (int i = 0; i < 3; i++) {
@@ -1741,12 +1563,7 @@ void MNormalMesh::WriteSurMesh(std::string &f, std::vector<std::array<double, 3>
     ss << connector.size() << " " << coordinate.size() << " "
        << "0 0 0 0" << std::endl;
     for (int i = 0; i < connector.size(); i++) {
-        ss << i + 1 << " " << connector[i][0] << " " << connector[i][1] << " " << connector[i][2]
-           << " " << attribute[i] << std::endl;
+        ss << i + 1 << " " << connector[i][0] << " " << connector[i][1] << " " << connector[i][2] << " " << attribute[i] << std::endl;
     }
     f = ss.str();
 }
-
-
-
-

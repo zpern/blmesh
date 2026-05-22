@@ -4,43 +4,45 @@
  * Author: Zhoufang Xiao
  */
 
+#include "blmeshapi.h"
+#include "../common/singleton_terminate.h"
+#include "BLMesh.h"
+#include "BLMesh_define.h"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
 #include <iomanip>
-#include <spdlog/spdlog.h> 
-#include "BLMesh.h"
-#include "BLMesh_define.h"
-#include "blmeshapi.h"
-#include "../common/singleton_terminate.h"
+#include <spdlog/spdlog.h>
 #define APIFUNC
 #define _CONFIG_FILE
 
- // #define _2D_BLMESH
+// #define _2D_BLMESH
 #define _GEN_BLMESH
 
 ConfigArgc cf;
 
 #ifdef APIFUNC
-VM blmesh(std::tuple<std::string, double*, int*, int*, std::vector<double>> sfile,
-    blpreConfig blconfig,
-    bool genoutmesh,
-    bool genboundarymesh,
-    bool havepyramid,
-    double isostop,
-    bool outputIO,
-    std::function<double(std::array<double, 3>)> sizefunction,
-    double expan_beta,
-    int number_opt,
-    std::array<double, 12> per_matrix) {
+VM blmesh(std::tuple<std::string, double *, int *, int *, std::vector<double>> sfile,
+          blpreConfig blconfig,
+          bool genoutmesh,
+          bool genboundarymesh,
+          bool havepyramid,
+          double isostop,
+          bool outputIO,
+          std::function<double(std::array<double, 3>)> sizefunction,
+          double expan_beta,
+          int number_opt,
+          std::array<double, 12> per_matrix)
+{
     spdlog::info("begin blmesh function");
     VM ret;
     double start_time = clock();
     int argc = 1;
-    char* argv[2];
+    char *argv[2];
 #else
-void main(int argc, char* argv[]) {
+void main(int argc, char *argv[])
+{
 #endif
 
     char bdryfile[256], bdryfileo[256], blmfile[256], blmfile2[256], gridfile[256], fieldfile[256];
@@ -53,12 +55,13 @@ void main(int argc, char* argv[]) {
     cf.boxfc = blconfig.box;
     cf.step_len = blconfig.len;
     cf.layer_num = blconfig.n;
+    cf.ratio = blconfig.Ro;
     cf.step_len_vec = blconfig.len_vec;
     cf.layer_num_vec = blconfig.layer_vec;
-    
+    cf.ratio_vec = blconfig.Ro_vec;
+
     cf.isotropic_stop = isostop;
-    cf.ratio = blconfig.Ro;
-    cf.layer_ratio = 0;
+    cf.layer_ratio = 10000;
     cf.ratio1 = blconfig.Ro;
     cf.ratio2 = blconfig.Ro;
     cf.adjacentfc = blconfig.adjacent;
@@ -76,11 +79,15 @@ void main(int argc, char* argv[]) {
 
     bool use_per = blconfig.per.size();
     if (use_per) {
-        for (auto i : blconfig.per) cf.perfc.push_back(i);
-        for (int i = 0; i < 9; i++)
+        for (auto i : blconfig.per) {
+            cf.perfc.push_back(i);
+        }
+        for (int i = 0; i < 9; i++) {
             cf.rotate_matrix(i / 3, i % 3) = per_matrix[i];
-        for (int i = 0; i < 3; i++)
+        }
+        for (int i = 0; i < 3; i++) {
             cf.shift_vec[i] = per_matrix[i + 9];
+        }
         cf.reverse_matrix = cf.rotate_matrix.inverse();
         genboundarymesh = true;
         genoutmesh = false;
@@ -134,7 +141,7 @@ void main(int argc, char* argv[]) {
 
 #ifdef _CONFIG_FILE
 #ifdef _2D_BLMESH
-    BLMesh* blmesh = new BLMesh(cf.layer_num, 0);
+    BLMesh *blmesh = new BLMesh(cf.layer_num, 0);
 #else
     std::shared_ptr<BLMesh> blmesh(new BLMesh(cf.layer_num, 0, cf.isotropic_stop));
     blmesh->cf = cf;
@@ -142,9 +149,9 @@ void main(int argc, char* argv[]) {
 #endif
 #else
 #ifdef _2D_BLMESH
-    BLMesh* blmesh = new BLMesh(16, 0);
+    BLMesh *blmesh = new BLMesh(16, 0);
 #else
-    BLMblmeshesh* blmesh = new BLMesh(10, 0);
+    BLMblmeshesh *blmesh = new BLMesh(10, 0);
 #endif
 #endif
 
@@ -192,8 +199,7 @@ void main(int argc, char* argv[]) {
             blmesh->FreeMemoryInFrontAndNode();
             return ret;
         }
-    }
-    else {
+    } else {
         blmesh->FreeMemoryInFrontAndNode();
     }
 
@@ -230,7 +236,8 @@ void main(int argc, char* argv[]) {
     spdlog::info("|Generate Boundary Layer Mesh Cost|{}", (gen_bdymesh_end_time - gen_mesh_start_time) / CLOCKS_PER_SEC);
     spdlog::info("|Total Check Insertion Cost       |{}", blmesh->check_prism_time / CLOCKS_PER_SEC);
     spdlog::info("|Total Normal Smoothing Cost      |{}", blmesh->smooth_time / CLOCKS_PER_SEC);
-    spdlog::info("|Other process In bdymesh Cost    |{}", (gen_bdymesh_end_time - gen_mesh_start_time - blmesh->smooth_time - blmesh->check_prism_time) / CLOCKS_PER_SEC);
+    spdlog::info("|Other process In bdymesh Cost    |{}",
+                 (gen_bdymesh_end_time - gen_mesh_start_time - blmesh->smooth_time - blmesh->check_prism_time) / CLOCKS_PER_SEC);
     spdlog::info("|Generate Tetrahedral Mesh Cost   |{}", (gen_mesh_end_time - gen_bdymesh_end_time) / CLOCKS_PER_SEC);
     spdlog::info("|Generate Mesh Cost        (no IO)|{}", (gen_mesh_end_time - gen_mesh_start_time) / CLOCKS_PER_SEC);
     spdlog::info("|Total Cost        (including IO) |{}", (end_time - start_time) / CLOCKS_PER_SEC);

@@ -1,17 +1,19 @@
 #include "NormalSmoothStrategy.h"
 #ifndef __APPLE__
-#include <spdlog/spdlog.h> 
- #include <omp.h>
+#include <omp.h>
+#include <spdlog/spdlog.h>
 #endif
-#include <queue> 
-NormalSmoothStrategy::NormalSmoothStrategy():smooth_times(10), node_array(nullptr)
-{
-}
+#include <queue>
+NormalSmoothStrategy::NormalSmoothStrategy()
+    : smooth_times(10)
+    , node_array(nullptr)
+{}
 
-NormalSmoothStrategy::NormalSmoothStrategy(BLNode **node, MBLNode* pnodes,int num_front) : node_array(node), pNodes(pnodes),nFrtNods(num_front)
-{
-
-}
+NormalSmoothStrategy::NormalSmoothStrategy(BLNode **node, MBLNode *pnodes, int num_front)
+    : node_array(node)
+    , pNodes(pnodes)
+    , nFrtNods(num_front)
+{}
 
 void NormalSmoothStrategy::SmoothNormal()
 {
@@ -20,17 +22,17 @@ void NormalSmoothStrategy::SmoothNormal()
     tmp.reserve(nFrtNods);
 
 #ifdef USE_OPENMP
-#pragma  omp parallel for if (nFrtNods > 1000) schedule(guided,10)
+#pragma omp parallel for if (nFrtNods > 1000) schedule(guided, 10)
 #endif
 
     for (int i = 0; i < nFrtNods; i++) {
         int a = node_array[i]->GetBeitaVisu(node_array[i]->GetNormal());
-        if (node_array[i]->GetBeitaVisu(node_array[i]->GetNormal())  <= 1) {
+        if (node_array[i]->GetBeitaVisu(node_array[i]->GetNormal()) <= 1) {
             tmp.push_back(node_array[i]);
         }
     }
 
-	vector<int> psize;
+    vector<int> psize;
     for (int k = 0; k < 100; k++) {
         myvec.resize(nFrtNods, BLVector(-2, -1, -1));
         vector<BLNode *> next_tmp;
@@ -62,9 +64,7 @@ void NormalSmoothStrategy::SmoothNormal()
                 //	spdlog::info("debug here");
                 // }
                 int nodeid = iNod;
-                Eigen::RowVector3d start_point(pNodes[nodeid].coord[0],
-                                               pNodes[nodeid].coord[1],
-                                               pNodes[nodeid].coord[2]);
+                Eigen::RowVector3d start_point(pNodes[nodeid].coord[0], pNodes[nodeid].coord[1], pNodes[nodeid].coord[2]);
                 Eigen::RowVector3d normal(ans[0], ans[1], ans[2]);
                 std::vector<int> faceid = pNodes[nodeid].isymfc;
                 if (faceid.size() == 1) {
@@ -78,8 +78,7 @@ void NormalSmoothStrategy::SmoothNormal()
                 }
                 BLVector n(normal(0), normal(1), normal(2));
                 tmp[i]->SetNormal(n.normalized());
-            } 
-            else {
+            } else {
                 tmp[i]->SetNormal(myvec[i]);
             }
         }
@@ -104,97 +103,83 @@ void NormalSmoothStrategy::SmoothNormal()
         horsmooth(node_array[i]);
     }
 #endif
-
 }
 
-void NormalSmoothStrategy::horsmooth(BLNode * blNod)
+void NormalSmoothStrategy::horsmooth(BLNode *blNod)
 {
-	if (!blNod->GetLowerNode())
-		return;
-	double diff = blNod->GetNormal()*blNod->GetLowerNode()->GetNormal()-1;
-	blNod->SetNormal((blNod->GetNormal()*pow(2.0,diff)+blNod->GetLowerNode()->GetNormal()*(1- pow(2.0, diff))));
+    if (!blNod->GetLowerNode()) {
+        return;
+    }
+    double diff = blNod->GetNormal() * blNod->GetLowerNode()->GetNormal() - 1;
+    blNod->SetNormal((blNod->GetNormal() * pow(2.0, diff) + blNod->GetLowerNode()->GetNormal() * (1 - pow(2.0, diff))));
 }
-
 
 void NormalSmoothStrategy::GetEnegy()
 {
-	std::vector<BLNode*> blNodes;
-	int nNeigFrts, nNeigNods;
-	energy = 0;
-	double maxc = -1e10;
-	double minc = 1e10;
-	int i;
+    std::vector<BLNode *> blNodes;
+    int nNeigFrts, nNeigNods;
+    energy = 0;
+    double maxc = -1e10;
+    double minc = 1e10;
+    int i;
 #ifndef _DEBUG
 
 #endif
-	for (i = 0; i < nFrtNods; i++)
-	{
-		BLNode * blNod = node_array[i];
-		blNodes = blNod->GetNeigNods();
-		nNeigNods = blNodes.size();
-		for (int j = 0; j < nNeigNods; j++) {
-			BLVector b = blNodes[j]->GetNormal();
-			double c = b * blNod->GetNormal();
-			int id = blNodes[j]->GetNodIdx();
-			double distance=BLVector(pNodes[id].coord[0] - pNodes[blNod->GetNodIdx()].coord[0], pNodes[id].coord[1] - pNodes[blNod->GetNodIdx()].coord[1], pNodes[id].coord[2] - pNodes[blNod->GetNodIdx()].coord[2]).magnitude();
-			double cost = acos(c);// / distance;
-			maxc = max(cost, maxc);
-			minc = min(cost, minc);
-			energy += (unsigned long long)cost*cost;
-		}
-	}
-	cout << " energy= " << energy  <<" max energy="<<maxc <<" min cos="<<minc<< endl;
-	
+    for (i = 0; i < nFrtNods; i++) {
+        BLNode *blNod = node_array[i];
+        blNodes = blNod->GetNeigNods();
+        nNeigNods = blNodes.size();
+        for (int j = 0; j < nNeigNods; j++) {
+            BLVector b = blNodes[j]->GetNormal();
+            double c = b * blNod->GetNormal();
+            int id = blNodes[j]->GetNodIdx();
+            double distance = BLVector(pNodes[id].coord[0] - pNodes[blNod->GetNodIdx()].coord[0],
+                                       pNodes[id].coord[1] - pNodes[blNod->GetNodIdx()].coord[1],
+                                       pNodes[id].coord[2] - pNodes[blNod->GetNodIdx()].coord[2])
+                                  .magnitude();
+            double cost = acos(c); // / distance;
+            maxc = max(cost, maxc);
+            minc = min(cost, minc);
+            energy += (unsigned long long)cost * cost;
+        }
+    }
+    cout << " energy= " << energy << " max energy=" << maxc << " min cos=" << minc << endl;
 }
 
-NormalSmoothStrategy::~NormalSmoothStrategy()
+NormalSmoothStrategy::~NormalSmoothStrategy() {}
+
+void NormalSmoothStrategy::SetBlNode(BLNode *node)
+{
+    // blNod = node;
+}
+
+void NormalSmoothStrategy::SetSmoothTimes(int s_times) { smooth_times = s_times; }
+
+void NormalSmoothStrategy::SetNumberofFrontNode(int num) { nFrtNods = num; }
+
+void NormalSmoothStrategy::SetSymm(BLNode *blNod, int id)
 {
 
+    if (blNod->GetBSys()) {
+        auto ans = blNod->GetNormal();
+        int nodeid = id;
+        Eigen::RowVector3d start_point(pNodes[nodeid].coord[0], pNodes[nodeid].coord[1], pNodes[nodeid].coord[2]);
+        Eigen::RowVector3d normal(ans[0], ans[1], ans[2]);
+        std::vector<int> faceid = pNodes[nodeid].isymfc;
+
+        if (faceid.size() == 1) {
+            faceid_to_sp[faceid[0]].adjustNormal(start_point, normal);
+        } else {
+
+            for (int j = 0; j < 1; j++) {
+                faceid_to_sp[faceid[0]].adjustNormal(start_point, normal, true);
+                faceid_to_sp[faceid[1]].adjustNormal(start_point, normal, true);
+            }
+        }
+
+        BLVector n(normal(0), normal(1), normal(2));
+        blNod->SetNormal(n.normalized());
+    }
 }
 
-void NormalSmoothStrategy::SetBlNode(BLNode * node)
-{
-	//blNod = node;
-}
-
-void NormalSmoothStrategy::SetSmoothTimes(int s_times)
-{
-	smooth_times = s_times;
-}
-
-void NormalSmoothStrategy::SetNumberofFrontNode(int num)
-{
-	nFrtNods = num;
-}
-
-void NormalSmoothStrategy::SetSymm(BLNode * blNod, int id)
-{
-
-	if (blNod->GetBSys()) {
-		auto ans = blNod->GetNormal();
-		int nodeid = id;
-		Eigen::RowVector3d start_point(pNodes[nodeid].coord[0],
-			pNodes[nodeid].coord[1], pNodes[nodeid].coord[2]);
-		Eigen::RowVector3d normal(ans[0], ans[1], ans[2]);
-		std::vector<int> faceid = pNodes[nodeid].isymfc;
-
-		if (faceid.size() == 1)
-			faceid_to_sp[faceid[0]].adjustNormal(start_point, normal);
-		else {
-
-			for (int j = 0; j < 1; j++) {
-				faceid_to_sp[faceid[0]].adjustNormal(start_point, normal,true);
-				faceid_to_sp[faceid[1]].adjustNormal(start_point, normal,true);
-
-			}
-		}
-
-		BLVector n(normal(0), normal(1), normal(2));
-		blNod->SetNormal(n.normalized());
-	}
-}
-
-void NormalSmoothStrategy::SetFaceidSP(const std::map<int, TiGER::SymmetryPlane>& sp)
-{
-	faceid_to_sp = sp;
-}
+void NormalSmoothStrategy::SetFaceidSP(const std::map<int, TiGER::SymmetryPlane> &sp) { faceid_to_sp = sp; }

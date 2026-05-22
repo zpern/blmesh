@@ -195,6 +195,7 @@ struct ConfigArgc {
     double step_len;
     std::vector<double> step_len_vec;
     double ratio;
+    std::vector<double> ratio_vec;
     int layer_ratio;
     double ratio1;
     double ratio2;
@@ -356,11 +357,7 @@ static int parsecommand(int argc, char **argv, struct ConfigArgc &cf)
             cf.perfc.push_back(iface2);
             for (int j = 0; j < 3; j++) {
                 fgets(line, nbytes, fp);
-                sscanf(line,
-                       "%lf %lf %lf\n",
-                       &cf.rotate_matrix(j, 0),
-                       &cf.rotate_matrix(j, 1),
-                       &cf.rotate_matrix(j, 2));
+                sscanf(line, "%lf %lf %lf\n", &cf.rotate_matrix(j, 0), &cf.rotate_matrix(j, 1), &cf.rotate_matrix(j, 2));
             }
             cf.reverse_matrix = cf.rotate_matrix.inverse();
             fgets(line, nbytes, fp);
@@ -431,15 +428,12 @@ static BLVector solveCenterPointOfCircle(BLVector A, BLVector B, BLVector C)
     c3 = 2 * (z3 - z1);
     d3 = x1 * x1 + y1 * y1 + z1 * z1 - x3 * x3 - y3 * y3 - z3 * z3;
     BLVector centerpoint;
-    centerpoint[0] =
-        -(b1 * c2 * d3 - b1 * c3 * d2 - b2 * c1 * d3 + b2 * c3 * d1 + b3 * c1 * d2 - b3 * c2 * d1) /
-        (a1 * b2 * c3 - a1 * b3 * c2 - a2 * b1 * c3 + a2 * b3 * c1 + a3 * b1 * c2 - a3 * b2 * c1);
-    centerpoint[1] =
-        (a1 * c2 * d3 - a1 * c3 * d2 - a2 * c1 * d3 + a2 * c3 * d1 + a3 * c1 * d2 - a3 * c2 * d1) /
-        (a1 * b2 * c3 - a1 * b3 * c2 - a2 * b1 * c3 + a2 * b3 * c1 + a3 * b1 * c2 - a3 * b2 * c1);
-    centerpoint[2] =
-        -(a1 * b2 * d3 - a1 * b3 * d2 - a2 * b1 * d3 + a2 * b3 * d1 + a3 * b1 * d2 - a3 * b2 * d1) /
-        (a1 * b2 * c3 - a1 * b3 * c2 - a2 * b1 * c3 + a2 * b3 * c1 + a3 * b1 * c2 - a3 * b2 * c1);
+    centerpoint[0] = -(b1 * c2 * d3 - b1 * c3 * d2 - b2 * c1 * d3 + b2 * c3 * d1 + b3 * c1 * d2 - b3 * c2 * d1) /
+                     (a1 * b2 * c3 - a1 * b3 * c2 - a2 * b1 * c3 + a2 * b3 * c1 + a3 * b1 * c2 - a3 * b2 * c1);
+    centerpoint[1] = (a1 * c2 * d3 - a1 * c3 * d2 - a2 * c1 * d3 + a2 * c3 * d1 + a3 * c1 * d2 - a3 * c2 * d1) /
+                     (a1 * b2 * c3 - a1 * b3 * c2 - a2 * b1 * c3 + a2 * b3 * c1 + a3 * b1 * c2 - a3 * b2 * c1);
+    centerpoint[2] = -(a1 * b2 * d3 - a1 * b3 * d2 - a2 * b1 * d3 + a2 * b3 * d1 + a3 * b1 * d2 - a3 * b2 * d1) /
+                     (a1 * b2 * c3 - a1 * b3 * c2 - a2 * b1 * c3 + a2 * b3 * c1 + a3 * b1 * c2 - a3 * b2 * c1);
 
     // centerpoint[3] = sqrt(pow(pd[0].x - centerpoint[0], 2) + pow(pd[0].y - centerpoint[1], 2) +
     // pow(pd[0].z - centerpoint[2], 2));

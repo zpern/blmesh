@@ -12,9 +12,11 @@ struct blpreConfig {
     int n;
     double len;
     double Ro;
+    std::vector<int> layer_vec;
     std::vector<double> len_vec;
     std::vector<double> point_length_vec;
-    std::vector<int> layer_vec;
+    std::vector<int> point_original_id_vec;
+    std::vector<double> Ro_vec;
     bool use_multiple_normals;
     int max_layer_diff;
     double max_ratio_diff;
@@ -35,20 +37,14 @@ struct ControlVolume {
     std::vector<std::vector<int>> f;
 };
 
-
 namespace PRE {
-std::tuple<
-    std::string,
-    std::vector<std::array<double, 3>>,
-    std::vector<std::array<int, 4>>,
-    std::vector<int>,
-    std::vector<double>> 
-    blpre(blpreConfig cf,std::string &f,std::vector<std::array<double, 3>> points);
+std::tuple<std::string, std::vector<std::array<double, 3>>, std::vector<std::array<int, 4>>, std::vector<int>, std::vector<double>> blpre(
+    blpreConfig cf,
+    std::string &f,
+    std::vector<std::array<double, 3>> points);
 
-std::tuple<std::string, double *, int *, int *, std::vector<double>>temptransform(std::tuple<std::string,
-                                                                                  std::vector<std::array<double, 3>>,
-                                                                                  std::vector<std::array<int, 4>>,
-                                                                                  std::vector<int>,
-                                                                                  std::vector<double>> &in);
+std::tuple<std::string, double *, int *, int *, std::vector<double>> temptransform(
+    std::tuple<std::string, std::vector<std::array<double, 3>>, std::vector<std::array<int, 4>>, std::vector<int>, std::vector<double>>
+        &in);
 } // namespace PRE
 #endif

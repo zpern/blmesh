@@ -11,7 +11,7 @@ void generateFirstLayer(blpreConfig& blcf,
                         std::vector<std::array<double, 3>> &points,
                         ControlVolume &cv1,bool isALM = false);
 
-void generateFullLayer(blpreConfig blcf,
+void generateFullLayer(blpreConfig& blcf,
               std::string &f,
               std::vector<std::array<double, 3>> &points,
               ControlVolume &cv1,

@@ -20,6 +20,7 @@ public:
     std::vector<BLVector> coordinate;
     std::vector<BLVector> point_normals;
     std::vector<int> real_node_id_; /// mark as virutal tags, id=the coorespoding real node id;
+    std::vector<int> node_original_id_; /// current node id -> original input point id, used for debug/reporting
 
     unsigned int number_of_origin_triangles;
     unsigned int number_of_triangles;
@@ -142,11 +143,19 @@ void splite_by_faceID(std::vector<std::array<double, 3>> &point,
                       std::string &f,
                       std::string &f_multiply,
                       std::string &f_nonwall,
-                      std::vector<int> srufaceID);
+                      std::vector<int> srufaceID,
+                      std::vector<int> *point_multiply_to_original = nullptr,
+                      std::vector<int> *point_nonwall_to_original = nullptr);
 void combine_by_faceID(std::vector<std::array<double, 3>> &points,
-                       std::vector<std::array<double, 3>> points_multiply,
-                       std::vector<std::array<double, 3>> points_nonwall,
+                       const std::vector<std::array<double, 3>> &points_multiply,
+                       const std::vector<std::array<double, 3>> &points_nonwall,
                        std::string &f,
                        std::string f_multiply,
-                       std::string f_nonwall);
+                       std::string f_nonwall,
+                       const std::vector<int> *point_multiply_to_original = nullptr,
+                       const std::vector<int> *point_nonwall_to_original = nullptr,
+                       std::vector<int> *point_to_original = nullptr,
+                       const std::vector<double> *point_multiply_length = nullptr,
+                       const std::vector<double> *point_nonwall_length = nullptr,
+                       std::vector<double> *point_length = nullptr);
 #endif

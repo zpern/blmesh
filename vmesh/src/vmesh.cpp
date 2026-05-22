@@ -43,23 +43,20 @@ enum EntityTopology
 **/
 void API_Terminate()
 {
-    spdlog::info(
-        "try to stop the program！**************************************************************");
+    spdlog::info("try to stop the program！**************************************************************");
     SingletonTerminate::GetSingletonPtr()->terminate = true;
 }
 int API_Gen_Tetra_Mesh(
 
     /* ------------------------- 输入参数 --------------------------**/
-    double
-        *pdSNC,  /* 曲面网格节点坐标，coord[3*i], coord[3*i+1], coord[3*i+2]为第i个节点x,y,z坐标 **/
-    int nSN,     /* 曲面网格边界节点数目 **/
-    int *pnSFFm, /* 曲面网格单元节点编号 **/
-    int *pnSFTp, /* 曲面网格单元类型。当前仅支持三角形单元 **/
-    int *pnSFPt, /* 曲面网格单元所在几何面编号,从1开始 **/
-    int nSF,     /* 曲面网格单元数目 **/
-    int nopt,    /* 优化次数 **/
-    std::function<double(std::array<double, 3>)>
-        sizefunction, /* 尺寸函数，输入为点坐标，输出为尺寸值 **/
+    double *pdSNC, /* 曲面网格节点坐标，coord[3*i], coord[3*i+1], coord[3*i+2]为第i个节点x,y,z坐标 **/
+    int nSN,       /* 曲面网格边界节点数目 **/
+    int *pnSFFm,   /* 曲面网格单元节点编号 **/
+    int *pnSFTp,   /* 曲面网格单元类型。当前仅支持三角形单元 **/
+    int *pnSFPt,   /* 曲面网格单元所在几何面编号,从1开始 **/
+    int nSF,       /* 曲面网格单元数目 **/
+    int nopt,      /* 优化次数 **/
+    std::function<double(std::array<double, 3>)> sizefunction, /* 尺寸函数，输入为点坐标，输出为尺寸值 **/
     /* ------------------------- 输出参数 ------------------------- **/
     double **ppdMNC,       /* 体网格节点坐标 **/
     int *pnMN,             /* 体网格节点数目 **/
@@ -114,14 +111,11 @@ int API_Gen_Tetra_Mesh(
     fout << nelm << " " << npt << " " << 0 << " " << 0 << " " << 0 << " " << 0 << endl;
     std::vector<std::array<double, 3>> points;
     for (int i = 0; i < npt; i++) {
-        points.push_back(std::array<double, 3>{surface.ppdSNC0[3 * i + 0],
-                                               surface.ppdSNC0[3 * i + 1],
-                                               surface.ppdSNC0[3 * i + 2]});
+        points.push_back(std::array<double, 3>{surface.ppdSNC0[3 * i + 0], surface.ppdSNC0[3 * i + 1], surface.ppdSNC0[3 * i + 2]});
     }
     for (int i = 0; i < nelm; i++) {
-        fout << i + 1 << " " << surface.ppnSFFmO[3 * i + 1] + 1 << " "
-             << surface.ppnSFFmO[3 * i + 0] + 1 << " " << surface.ppnSFFmO[3 * i + 2] + 1 << " "
-             << pnSFPt[i] << endl;
+        fout << i + 1 << " " << surface.ppnSFFmO[3 * i + 1] + 1 << " " << surface.ppnSFFmO[3 * i + 0] + 1 << " "
+             << surface.ppnSFFmO[3 * i + 2] + 1 << " " << pnSFPt[i] << endl;
     }
     // fout.close();
     string input = fout.str();
@@ -134,12 +128,10 @@ int API_Gen_Tetra_Mesh(
         ftest << nelm << " " << npt << " " << endl;
         std::vector<std::array<double, 3>> points;
         for (int i = 0; i < npt; i++) {
-            ftest << i + 1 << " " << pdSNC[3 * i + 0] << " " << pdSNC[3 * i + 1] << " "
-                  << pdSNC[3 * i + 2] << endl;
+            ftest << i + 1 << " " << pdSNC[3 * i + 0] << " " << pdSNC[3 * i + 1] << " " << pdSNC[3 * i + 2] << endl;
         }
         for (int i = 0; i < nelm; i++) {
-            ftest << i + 1 << " " << pnSFFm[3 * i + 1] << " " << pnSFFm[3 * i + 0] << " "
-                  << pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
+            ftest << i + 1 << " " << pnSFFm[3 * i + 1] << " " << pnSFFm[3 * i + 0] << " " << pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
         }
 
         cf.WriteConfigFile();
@@ -156,16 +148,7 @@ int API_Gen_Tetra_Mesh(
     ControlVolume cv;
     auto temp_bdyfile = PRE::blpre(blconfig, input, points);
     auto bdyfile = PRE::temptransform(temp_bdyfile);
-    VM v = blmesh(bdyfile,
-                  blconfig,
-                  true,
-                  false,
-                  true,
-                  false,
-                  b_output_io_file,
-                  sizefunction,
-                  expan_beta,
-                  nopt);
+    VM v = blmesh(bdyfile, blconfig, true, false, true, false, b_output_io_file, sizefunction, expan_beta, nopt);
     *ppdMNC = v.ppdMNC;
     *pnMN = v.pnMN;
     *pnME = v.pnME;
@@ -241,24 +224,21 @@ int API_Gen_Tetra_Mesh(
 
 int API_Gen_Vol_Mesh(
     /* ------------------------- 输入参数 --------------------------**/
-    double
-        *pdSNC,  /* 曲面网格节点坐标，coord[3*i], coord[3*i+1], coord[3*i+2]为第i个节点x,y,z坐标 **/
-    int nSN,     /* 曲面网格边界节点数目 **/
-    int *pnSFFm, /* 曲面网格单元节点编号 **/
-    int *pnSFTp, /* 曲面网格单元类型。当前仅支持三角形单元 **/
-    int *pnSFPt, /* 曲面网格单元所在几何面编号,从1开始 **/
-    int nSF,     /* 曲面网格单元数目 **/
-    std::map<int, int>
-        pnFT,    /* 几何面类型： 0为远场； 1 为物面； 2为对称面 ,3为不长边界层的面,4为周期性面**/
-    int nLN,     /* 边界层层数 **/
+    double *pdSNC,                  /* 曲面网格节点坐标，coord[3*i], coord[3*i+1], coord[3*i+2]为第i个节点x,y,z坐标 **/
+    int nSN,                        /* 曲面网格边界节点数目 **/
+    int *pnSFFm,                    /* 曲面网格单元节点编号 **/
+    int *pnSFTp,                    /* 曲面网格单元类型。当前仅支持三角形单元 **/
+    int *pnSFPt,                    /* 曲面网格单元所在几何面编号,从1开始 **/
+    int nSF,                        /* 曲面网格单元数目 **/
+    std::map<int, int> pnFT,        /* 几何面类型： 0为远场； 1 为物面； 2为对称面 ,3为不长边界层的面,4为周期性面**/
+    int nLN,                        /* 边界层层数 **/
     std::vector<int> layer_vec,     /* 边界层层数数组 **/
     double dLen,                    /* 边界层第一层厚度 **/
     std::vector<double> length_vec, /* 边界层第一层厚度数组 **/
     double dRto,                    /* 边界层厚度增长因子 **/
     bool bisostop,                  /* 各向同性停止**/
     int nopt,                       /* 优化次数 **/
-    std::function<double(std::array<double, 3>)>
-        sizefunction,               /*尺寸函数，输入为点坐标，输出为尺寸值**/
+    std::function<double(std::array<double, 3>)> sizefunction, /*尺寸函数，输入为点坐标，输出为尺寸值**/
     /* ------------------------- 输出参数 -------------------------**/
     double **ppdMNC, /* 体网格节点坐标 **/
     int *pnMN,       /* 体网格节点数目 **/
@@ -267,9 +247,8 @@ int API_Gen_Vol_Mesh(
     int *pnME,       /* 体网格单元数目 **/
     /* ------------------------- 边界信息 -------------------------**/
     int *num_boundary_face, /* 边界面网格数量 **/
-    int **
-        boundary_mesh, /* 边界面网格，注意每四个为一组，而且注意如果为三角形，最后一项为-1，id从0开始
-                        **/
+    int **boundary_mesh, /* 边界面网格，注意每四个为一组，而且注意如果为三角形，最后一项为-1，id从0开始
+                          **/
     int **boundary_face, /* 边界面网格对应的面id，长度为num_boundary_face **/
     /* ------------------------- 其他参数 -------------------------**/
     bool b_use_multiple_normals, /* 是否启用多法向 **/
@@ -296,8 +275,8 @@ int API_Gen_Vol_Mesh(
         API_Gen_Tetra_Mesh(
 
             /* ------------------------- 输入参数 --------------------------**/
-            pdSNC, /* 曲面网格节点坐标，coord[3*i], coord[3*i+1], coord[3*i+2]为第i个节点x,y,z坐标
-                    **/
+            pdSNC,        /* 曲面网格节点坐标，coord[3*i], coord[3*i+1], coord[3*i+2]为第i个节点x,y,z坐标
+                           **/
             nSN,          /* 曲面网格边界节点数目 **/
             pnSFFm,       /* 曲面网格单元节点编号 **/
             pnSFTp,       /* 曲面网格单元类型。当前仅支持三角形单元 **/
@@ -355,12 +334,10 @@ int API_Gen_Vol_Mesh(
     fout << 0 << " " << 0 << " " << 0 << " " << 0 << endl;
     std::vector<std::array<double, 3>> points;
     for (int i = 0; i < npt; i++) {
-        points.push_back(
-            std::array<double, 3>{pdSNC[3 * i + 0], pdSNC[3 * i + 1], pdSNC[3 * i + 2]});
+        points.push_back(std::array<double, 3>{pdSNC[3 * i + 0], pdSNC[3 * i + 1], pdSNC[3 * i + 2]});
     }
     for (int i = 0; i < nelm; i++) {
-        fout << i + 1 << " " << pnSFFm[3 * i + 1] << " " << pnSFFm[3 * i + 0] << " "
-             << pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
+        fout << i + 1 << " " << pnSFFm[3 * i + 1] << " " << pnSFFm[3 * i + 0] << " " << pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
     }
     // fout.close();
     string input(fout.str());
@@ -384,12 +361,10 @@ int API_Gen_Vol_Mesh(
         ftest << nelm << " " << npt << " " << endl;
         std::vector<std::array<double, 3>> points;
         for (int i = 0; i < npt; i++) {
-            ftest << i + 1 << " " << pdSNC[3 * i + 0] << " " << pdSNC[3 * i + 1] << " "
-                  << pdSNC[3 * i + 2] << endl;
+            ftest << i + 1 << " " << pdSNC[3 * i + 0] << " " << pdSNC[3 * i + 1] << " " << pdSNC[3 * i + 2] << endl;
         }
         for (int i = 0; i < nelm; i++) {
-            ftest << i + 1 << " " << pnSFFm[3 * i + 1] << " " << pnSFFm[3 * i + 0] << " "
-                  << pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
+            ftest << i + 1 << " " << pnSFFm[3 * i + 1] << " " << pnSFFm[3 * i + 0] << " " << pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
         }
 
         ftest.close();
@@ -422,16 +397,7 @@ int API_Gen_Vol_Mesh(
     }
 
     try {
-        v = blmesh(bdyfile,
-                   blconfig,
-                   true,
-                   false,
-                   true,
-                   bisostop,
-                   b_output_io_file,
-                   sizefunction,
-                   expan_beta,
-                   nopt);
+        v = blmesh(bdyfile, blconfig, true, false, true, bisostop, b_output_io_file, sizefunction, expan_beta, nopt);
     } catch (std::exception e) {
         *ppdMNC = nullptr;
         *pnMN = 0;
@@ -514,22 +480,21 @@ int API_Gen_Vol_Mesh(
 
 int API_Gen_Boundary_ALM_Mesh(
     /* ------------------------- 输入参数 --------------------------**/
-    double
-        *pdSNC,  /* 曲面网格节点坐标，coord[3*i], coord[3*i+1], coord[3*i+2]为第i个节点x,y,z坐标 **/
-    int nSN,     /* 曲面网格边界节点数目 **/
-    int *pnSFFm, /* 曲面网格单元节点编号 **/
-    int *pnSFTp, /* 曲面网格单元类型。当前仅支持三角形单元 **/
-    int *pnSFPt, /* 曲面网格单元所在几何面编号 ,从1开始 **/
-    int nSF,     /* 曲面网格单元数目 **/
-    std::map<int, int>
-        pnFT,    /* 几何面类型： 0为远场； 1 为物面； 2为对称面 ,3为不长边界层的面,4为周期性面**/
-    int nLN,     /* 边界层层数 **/
+    double *pdSNC,                    /* 曲面网格节点坐标，coord[3*i], coord[3*i+1], coord[3*i+2]为第i个节点x,y,z坐标 **/
+    int nSN,                          /* 曲面网格边界节点数目 **/
+    int *pnSFFm,                      /* 曲面网格单元节点编号 **/
+    int *pnSFTp,                      /* 曲面网格单元类型。当前仅支持三角形单元 **/
+    int *pnSFPt,                      /* 曲面网格单元所在几何面编号 ,从1开始 **/
+    int nSF,                          /* 曲面网格单元数目 **/
+    std::map<int, int> pnFT,          /* 几何面类型： 0为远场； 1 为物面； 2为对称面 ,3为不长边界层的面,4为周期性面**/
+    int nLN,                          /* 边界层层数 **/
     std::vector<int> layer_vec,       /* 边界层层数数组 **/
     int max_layer_diff,               /* 相邻网格边界层层数差*/
     double max_ratio_diff,            /* 边界层相邻层金字塔高度尺寸比 **/
     double dLen,                      /* 边界层第一层厚度 **/
     std::vector<double> length_vec,   /* 边界层第一层厚度数组 **/
     double dRto,                      /* 边界层厚度增长因子 **/
+    std::vector<double> dRto_vec,     /* 边界层厚度增长因子数组 **/
     std::vector<double> max_skewness, /* 等面积偏斜度**/
     std::vector<double> max_orth,     /* 最大非正交值**/
     double bisostop,                  /* 各向同性停止**/
@@ -543,10 +508,9 @@ int API_Gen_Boundary_ALM_Mesh(
     int *pnME,       /* 体网格单元数目 **/
 
     /* ------------------------- 边界层网格顶面层面网格参数 -------------------------**/
-    double **
-        ppdSNC0, /* 顶面网格节点坐标，coord[3*i], coord[3*i+1], coord[3*i+2]为第i个节点x,y,z坐标 **/
-    int *pnSN0,  /* 顶面网格边界节点数目 **/
-    int *pnSEO,  /* 顶面网格单元数目 **/
+    double **ppdSNC0,   /* 顶面网格节点坐标，coord[3*i], coord[3*i+1], coord[3*i+2]为第i个节点x,y,z坐标 **/
+    int *pnSN0,         /* 顶面网格边界节点数目 **/
+    int *pnSEO,         /* 顶面网格单元数目 **/
     int **ppnSFTpO,     /* 顶面网格单元类型。当前仅支持三角形单元 **/
     int **ppnSFFmO,     /* 顶面网格单元节点编号 **/
     int **l2g,          /*  顶面网格id到全局点id的映射  **/
@@ -554,21 +518,19 @@ int API_Gen_Boundary_ALM_Mesh(
 
     /* ------------------------- 边界信息 ------------------------- **/
     int *num_boundary_face, /* 边界面网格数量 **/
-    int **
-        boundary_mesh, /* 边界面网格，注意每四个为一组，而且注意如果为三角形，最后一项为-1，id从0开始
-                        **/
+    int **boundary_mesh, /* 边界面网格，注意每四个为一组，而且注意如果为三角形，最后一项为-1，id从0开始
+                          **/
     int **boundary_face, /* 边界面网格对应的面id，长度为num_boundary_face **/
 
     /* ------------------------- 其他参数 -------------------------**/
-    bool b_have_pyramid,         /* 是否有金字塔 **/
-    bool b_use_multiple_normals, /* 是否启用多法向 缺省为false **/
-    bool b_output_io_file, /* 是否将api的输入和输出都输出到文件系统中（仅用于DEBUG）缺省为false **/
-    std::string filename,  /* 几何文件名，缺省为virtualmesh **/
-    std::array<double, 12>
-        per_matrix /* 周期性面控制矩阵,前9位为旋转矩阵 m00，m01，m02 .... ，后三位为位移向量xyz **/
+    bool b_have_pyramid,              /* 是否有金字塔 **/
+    bool b_use_multiple_normals,      /* 是否启用多法向 缺省为false **/
+    bool b_output_io_file,            /* 是否将api的输入和输出都输出到文件系统中（仅用于DEBUG）缺省为false **/
+    std::string filename,             /* 几何文件名，缺省为virtualmesh **/
+    std::array<double, 12> per_matrix /* 周期性面控制矩阵,前9位为旋转矩阵 m00，m01，m02 .... ，后三位为位移向量xyz **/
 )
 {
-    spdlog::info("Version:2026-05-15");
+    spdlog::info("Version:2026-05-22");
     // read input
     vector<vector<int>> bcs;
     bcs.resize(10);
@@ -581,12 +543,10 @@ int API_Gen_Boundary_ALM_Mesh(
 
     std::vector<std::array<double, 3>> points;
     for (int i = 0; i < nSN; i++) {
-        points.push_back(
-            std::array<double, 3>{pdSNC[3 * i + 0], pdSNC[3 * i + 1], pdSNC[3 * i + 2]});
+        points.push_back(std::array<double, 3>{pdSNC[3 * i + 0], pdSNC[3 * i + 1], pdSNC[3 * i + 2]});
     }
     for (int i = 0; i < nSF; i++) {
-        *fout << i + 1 << " " << pnSFFm[3 * i + 0] << " " << pnSFFm[3 * i + 1] << " "
-              << pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
+        *fout << i + 1 << " " << pnSFFm[3 * i + 0] << " " << pnSFFm[3 * i + 1] << " " << pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
     }
 
     string input(fout->str());
@@ -612,12 +572,10 @@ int API_Gen_Boundary_ALM_Mesh(
         ftest << "PointsAndCells" << endl;
         ftest << nSF << " " << nSN << " " << endl;
         for (int i = 0; i < nSN; i++) {
-            ftest << i + 1 << " " << pdSNC[3 * i + 0] << " " << pdSNC[3 * i + 1] << " "
-                  << pdSNC[3 * i + 2] << endl;
+            ftest << i + 1 << " " << pdSNC[3 * i + 0] << " " << pdSNC[3 * i + 1] << " " << pdSNC[3 * i + 2] << endl;
         }
         for (int i = 0; i < nSF; i++) {
-            ftest << i + 1 << " " << pnSFFm[3 * i + 0] << " " << pnSFFm[3 * i + 1] << " "
-                  << pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
+            ftest << i + 1 << " " << pnSFFm[3 * i + 0] << " " << pnSFFm[3 * i + 1] << " " << pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
         }
 
         ftest.close();
@@ -626,10 +584,11 @@ int API_Gen_Boundary_ALM_Mesh(
     // set config
     blpreConfig blconfig;
     blconfig.n = nLN;
-    blconfig.Ro = dRto;
     blconfig.len = dLen;
+    blconfig.Ro = dRto;
     blconfig.layer_vec = layer_vec;
     blconfig.len_vec = length_vec;
+    blconfig.Ro_vec = dRto_vec;
     blconfig.use_multiple_normals = b_use_multiple_normals;
     blconfig.max_skewness = max_skewness;
     blconfig.max_orth = max_orth;
@@ -661,17 +620,7 @@ int API_Gen_Boundary_ALM_Mesh(
     auto bdyfile = PRE::temptransform(temp_bdyfile);
     delete fout;
 
-    VM v = blmesh(bdyfile,
-                  blconfig,
-                  false,
-                  true,
-                  b_have_pyramid,
-                  bisostop,
-                  b_output_io_file,
-                  nullptr,
-                  1.2,
-                  0,
-                  per_matrix);
+    VM v = blmesh(bdyfile, blconfig, false, true, b_have_pyramid, bisostop, b_output_io_file, nullptr, 1.2, 0, per_matrix);
 
     *ppdMNC = v.ppdMNC;
     *pnMN = v.pnMN;
@@ -699,9 +648,7 @@ int API_Gen_Boundary_ALM_Mesh(
 
     // ------------------ 1. 处理原始节点 ------------------
     for (int i = 0; i < *pnMN; i++) {
-        std::array<double, 3> coord = {(*ppdMNC)[3 * i],
-                                       (*ppdMNC)[3 * i + 1],
-                                       (*ppdMNC)[3 * i + 2]};
+        std::array<double, 3> coord = {(*ppdMNC)[3 * i], (*ppdMNC)[3 * i + 1], (*ppdMNC)[3 * i + 2]};
         coord_to_id[coord] = i;
 
         nppdMNC.push_back(coord[0]);
@@ -766,9 +713,7 @@ int API_Gen_Boundary_ALM_Mesh(
         for (int i = 0; i < cv.f.size(); i++) {
             int k = cv.f[i].size();
             for (int j = 0; j < k; j++) {
-                std::array<double, 3> coord = {cv.v[cv.f[i][j]][0],
-                                               cv.v[cv.f[i][j]][1],
-                                               cv.v[cv.f[i][j]][2]};
+                std::array<double, 3> coord = {cv.v[cv.f[i][j]][0], cv.v[cv.f[i][j]][1], cv.v[cv.f[i][j]][2]};
                 int idx = coord_to_id[coord]; // 获取全局索引
                 nppnMEFm.push_back(idx);
             }
@@ -810,15 +755,13 @@ int API_Gen_Boundary_FullLayer_Mesh(
     std::vector<double> len_vec, /* 多法向步长数组 **/
     bool preMultiple,            /*是否对多法向角点做预处理**/
     bool fast_intersection,      /*是否启用快速相交检测**/
-    double
-        *pdSNC,  /* 曲面网格节点坐标，coord[3*i], coord[3*i+1],coord[3*i+2]为第i个节点x,y,z坐标 **/
-    int nSN,     /* 曲面网格边界节点数目 **/
-    int *pnSFFm, /* 曲面网格单元节点编号 **/
-    int *pnSFTp, /* 曲面网格单元类型。当前仅支持三角形单元 **/
-    int *pnSFPt, /* 曲面网格单元所在几何面编号 ,从1开始 **/
-    int nSF,     /* 曲面网格单元数目 **/
-    std::map<int, int>
-        pnFT,    /* 几何面类型： 0为远场； 1 为物面； 2为对称面 ,3为不长边界层的面,4为周期性面**/
+    double *pdSNC,               /* 曲面网格节点坐标，coord[3*i], coord[3*i+1],coord[3*i+2]为第i个节点x,y,z坐标 **/
+    int nSN,                     /* 曲面网格边界节点数目 **/
+    int *pnSFFm,                 /* 曲面网格单元节点编号 **/
+    int *pnSFTp,                 /* 曲面网格单元类型。当前仅支持三角形单元 **/
+    int *pnSFPt,                 /* 曲面网格单元所在几何面编号 ,从1开始 **/
+    int nSF,                     /* 曲面网格单元数目 **/
+    std::map<int, int> pnFT,     /* 几何面类型： 0为远场； 1 为物面； 2为对称面 ,3为不长边界层的面,4为周期性面**/
 
     /* ------------------------- 输出参数 -------------------------**/
     double **ppdMNC, /* 体网格节点坐标 **/
@@ -828,10 +771,9 @@ int API_Gen_Boundary_FullLayer_Mesh(
     int *pnME,       /* 体网格单元数目 **/
 
     /* ------------------------- 边界层网格顶面层面网格参数 -------------------------**/
-    double *
-        *ppdSNC0, /* 顶面网格节点坐标，coord[3*i], coord[3*i+1],coord[3*i+2]为第i个节点x,y,z坐标 **/
-    int *pnSN0,   /* 顶面网格边界节点数目 **/
-    int *pnSEO,   /* 顶面网格单元数目 **/
+    double **ppdSNC0,   /* 顶面网格节点坐标，coord[3*i], coord[3*i+1],coord[3*i+2]为第i个节点x,y,z坐标 **/
+    int *pnSN0,         /* 顶面网格边界节点数目 **/
+    int *pnSEO,         /* 顶面网格单元数目 **/
     int **ppnSFTpO,     /* 顶面网格单元类型。当前仅支持三角形单元 **/
     int **ppnSFFmO,     /* 体网格单元数目 **/
     int **l2g,          /*  顶面网格id到全局点id的映射  */
@@ -839,9 +781,8 @@ int API_Gen_Boundary_FullLayer_Mesh(
 
     /////* ------------------------- 边界信息 ------------------------- **/
     int *num_boundary_face, /* 边界面网格数量 **/
-    int **
-        boundary_mesh, /* 边界面网格，注意每四个为一组，而且注意如果为三角形，最后一项为-1，id从0开始**/
-    int **boundary_face, /* 边界面网格对应的面id，长度为num_boundary_face **/
+    int **boundary_mesh,    /* 边界面网格，注意每四个为一组，而且注意如果为三角形，最后一项为-1，id从0开始**/
+    int **boundary_face,    /* 边界面网格对应的面id，长度为num_boundary_face **/
 
     /* ------------------------- 其他参数 -------------------------**/
     bool b_output_io_file, /* 是否将api的输入和输出都输出到文件系统中（仅用于DEBUG）缺省为false**/
@@ -860,12 +801,10 @@ int API_Gen_Boundary_FullLayer_Mesh(
     *fout << nSF << " " << nSN << " " << 0 << " " << 0 << " " << 0 << " " << 0 << endl;
     std::vector<std::array<double, 3>> points;
     for (int i = 0; i < nSN; i++) {
-        points.push_back(
-            std::array<double, 3>{pdSNC[3 * i + 0], pdSNC[3 * i + 1], pdSNC[3 * i + 2]});
+        points.push_back(std::array<double, 3>{pdSNC[3 * i + 0], pdSNC[3 * i + 1], pdSNC[3 * i + 2]});
     }
     for (int i = 0; i < nSF; i++) {
-        *fout << i + 1 << " " << pnSFFm[3 * i + 0] << " " << pnSFFm[3 * i + 1] << " "
-              << pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
+        *fout << i + 1 << " " << pnSFFm[3 * i + 0] << " " << pnSFFm[3 * i + 1] << " " << pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
     }
     string input(fout->str());
 
@@ -884,16 +823,14 @@ int API_Gen_Boundary_FullLayer_Mesh(
         ftest << "PointsAndCells" << endl;
         ftest << nSF << " " << nSN << " " << endl;
         for (int i = 0; i < nSN; i++) {
-            ftest << i + 1 << " " << pdSNC[3 * i + 0] << " " << pdSNC[3 * i + 1] << " "
-                  << pdSNC[3 * i + 2] << endl;
+            ftest << i + 1 << " " << pdSNC[3 * i + 0] << " " << pdSNC[3 * i + 1] << " " << pdSNC[3 * i + 2] << endl;
         }
         for (int i = 0; i < nSF; i++) {
-            ftest << i + 1 << " " << pnSFFm[3 * i + 0] << " " << pnSFFm[3 * i + 1] << " "
-                  << pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
+            ftest << i + 1 << " " << pnSFFm[3 * i + 0] << " " << pnSFFm[3 * i + 1] << " " << pnSFFm[3 * i + 2] << " " << pnSFPt[i] << endl;
         }
         ftest.close();
     }
-
+    spdlog::info("Version:2026-05-22");
     // 准备生成参数
     blpreConfig blconfig;
     blconfig.n = nLN;
@@ -908,7 +845,10 @@ int API_Gen_Boundary_FullLayer_Mesh(
 
     ControlVolume cv1;
     ControlVolume cv2;
-    // MNormal::generateFirstLayer(blconfig, input,points, cv1);
+
+    auto temp_bdyfile = PRE::blpre(blconfig, input, points);
+
+    // MNormal::generateFirstLayer(blconfig, input, points, cv1);
     MNormal::generateFullLayer(blconfig, input, points, cv1, cv2);
     delete fout;
 
@@ -1040,13 +980,7 @@ int API_Gen_Boundary_FullLayer_Mesh(
     return 0;
 }
 
-int API_Mesh_Optimize(double *pdMNC,
-                      int num_boundary_face,
-                      int *boundary_mesh,
-                      int nMN,
-                      int *pnMEFm,
-                      int *pnMETp,
-                      int nME)
+int API_Mesh_Optimize(double *pdMNC, int num_boundary_face, int *boundary_mesh, int nMN, int *pnMEFm, int *pnMETp, int nME)
 {
     spdlog::info("Golbal Point Optimization processing...");
     std::vector<bool> point_map(nMN, false);
@@ -1100,10 +1034,7 @@ int API_Mesh_Optimize(double *pdMNC,
     }
     return 0;
 }
-static bool is_point_equal(double *p1, double *p2)
-{
-    return p1[0] == p2[0] && p1[1] == p2[1] && p1[2] == p2[2];
-}
+static bool is_point_equal(double *p1, double *p2) { return p1[0] == p2[0] && p1[1] == p2[1] && p1[2] == p2[2]; }
 int API_Mesh_Merge(double *pdMNC1,
                    int nMN1,
                    int *pnMEFm1,
