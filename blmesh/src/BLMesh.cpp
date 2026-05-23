@@ -2781,6 +2781,10 @@ void BLMesh::GenerateBLMesh()
     double ave_height_first_layer = 0;
     tmts = clock();
 
+    if (!cf.layer_num_vec.empty()) {
+        m_nTotalLayer = *std::max_element(cf.layer_num_vec.begin(), cf.layer_num_vec.end());
+    }
+
     while (iLayer < m_nTotalLayer) {
         if (checkterminate()) {
             FreeMemoryInFrontAndNode();
@@ -2934,7 +2938,7 @@ void BLMesh::GenerateBLMesh()
             for (auto f : blNod->GetNeigFronts()) {
                 int eid = f->GetSurfaceElmIdx();
                 int id = m_pElems[eid].igom;
-                if (id < cf.step_len_vec.size()) {
+                if (id < cf.layer_num_vec.size()) {
                     int target_layer = cf.layer_num_vec[id];
                     double target_length = cf.step_len_vec[id];
                     min_layer = std::min(min_layer, target_layer);
@@ -6536,7 +6540,7 @@ bool BLMesh::CheckPrismVolumn(int nconn, int *conn)
                      (gprism[4] - gprism[2]) * ((gprism[3] - gprism[2]) ^ (gprism[0] - gprism[2])) / 6;
     // cout << volumn << endl;
     if (min(volumn1, volumn2) < 1e-15 * cf.step_len) {
-        cout << "negetive prism volumn" << endl;
+        cout << "negative prism volumn" << endl;
     }
     return min(volumn1, volumn2) > 1e-15 * cf.step_len;
 #else
@@ -6813,7 +6817,7 @@ bool BLMesh::CheckIntersection(BLFront *blFront, bool *used_by_neigh_front, int 
     //		if (k % 2 == 0 && j == k + 1)//这里相邻的话一定是不相交的
     //			continue;
     //		if (!is_inserect&&Octree::tri_overlap_test(itri[k], itri[j], m_ocTree->pOctreeAgent->getNod(),
-    //m_ocTree->pOctreeAgent->getElm())) { 			is_inserect = true; 			break;
+    // m_ocTree->pOctreeAgent->getElm())) { 			is_inserect = true; 			break;
     //			//throw string("self interact in prism") + std::to_string(k) + std::to_string(j);
     //		}
     //	}
@@ -8640,7 +8644,7 @@ void BLMesh::UpdateDomainGrid(int ngp, int nbp, int nel, double *g_coordx, doubl
             if (GEOM_FUNC::orient3d(m_pNodes[m_pElems[i].conn[0]].coord, m_pNodes[m_pElems[i].conn[1]].coord,
                                     m_pNodes[m_pElems[i].conn[2]].coord, m_pNodes[m_pElems[i].conn[3]].coord) > 0) {
                 //	cout<<GEOM_FUNC::orient3d(m_pNodes[m_pElems[i].conn[0]].coord, m_pNodes[m_pElems[i].conn[1]].coord,
-                //m_pNodes[m_pElems[i].conn[2]].coord, m_pNodes[m_pElems[i].conn[3]].coord); 	cout << " " <<  i << endl;
+                // m_pNodes[m_pElems[i].conn[2]].coord, m_pNodes[m_pElems[i].conn[3]].coord); 	cout << " " <<  i << endl;
                 // throw(std::exception());
             }
         }
