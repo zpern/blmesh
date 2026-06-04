@@ -6,42 +6,48 @@
     "configurations": [
         {
             "name": "vmesh_test PGrid_ALM0 (Debug)",
-            "type": "cppvsdbg",
+            "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/vmesh/Debug/vmesh_test.exe",
+            "program": "${workspaceFolder}/build/vmesh/vmesh_test",
             "args": [
-                "${workspaceFolder}/BoundaryMeshing.txt",
+                "${workspaceFolder}/BoundaryMeshing.txt"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
-            "console": "externalTerminal"
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
         },
         {
             "name": "vmesh_test PGrid_ALM0 (Release)",
-            "type": "cppvsdbg",
+            "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/vmesh/Release/vmesh_test.exe",
+            "program": "${workspaceFolder}/build/vmesh/vmesh_test",
             "args": [
-                "${workspaceFolder}/BoundaryMeshing.txt",
+                "${workspaceFolder}/BoundaryMeshing.txt"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
-            "console": "externalTerminal"
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
         },
         {
             "name": "vmesh_test PGrid_ALM0 (RelWithDebInfo)",
-            "type": "cppvsdbg",
+            "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/vmesh/RelWithDebInfo/vmesh_test.exe",
+            "program": "${workspaceFolder}/build/vmesh/vmesh_test",
             "args": [
-                "${workspaceFolder}/BoundaryMeshing.txt",
+                "${workspaceFolder}/BoundaryMeshing.txt"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
-            "console": "externalTerminal"
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
         }
     ]
 }

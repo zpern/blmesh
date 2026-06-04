@@ -6,10 +6,13 @@
 	url = http://10.214.65.162:48880/opensource/googletest.git
 [submodule "third/libigl"]
 	path = third/libigl
-	url = http://10.214.65.162:48880/opensource/libigl.git
+	url = https://github.com/zpern/libigl.git
 [submodule "third/eigen"]
 	path = third/eigen
 	url = http://10.214.65.162:48880/opensource/eigen.git
 [submodule "third/geogram"]
 	path = third/geogram
 	url = http://10.214.65.162:48880/opensource/geogram.git
+[submodule "third/spdlog"]
+	path = third/spdlog
+	url = https://github.com/zpern/spdlog.git
