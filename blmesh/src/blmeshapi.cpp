@@ -21,7 +21,7 @@
 #define _GEN_BLMESH
 
 ConfigArgc cf;
-
+#pragma optimize("", off);
 #ifdef APIFUNC
 VM blmesh(std::tuple<std::string, double *, int *, int *, std::vector<double>> sfile,
           blpreConfig blconfig,
@@ -202,7 +202,6 @@ void main(int argc, char *argv[])
     } else {
         blmesh->FreeMemoryInFrontAndNode();
     }
-
     auto o_to_n = blmesh->RemvNodElm();
     for (int i = 0; i < ret.nSN0; i++) {
         ret.l2g[i] = o_to_n[ret.l2g[i]];
@@ -215,7 +214,7 @@ void main(int argc, char *argv[])
     blmesh->SaveBLMeshAndFreeMemory(ret);
 
     double gen_mesh_end_time = clock();
-    spdlog::info("Average number of layers{}", blmesh->GetAvergeLayer());
+    spdlog::info("Average number of layers = {}", blmesh->GetAvergeLayer());
     double end_time = clock();
 
     spdlog::info("              Mesh infomation    ");
@@ -246,3 +245,4 @@ void main(int argc, char *argv[])
     return ret;
 #endif
 }
+#pragma optimize("", on);
