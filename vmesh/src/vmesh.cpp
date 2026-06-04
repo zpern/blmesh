@@ -24,6 +24,22 @@
 #include <thread>
 using namespace std;
 namespace TiGER {
+
+namespace {
+std::string debugOutputPath(const std::string &output_dir, const std::string &file_name)
+{
+    if (output_dir.empty() || output_dir == "virtualmesh") {
+        return file_name;
+    }
+
+    const char last = output_dir.back();
+    if (last == '/' || last == '\\') {
+        return output_dir + file_name;
+    }
+    return output_dir + "/" + file_name;
+}
+} // namespace
+
 /*type def
 enum EntityTopology
 {
@@ -530,7 +546,7 @@ int API_Gen_Boundary_ALM_Mesh(
     std::array<double, 12> per_matrix /* 周期性面控制矩阵,前9位为旋转矩阵 m00，m01，m02 .... ，后三位为位移向量xyz **/
 )
 {
-    spdlog::info("Version:2026-05-22");
+    spdlog::info("Version:2026-05-24");
     // read input
     vector<vector<int>> bcs;
     bcs.resize(10);
@@ -553,7 +569,7 @@ int API_Gen_Boundary_ALM_Mesh(
 
     // print BoundaryMeshing
     if (b_output_io_file) {
-        ofstream ftest("BoundaryMeshing.txt");
+        ofstream ftest(debugOutputPath(filename, "BoundaryMeshing.txt"));
         ftest.setf(ios::fixed, ios::floatfield); // 设定为 fixed 模式，以小数点表示浮点数
         ftest.precision(17);
         ftest << "nLN: " << nLN << endl;
@@ -569,7 +585,7 @@ int API_Gen_Boundary_ALM_Mesh(
             ftest << i.first << " " << i.second << " " << std::endl;
             ;
         }
-        ftest << "PointsAndCells" << endl;
+        ftest << "PointsAndCells:" << endl;
         ftest << nSF << " " << nSN << " " << endl;
         for (int i = 0; i < nSN; i++) {
             ftest << i + 1 << " " << pdSNC[3 * i + 0] << " " << pdSNC[3 * i + 1] << " " << pdSNC[3 * i + 2] << endl;
@@ -789,6 +805,7 @@ int API_Gen_Boundary_FullLayer_Mesh(
     std::string filename   /* 几何文件名，缺省为virtualmesh **/
 )
 {
+    spdlog::info("Version:2026-06-04");
     vector<vector<int>> bcs;
     bcs.resize(10);
     for (auto i : pnFT) {
@@ -810,7 +827,7 @@ int API_Gen_Boundary_FullLayer_Mesh(
 
     // 输出调试文件
     if (b_output_io_file) {
-        ofstream ftest("BoundaryMeshing.txt");
+        ofstream ftest(debugOutputPath(filename, "BoundaryMeshing.txt"));
         ftest.setf(ios::fixed, ios::floatfield); // 设定为 fixed 模式，以小数点表示浮点数
         ftest.precision(17);
         ftest << "nLN: " << nLN << endl;

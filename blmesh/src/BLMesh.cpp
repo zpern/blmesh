@@ -209,7 +209,6 @@ double BLMesh::GetAvergeLayer() { return m_nPrism * 1.0 / first_layer_FrtNods; }
   *  @see    ReadBoundary(string filename)
 
   */
-
 int BLMesh::SetBoundary(INPUTFORMAT file)
 {
 
@@ -291,7 +290,7 @@ int BLMesh::SetBoundary(INPUTFORMAT file)
 
 #ifdef _CHECK_INTERSECTION
     // intersection data
-    spdlog::info("number of surface element = {}"); // << nelm << endl;
+    spdlog::info("number of surface element = {}", m_nSurfElems); // << nelm << endl;
     m_TriElm.Reserve(10 * nelm);
 
     // m_nTriElm = nelm;
@@ -353,7 +352,6 @@ int BLMesh::SetBoundary(INPUTFORMAT file)
 
         m_pElems[i].nconn = 3;
         nconn = 3;
-
         //*fin >> tmp >> idx0 >> idx1 >> idx2 >> ifc >> bct >> bc1 >> bc2;
 
         m_pElems[i].conn[0] = ele[4 * i + 0];
@@ -481,7 +479,7 @@ int BLMesh::SetBoundary(INPUTFORMAT file)
 #ifdef _CHECK_INTERSECTION
             blFront->SetTriIdx(m_TriElm.GetSize() - 1);
 
-            blFront->SetSurfaceElmIdx(m_TriElm.GetSize() - 1);
+            blFront->SetSurfaceElmIdx(i);
 
             // end of intersection
 #endif
@@ -2763,7 +2761,7 @@ bool BLMesh::IsSymBdryDelete(int i) { return m_pSymBdrys[i].nconn < 0; }
  * @author yhf
  * @note Big function
  */
-
+#pragma optimize("", off);
 void BLMesh::GenerateBLMesh()
 {
     int iLayer = 0, i, nNods, iNod, iNodNew, cnt = 0, nFrtNods;
@@ -2779,6 +2777,7 @@ void BLMesh::GenerateBLMesh()
     double min_height_first_layer = std::numeric_limits<double>::max();
     double max_height_first_layer = std::numeric_limits<double>::lowest();
     double ave_height_first_layer = 0;
+    int nPrismBefore = 0;
     tmts = clock();
 
     if (!cf.layer_num_vec.empty()) {
@@ -2798,7 +2797,7 @@ void BLMesh::GenerateBLMesh()
         }
         // SaveBLMesh(const_cast<char*>((tmp+".vtk").c_str()));
         m_blNxtFList = std::shared_ptr<BLFrontList>(new BLFrontList);
-        cnt = 0;
+        cnt = m_blFrontList->Count();
         m_averUb = 0.0;
 
         tmls = clock();
@@ -2941,9 +2940,10 @@ void BLMesh::GenerateBLMesh()
                 if (id < cf.layer_num_vec.size()) {
                     int target_layer = cf.layer_num_vec[id];
                     double target_length = cf.step_len_vec[id];
+                    double target_ratio = cf.ratio_vec[id];
                     min_layer = std::min(min_layer, target_layer);
                     min_length = std::min(min_length, target_length);
-                    min_ratio = std::min(min_ratio, cf.ratio_vec[id]);
+                    min_ratio = std::min(min_ratio, target_ratio);
                 }
             }
             if (min_layer < 1000000) {
@@ -3482,9 +3482,9 @@ void BLMesh::GenerateBLMesh()
         }
 
         m_blFrontList->RestoreFront();
+        int a = m_blFrontList->Count();
         m_blFrontListAll[iLayer] = m_blFrontList;
         m_blFrontList = m_blNxtFList;
-        int a = m_blFrontList->Count();
 
 #if 0
 		if (m_blType == BLMType::blm3d)
@@ -3525,8 +3525,10 @@ void BLMesh::GenerateBLMesh()
         // m_ocTree->printElement(string("outele.pls"));
         // m_ocTree->printNodeSize();
         // this->SaveBLMesh(const_cast<char*>(("part/"+std::to_string(m_nCurrLayer)+".vtk").c_str()));
-        spdlog::info("finished layer {}, wall-clock time used: {}", iLayer, (tmle - tmls) / CLOCKS_PER_SEC);
 
+        spdlog::info("finished layer {}, wall-clock time used: {}, add prism {}", iLayer, (tmle - tmls) / CLOCKS_PER_SEC,
+                     m_nPrism - nPrismBefore);
+        nPrismBefore = m_nPrism;
         fflush(stdout);
     }
 
@@ -3603,7 +3605,7 @@ void BLMesh::GenerateBLMesh()
 
     // free memory (due to fix)
 }
-
+#pragma optimize("", on);
 int BLMesh::ElmBdryPtCnt(int eidx)
 {
     int i, j, dim = DIM3, pidx[DIM3], cnt;
