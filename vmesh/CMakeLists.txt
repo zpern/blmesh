@@ -1,6 +1,7 @@
 cmake_minimum_required (VERSION 3.5)
 project(vmesh)
 message("building vmesh")
+option(VMESH_BUILD_EXE "Build the local vmesh API test executable" ON)
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 CHECK_CXX_COMPILER_FLAG("-std=c++14" COMPILER_SUPPORTS_CXX14)
@@ -37,6 +38,30 @@ include/vmesh.h
 src/vmesh.cpp
 src/Config.cpp
 )
+
+if(VMESH_BUILD_EXE)
+add_executable(vmesh_main
+src/main.cpp
+)
+
+target_link_libraries(vmesh_main PRIVATE
+vmesh
+libblmesh
+tetgen
+triangle
+2dremesh
+blpre
+libdtiso3d
+libdtiso2d
+libgeom
+meshOrientLib
+libspr
+libMeshChamfer
+DistanceCaculator
+libpostprocess
+)
+set_target_properties(vmesh_main PROPERTIES OUTPUT_NAME vmesh_test)
+endif()
 # if(WIN32)
 # add_executable(test 
 # include/vmesh.h

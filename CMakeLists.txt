@@ -1,8 +1,11 @@
 cmake_minimum_required (VERSION 3.30) 
 project(blmesh)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 if (MSVC)
     # 对于MSVC编译器，可以禁用所有警告
-    add_compile_options(/W0)
+    add_compile_options(/W0 /utf-8)
 elseif (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
     # 对于GNU编译器，可以使用 -w 参数来关闭所有警告
     add_compile_options(-w)
@@ -67,6 +70,18 @@ ENDIF ()
 
 get_directory_property(hasParent PARENT_DIRECTORY)
 
+if(EXISTS ${CMAKE_SOURCE_DIR}/extern)
+include_directories(${CMAKE_SOURCE_DIR}/extern/libigl/include)
+include_directories(${CMAKE_SOURCE_DIR}/extern/eigen)
+include_directories(${CMAKE_SOURCE_DIR}/extern/spdlog/include)
+include_directories(${CMAKE_SOURCE_DIR}/extern/cli11)
+include_directories(${CMAKE_SOURCE_DIR}/extern/geogram/src/lib)
+endif()
+
+include_directories(${CMAKE_SOURCE_DIR}/third/libigl/include)
+include_directories(${CMAKE_SOURCE_DIR}/third/eigen)
+include_directories(${CMAKE_SOURCE_DIR}/third/spdlog/include)
+include_directories(${CMAKE_SOURCE_DIR}/third/cli11)
 
 if(hasParent)
 include_directories(${CMAKE_SOURCE_DIR}/extern/libigl/include)

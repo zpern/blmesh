@@ -5,34 +5,43 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(Windows) 启动",
+            "name": "vmesh_test PGrid_ALM0 (Debug)",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build_vscode/BLMesh/Debug/blmesh.exe",
-            "args": [],
+            "program": "${workspaceFolder}/build/vmesh/Debug/vmesh_test.exe",
+            "args": [
+                "${workspaceFolder}/BoundaryMeshing.txt",
+            ],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/vmesh/testcase/sphere",
+            "cwd": "${workspaceFolder}",
             "environment": [],
             "console": "externalTerminal"
         },
         {
-            "name": "(gdb) Launch",
-            "type": "cppdbg",
+            "name": "vmesh_test PGrid_ALM0 (Release)",
+            "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build_vscode/BLMesh/Debug/blmesh.exe",
-            "args": [],
+            "program": "${workspaceFolder}/build/vmesh/Release/vmesh_test.exe",
+            "args": [
+                "${workspaceFolder}/BoundaryMeshing.txt",
+            ],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/vmesh/testcase/sphere",
+            "cwd": "${workspaceFolder}",
             "environment": [],
-            "externalConsole": false,
-            "MIMode": "gdb",
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ]
+            "console": "externalTerminal"
+        },
+        {
+            "name": "vmesh_test PGrid_ALM0 (RelWithDebInfo)",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/vmesh/RelWithDebInfo/vmesh_test.exe",
+            "args": [
+                "${workspaceFolder}/BoundaryMeshing.txt",
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "console": "externalTerminal"
         }
     ]
 }
