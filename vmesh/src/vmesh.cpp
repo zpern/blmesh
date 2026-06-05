@@ -1052,7 +1052,6 @@ int API_Mesh_Optimize(double *pdMNC, int num_boundary_face, int *boundary_mesh, 
     }
     return 0;
 }
-
 static bool is_point_equal(double *p1, double *p2) { return p1[0] == p2[0] && p1[1] == p2[1] && p1[2] == p2[2]; }
 int API_Mesh_Merge(double *pdMNC1,
                    int nMN1,
