@@ -12,13 +12,13 @@
 
 // 初始化宏保持接口兼容
 #define INIT(TYPE) \
-std::vector<TYPE*> TYPE::memory_pools_ = std::vector<TYPE*>();\
-std::vector<TYPE*> TYPE::extra_buffer_ = std::vector<TYPE*>();\
-std::unordered_set<TYPE*> TYPE::extra_set_ = std::unordered_set<TYPE*>();\
-TYPE* TYPE::buffer_ptr_ = nullptr; \
-size_t TYPE::pool_size_ = 0; \
-thread_local bool TYPE::pool_enabled_ = true;\
-std::mutex TYPE::pool_mutex_;
+template <> std::vector<TYPE*> LightWightMomeryPool<TYPE>::memory_pools_ = std::vector<TYPE*>();\
+template <> std::vector<TYPE*> LightWightMomeryPool<TYPE>::extra_buffer_ = std::vector<TYPE*>();\
+template <> std::unordered_set<TYPE*> LightWightMomeryPool<TYPE>::extra_set_ = std::unordered_set<TYPE*>();\
+template <> TYPE* LightWightMomeryPool<TYPE>::buffer_ptr_ = nullptr; \
+template <> size_t LightWightMomeryPool<TYPE>::pool_size_ = 0; \
+template <> bool LightWightMomeryPool<TYPE>::pool_enabled_ = true;\
+template <> std::mutex LightWightMomeryPool<TYPE>::pool_mutex_ = std::mutex();
 
 /*
 * @author yhf 2021/4/24 (modified)
@@ -111,7 +111,7 @@ public:
     static std::vector<T*> extra_buffer_;
     static std::unordered_set<T*> extra_set_;
     static size_t pool_size_;
-    static thread_local bool pool_enabled_;
+    static bool pool_enabled_;
     static std::mutex pool_mutex_;  // 新增：线程安全锁
 
 private:
