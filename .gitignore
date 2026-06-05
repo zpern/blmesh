@@ -9,7 +9,6 @@ bu/
 .cmake/
 .DS_Store
 
-libigl*/
 geogram*/
 
 *.pls
