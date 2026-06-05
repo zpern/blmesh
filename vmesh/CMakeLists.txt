@@ -40,11 +40,11 @@ src/Config.cpp
 )
 
 if(VMESH_BUILD_EXE)
-add_executable(vmesh_main
+add_executable(vmesh_test
 src/main.cpp
 )
 
-target_link_libraries(vmesh_main PRIVATE
+target_link_libraries(vmesh_test PRIVATE
 vmesh
 libblmesh
 tetgen
@@ -60,7 +60,7 @@ libMeshChamfer
 DistanceCaculator
 libpostprocess
 )
-set_target_properties(vmesh_main PROPERTIES OUTPUT_NAME vmesh_test)
+set_target_properties(vmesh_test PROPERTIES OUTPUT_NAME vmesh_test)
 endif()
 # if(WIN32)
 # add_executable(test 
