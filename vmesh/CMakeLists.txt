@@ -59,6 +59,7 @@ libspr
 libMeshChamfer
 DistanceCaculator
 libpostprocess
+OpenMP::OpenMP_CXX
 )
 set_target_properties(vmesh_test PROPERTIES OUTPUT_NAME vmesh_test)
 endif()
