@@ -120,6 +120,38 @@ namespace
 			{
 				break;
 			}
+			if (key == "variable_para:")
+			{
+				int variable_count = 0;
+				file >> variable_count;
+				if (!file || variable_count < 0)
+				{
+					throw std::runtime_error("Bad variable_para count");
+				}
+
+				input.layer_vec.assign(variable_count, input.nLN);
+				input.length_vec.assign(variable_count, input.dLen);
+				input.ratio_vec.assign(variable_count, input.dRto);
+				for (int i = 0; i < variable_count; ++i)
+				{
+					int index = 0;
+					int layer = 0;
+					double step = 0.0;
+					double ratio = 0.0;
+					file >> index >> layer >> step >> ratio;
+					if (!file || index < 0 || index >= variable_count)
+					{
+						throw std::runtime_error("Bad variable_para entry");
+					}
+
+					input.layer_vec[index] = layer;
+					input.length_vec[index] = step;
+					input.ratio_vec[index] = ratio;
+				}
+
+				file >> key;
+				break;
+			}
 
 			int face_id = 0;
 			try

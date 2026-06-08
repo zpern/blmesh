@@ -38,6 +38,26 @@ std::string debugOutputPath(const std::string &output_dir, const std::string &fi
     }
     return output_dir + "/" + file_name;
 }
+
+void writeVariableBoundaryLayerParameters(std::ostream &out,
+                                          const std::vector<int> &layer_vec,
+                                          const std::vector<double> &length_vec,
+                                          const std::vector<double> &ratio_vec,
+                                          double default_length,
+                                          double default_ratio)
+{
+    if (layer_vec.empty()) {
+        return;
+    }
+
+    out << "variable_para:" << endl;
+    out << layer_vec.size() << endl;
+    for (std::size_t i = 0; i < layer_vec.size(); ++i) {
+        const double length = i < length_vec.size() ? length_vec[i] : default_length;
+        const double ratio = i < ratio_vec.size() ? ratio_vec[i] : default_ratio;
+        out << i << " " << layer_vec[i] << " " << length << " " << ratio << endl;
+    }
+}
 } // namespace
 
 /*type def
@@ -115,7 +135,7 @@ int API_Gen_Boundary_ALM_Mesh(
     std::array<double, 12> per_matrix /* 周期性面控制矩阵,前9位为旋转矩阵 m00，m01，m02 .... ，后三位为位移向量xyz **/
 )
 {
-    spdlog::info("Version:2026-06-04");
+    spdlog::info("Version:2026-06-05");
     // read input
     vector<vector<int>> bcs;
     bcs.resize(10);
@@ -154,6 +174,7 @@ int API_Gen_Boundary_ALM_Mesh(
             ftest << i.first << " " << i.second << " " << std::endl;
             ;
         }
+        writeVariableBoundaryLayerParameters(ftest, layer_vec, length_vec, dRto_vec, dLen, dRto);
         ftest << "PointsAndCells:" << endl;
         ftest << nSF << " " << nSN << " " << endl;
         for (int i = 0; i < nSN; i++) {
@@ -1052,7 +1073,6 @@ int API_Mesh_Optimize(double *pdMNC, int num_boundary_face, int *boundary_mesh, 
     }
     return 0;
 }
-
 static bool is_point_equal(double *p1, double *p2) { return p1[0] == p2[0] && p1[1] == p2[1] && p1[2] == p2[2]; }
 int API_Mesh_Merge(double *pdMNC1,
                    int nMN1,
