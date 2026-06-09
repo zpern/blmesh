@@ -56,6 +56,7 @@ libspr
 libMeshChamfer
 DistanceCaculator
 libpostprocess
+OpenMP::OpenMP_CXX
 )
 
 if(VMESH_BUILD_EXE)
@@ -63,8 +64,7 @@ add_executable(vmesh_test
 src/main.cpp
 )
 
-target_link_libraries(vmesh_test PRIVATE vmesh
-)
+target_link_libraries(vmesh_test PRIVATE vmesh)
 set_target_properties(vmesh_test PROPERTIES OUTPUT_NAME vmesh_test)
 endif()
 # if(WIN32)
