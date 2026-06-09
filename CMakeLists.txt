@@ -41,9 +41,6 @@ endif()
 if(NOT MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
 endif()
-set(CMAKE_DEBUG_POSTFIX "_d")
-set(CMAKE_RELEASE_POSTFIX "_r")
-set(CMAKE_RELWITHDEBINFO_POSTFIX "_r")
 option(build_test "build google test" ON)
 
 
