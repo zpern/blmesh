@@ -28,7 +28,7 @@ include_directories(./testcase/include)
 link_directories(${PROJECT_SOURCE_DIR}/../tiger/lib)
 link_directories(${PROJECT_BINARY_DIR}/../lib)
 
-add_library(vmesh STATIC
+add_library(vmesh SHARED
 ../blmesh/include/blmeshapi.h
 ../BLPre/include/blpre.h
 include/Config.h
@@ -39,13 +39,9 @@ src/vmesh.cpp
 src/Config.cpp
 )
 
-if(VMESH_BUILD_EXE)
-add_executable(vmesh_test
-src/main.cpp
-)
+target_compile_definitions(vmesh PRIVATE VMESH_EXPORTS)
 
-target_link_libraries(vmesh_test PRIVATE
-vmesh
+target_link_libraries(vmesh PUBLIC
 libblmesh
 tetgen
 triangle
@@ -59,6 +55,14 @@ libspr
 libMeshChamfer
 DistanceCaculator
 libpostprocess
+)
+
+if(VMESH_BUILD_EXE)
+add_executable(vmesh_test
+src/main.cpp
+)
+
+target_link_libraries(vmesh_test PRIVATE vmesh
 )
 set_target_properties(vmesh_test PROPERTIES OUTPUT_NAME vmesh_test)
 endif()

@@ -7,12 +7,14 @@
 #include <string>
 #include <vector>
 
-#ifdef Tiger_EXPORTS
-#define Tiger_API
-#define Tiger_API __declspec(dllexport)
+#if defined(_WIN32)
+#ifdef VMESH_EXPORTS
+#define VMESH_API __declspec(dllexport)
 #else
-#define Tiger_API
-#define Tiger_API __declspec(dllimport)
+#define VMESH_API __declspec(dllimport)
+#endif
+#else
+#define VMESH_API
 #endif
 
 namespace TiGER {
@@ -34,9 +36,9 @@ enum EntityTopology {
 /**
  * @brife: you could call this function by anthor thread for emergency stop
  ***/
-void API_Terminate();
+VMESH_API void API_Terminate();
 
-int API_Gen_Vol_Mesh(
+VMESH_API int API_Gen_Vol_Mesh(
     /* ------------------------- 输入参数 --------------------------**/
     double *pdSNC,                  /* 曲面网格节点坐标，coord[3*i], coord[3*i+1], coord[3*i+2]为第i个节点x,y,z坐标 **/
     int nSN,                        /* 曲面网格边界节点数目 **/
@@ -72,7 +74,7 @@ int API_Gen_Vol_Mesh(
     double expan_beta = 1.2 /* 尺寸过渡因子**/
 
 );
-int API_Gen_Tetra_Mesh(
+VMESH_API int API_Gen_Tetra_Mesh(
 
     /* ------------------------- 输入参数 --------------------------**/
     double *pdSNC, /* 曲面网格节点坐标，coord[3*i], coord[3*i+1], coord[3*i+2]为第i个节点x,y,z坐标 **/
@@ -97,7 +99,7 @@ int API_Gen_Tetra_Mesh(
     double expan_beta = 1.2 /* 尺寸过渡因子**/
 );
 
-int API_Gen_Boundary_ALM_Mesh(
+VMESH_API int API_Gen_Boundary_ALM_Mesh(
     /* ------------------------- 输入参数 --------------------------**/
     double *pdSNC,                    /* 曲面网格节点坐标，coord[3*i], coord[3*i+1],coord[3*i+2]为第i个节点x,y,z坐标 **/
     int nSN,                          /* 曲面网格边界节点数目 **/
@@ -145,7 +147,7 @@ int API_Gen_Boundary_ALM_Mesh(
         std::array<double, 12>()          /* 周期性面控制矩阵,�?位为旋转矩阵 m00，m01，m02 ....，后三位为位移向量xyz**/
 );
 
-int API_Gen_Boundary_FullLayer_Mesh(
+VMESH_API int API_Gen_Boundary_FullLayer_Mesh(
     /* ------------------------- 输入参数 --------------------------**/
     int multiple_numlayer,       /* 多法向层�?**/
     double multiple_steplength,  /* 多法向步�?**/
@@ -186,7 +188,7 @@ int API_Gen_Boundary_FullLayer_Mesh(
     std::string filename   /* 几何文件名，缺省为virtualmesh **/
 );
 
-int API_Mesh_Optimize(
+VMESH_API int API_Mesh_Optimize(
     /* ------------------------- 输入输出参数 -------------------------**/
     double *pdMNC,         /* 体网格节点坐�?**/
     int num_boundary_face, /*边界面网格数�?**/
@@ -198,7 +200,7 @@ int API_Mesh_Optimize(
     int nME                /* 体网格单元数�?**/
 );
 
-int API_Mesh_Merge(
+VMESH_API int API_Mesh_Merge(
     /* ------------------------- 输入输出参数 -------------------------**/
     double *pdMNC1, /* 体网格节点坐�?**/
     int nMN1,       /* 体网格节点数�?**/
